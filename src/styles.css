@@ -509,3 +509,14 @@ button { color:inherit; }
   }
 }
 
+/* Mobile hero framing refinement — 2026-09-10 */
+@media (max-width:760px) {
+  .hero__content {
+    bottom:170px;
+    padding-bottom:0;
+  }
+
+  .hero__media img:nth-child(3) {
+    object-position:78% center;
+  }
+}

@@ -141,7 +141,7 @@ export function App() {
             <p>Quelques organisations avec lesquelles nous avons eu le privilège de travailler.</p>
           </div>
           <div className="client-trust__names" aria-label="Organisations clientes">
-            {['ITUM', 'Ville de Sept-Îles', 'Chambre de commerce', 'Rio Tinto', 'Métal 7'].map((client) => <span key={client}>{client}</span>)}
+            {['ITUM', 'Ville de Sept-Îles', 'Chambre de commerce de Sept-Îles–Port-Cartier', 'Rio Tinto', 'Métal 7'].map((client) => <span key={client}>{client}</span>)}
           </div>
         </section>
 

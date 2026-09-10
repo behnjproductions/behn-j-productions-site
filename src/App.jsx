@@ -127,7 +127,7 @@ export function App() {
         </section>
 
         <section id="ecoles" className="school-feature">
-          <img src="/assets/school-classroom.png" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">04</div>
+          <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">04</div>
           <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><CTAButton href={BRAND.schoolPortal}>Ouvrir l’espace scolaire</CTAButton></div>
           <p className="school-feature__note">Portraits modernes, authentiques<br />et de grande qualité.</p>
         </section>

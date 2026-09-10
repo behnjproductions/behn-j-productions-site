@@ -45,7 +45,38 @@ function Header({ onOpenContact }) {
 
 function ProjectModal({ open, onClose }) {
   const [sent, setSent] = useState(false);
-  useEffect(() => { if (!open) setSent(false); }, [open]);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (!open) {
+      setSent(false);
+      setSending(false);
+      setError('');
+    }
+  }, [open]);
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setSending(true);
+    setError('');
+    const formData = new FormData(event.currentTarget);
+    formData.set('form-name', 'project-contact');
+
+    try {
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(formData).toString(),
+      });
+      if (!response.ok) throw new Error('Envoi impossible');
+      setSent(true);
+    } catch {
+      setError("Un problème est survenu. Réessayez ou écrivez-nous à contact@behnjphoto.com.");
+    } finally {
+      setSending(false);
+    }
+  }
+
   if (!open) return null;
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
@@ -55,23 +86,19 @@ function ProjectModal({ open, onClose }) {
           <p className="eyebrow">Votre histoire commence ici</p>
           <h2 id="modal-title">Parlons de votre projet.</h2>
           <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>
-          <form onSubmit={(event) => {
-            event.preventDefault();
-            const form = new FormData(event.currentTarget);
-            const subject = `Projet ${form.get('type')} — ${form.get('name')}`;
-            const body = `Nom : ${form.get('name')}\nCourriel : ${form.get('email')}\nService : ${form.get('type')}\n\n${form.get('message')}`;
-            window.location.href = `mailto:${BRAND.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            setSent(true);
-          }}>
+          <form name="project-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
+            <input type="hidden" name="form-name" value="project-contact" />
+            <p hidden><label>Ne pas remplir : <input name="bot-field" /></label></p>
             <label>Votre nom<input name="name" required placeholder="Nom complet" /></label>
             <label>Votre courriel<input name="email" type="email" required placeholder="vous@exemple.ca" /></label>
-            <label>Type de projet<select name="type" defaultValue=""><option value="" disabled>Choisir un service</option><option>Photographie corporative</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option></select></label>
+            <label>Type de projet<select name="type" defaultValue="" required><option value="" disabled>Choisir un service</option><option>Photographie corporative</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option></select></label>
             <label>Parlez-moi de votre idée<textarea name="message" required rows="4" placeholder="Date, lieu, ambiance et ce que vous souhaitez créer…" /></label>
-            <button className="button modal-submit" type="submit">Envoyer ma demande <ArrowRight size={18} weight="bold" /></button>
+            {error && <p className="form-error" role="alert">{error}</p>}
+            <button className="button modal-submit" type="submit" disabled={sending}>{sending ? 'Envoi en cours…' : 'Envoyer ma demande'} {!sending && <ArrowRight size={18} weight="bold" />}</button>
           </form>
         </> : <div className="success-state">
-          <p className="eyebrow">Message reçu</p><h2>Merci. Votre histoire est déjà en mouvement.</h2>
-          <p>Votre application courriel s’est ouverte avec votre demande déjà préparée. Il ne reste qu’à l’envoyer à {BRAND.email}.</p>
+          <p className="eyebrow">Demande envoyée</p><h2>Merci. Votre histoire est déjà en mouvement.</h2>
+          <p>Votre demande a bien été transmise à Behn J. Productions. Nous vous répondrons dans les meilleurs délais.</p>
           <button className="button" type="button" onClick={onClose}>Continuer la visite <ArrowRight size={18} /></button>
         </div>}
       </section>

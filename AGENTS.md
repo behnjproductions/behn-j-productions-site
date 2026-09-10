@@ -21,3 +21,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - A dedicated “Ils nous font confiance” section follows the testimonial and names ITUM, Ville de Sept-Îles, Chambre de commerce de Sept-Îles–Port-Cartier, Rio Tinto, and Métal 7.
 - The school section uses Behn J. Productions’ own family student portraits with the existing cinematic red-and-yellow treatment; do not substitute stock children.
 - The Diffusion web chapter includes four priority live-streaming markets: colloquia/conferences, sports, general/community assemblies, and municipal/public consultations.
+
+- On mobile, keep the hero copy noticeably higher over the corporate portrait (around chest level), and bias the event image crop toward the singer so the performer remains visible.

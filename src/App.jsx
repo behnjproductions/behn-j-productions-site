@@ -3,7 +3,7 @@ import { ArrowRight, FacebookLogo, InstagramLogo, List, Play, X, YoutubeLogo } f
 
 const BRAND = {
   email: 'contact@behnjphoto.com',
-  schoolPortal: 'https://ecole.behnjphotos.ca',
+  schoolPortal: 'https://behnjphotos.ca',
   facebook: 'https://www.facebook.com/share/1P2sLfxUaz/?mibextid=wwXIfr',
 };
 

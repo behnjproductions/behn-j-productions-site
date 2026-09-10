@@ -399,6 +399,19 @@ button { color:inherit; }
   color:var(--gold);
   background:rgba(255,182,4,.055);
 }
+.client-trust__chamber {
+  display:flex!important;
+  flex-direction:column;
+  gap:9px;
+}
+.client-trust__chamber strong {
+  font:inherit;
+}
+.client-trust__chamber small {
+  color:rgba(255,255,255,.62);
+  font:700 clamp(11px,1vw,14px)/1.2 Arial,sans-serif;
+  letter-spacing:.14em;
+}
 @media (max-width:760px) {
   .client-trust {
     grid-template-columns:1fr;

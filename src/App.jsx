@@ -3,6 +3,8 @@ import { ArrowRight, FacebookLogo, InstagramLogo, List, Play, X, YoutubeLogo } f
 
 const BRAND = {
   email: 'contact@behnjphoto.com',
+  phone: '514 458-4730',
+  phoneHref: 'tel:+15144584730',
   schoolPortal: 'https://behnjphotos.ca',
   facebook: 'https://www.facebook.com/share/1P2sLfxUaz/?mibextid=wwXIfr',
 };
@@ -35,7 +37,10 @@ function Header({ onOpenContact }) {
       <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Navigation principale">
         {NAV.map(([label, id]) => <button key={id} type="button" onClick={() => { scrollToSection(id); setMenuOpen(false); }}>{label}</button>)}
       </nav>
-      <button className="header-cta" type="button" onClick={onOpenContact}>Parler de mon projet</button>
+      <div className="header-actions">
+        <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
+        <button className="header-cta" type="button" onClick={onOpenContact}>Parler de mon projet</button>
+      </div>
       <button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
         {menuOpen ? <X size={26} /> : <List size={28} />}
       </button>
@@ -89,10 +94,12 @@ function ProjectModal({ open, onClose }) {
           <form name="project-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
             <input type="hidden" name="form-name" value="project-contact" />
             <p hidden><label>Ne pas remplir : <input name="bot-field" /></label></p>
-            <label>Votre nom<input name="name" required placeholder="Nom complet" /></label>
+            <label>Votre nom ou entreprise<input name="name" required placeholder="Nom complet ou entreprise" /></label>
             <label>Votre courriel<input name="email" type="email" required placeholder="vous@exemple.ca" /></label>
-            <label>Type de projet<select name="type" defaultValue="" required><option value="" disabled>Choisir un service</option><option>Photographie corporative</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option></select></label>
-            <label>Parlez-moi de votre idée<textarea name="message" required rows="4" placeholder="Date, lieu, ambiance et ce que vous souhaitez créer…" /></label>
+            <label>Votre téléphone (optionnel)<input name="phone" type="tel" placeholder="514 000-0000" /></label>
+            <label>Date envisagée (optionnel)<input name="date" type="date" /></label>
+            <label>Type de projet<select name="type" defaultValue="" required><option value="" disabled>Choisir un service</option><option>Corporatif / Institutionnel</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option></select></label>
+            <label>Parlez-moi de votre idée<textarea name="message" required rows="4" placeholder="Lieu, ambiance et ce que vous souhaitez créer…" /></label>
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="button modal-submit" type="submit" disabled={sending}>{sending ? 'Envoi en cours…' : 'Envoyer ma demande'} {!sending && <ArrowRight size={18} weight="bold" />}</button>
           </form>
@@ -167,7 +174,7 @@ export function App() {
           <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><CTAButton href={BRAND.schoolPortal}>Ouvrir l’espace scolaire</CTAButton></div>
         </section>
 
-        <section className="trust"><blockquote><p>« Un regard humain, une présence rassurante et des images qui racontent vraiment notre histoire. »</p><footer>— Une expérience pensée pour les gens d’ici</footer></blockquote><div className="local-pride"><span>Fiers de la Côte-Nord</span><strong>Nos gens.<br />Nos paysages.<br />Notre lumière.</strong></div></section>
+        <section className="trust"><blockquote><p>« Bon photographe. Il a vraiment pris le temps avec moi pour essayer plusieurs poses. »</p><footer>— Jesse Robitaille, avis Google ★★★★★</footer></blockquote><div className="local-pride"><span>Fiers de la Côte-Nord</span><strong>Nos gens.<br />Nos paysages.<br />Notre lumière.</strong></div></section>
 
         <section className="client-trust" aria-labelledby="client-trust-title">
           <div className="client-trust__intro">
@@ -187,7 +194,7 @@ export function App() {
         <section id="contact" className="closing"><img src="/assets/coast-footer.png" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button></div><div className="socials" aria-label="Réseaux sociaux"><a href="#instagram" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a><a href="#youtube" aria-label="YouTube"><YoutubeLogo /></a></div></footer>
+      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button></div><div className="socials" aria-label="Réseaux sociaux"><a href="#instagram" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a><a href="#youtube" aria-label="YouTube"><YoutubeLogo /></a></div></footer>
       <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );

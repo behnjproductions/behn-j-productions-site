@@ -17,6 +17,9 @@ button { color:inherit; }
 .main-nav button { position:relative; }
 .main-nav button::after { content:''; position:absolute; left:0; right:100%; bottom:0; height:2px; background:var(--gold); transition:right .2s ease; }
 .main-nav button:hover::after,.main-nav button:focus-visible::after { right:0; }
+.header-actions { display:flex; align-items:center; gap:18px; justify-self:end; }
+.header-phone { color:#f7f0e6; font-size:15px; font-weight:600; text-decoration:none; white-space:nowrap; letter-spacing:.02em; }
+.header-phone:hover { color:var(--gold); }
 .header-cta { border:1px solid var(--gold); background:rgba(0,0,0,.35); padding:12px 18px; color:var(--gold); cursor:pointer; transition:.2s ease; }
 .header-cta:hover { background:var(--gold); color:var(--ink); }
 .menu-toggle { display:none; border:0; background:transparent; }
@@ -112,7 +115,7 @@ button { color:inherit; }
 .success-state { padding:35px 0; }
 .success-state p:not(.eyebrow) { color:rgba(255,255,255,.72); font-size:18px; line-height:1.5; }
 
-@media (max-width:1040px) { .site-header{grid-template-columns:170px 1fr auto}.main-nav{gap:14px}.main-nav button{font-size:13px}.header-cta{display:none}.chapter{grid-template-columns:125px 280px 1fr}.chapter__heading h2{font-size:48px}.chapter--media{grid-template-columns:125px 1fr}.school-feature__content{width:500px;padding-left:17vw} }
+@media (max-width:1040px) { .site-header{grid-template-columns:170px 1fr auto}.main-nav{gap:14px}.main-nav button{font-size:13px}.header-actions{display:none}.chapter{grid-template-columns:125px 280px 1fr}.chapter__heading h2{font-size:48px}.chapter--media{grid-template-columns:125px 1fr}.school-feature__content{width:500px;padding-left:17vw} }
 
 @media (max-width:760px) {
   .site-header{height:72px;grid-template-columns:1fr auto;padding:6px 18px;background:rgba(5,5,5,.92)}.brand img{width:128px;height:58px}.menu-toggle{display:grid;place-items:center;cursor:pointer}.main-nav{position:fixed;inset:72px 0 auto;display:none;flex-direction:column;gap:0;padding:18px;background:rgba(5,5,5,.98);border-bottom:1px solid #332c27}.main-nav--open{display:flex}.main-nav button{padding:15px;text-align:left;font-size:18px}

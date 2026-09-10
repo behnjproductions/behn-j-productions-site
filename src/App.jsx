@@ -129,7 +129,6 @@ export function App() {
         <section id="ecoles" className="school-feature">
           <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">04</div>
           <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><CTAButton href={BRAND.schoolPortal}>Ouvrir l’espace scolaire</CTAButton></div>
-          <p className="school-feature__note">Portraits modernes, authentiques<br />et de grande qualité.</p>
         </section>
 
         <section className="trust"><blockquote><p>« Un regard humain, une présence rassurante et des images qui racontent vraiment notre histoire. »</p><footer>— Une expérience pensée pour les gens d’ici</footer></blockquote><div className="local-pride"><span>Fiers de la Côte-Nord</span><strong>Nos gens.<br />Nos paysages.<br />Notre lumière.</strong></div></section>

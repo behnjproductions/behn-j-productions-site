@@ -124,6 +124,15 @@ export function App() {
           <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" /><div className="media-shade" />
           <div className="chapter__number"><strong>03</strong><span>Une plus grande<br />portée pour vos histoires.</span></div>
           <div className="media-copy"><p className="eyebrow">Création · Stratégie · Réseaux sociaux</p><h2>Diffusion web</h2><p>Vos images. Plus loin.<br />Sur toutes les plateformes.</p><CTAButton secondary onClick={() => setContactOpen(true)}>Stratégie et diffusion</CTAButton></div>
+          <aside className="media-markets" aria-label="Événements disponibles en diffusion en direct">
+            <p>Diffusion en direct</p>
+            <ol>
+              <li><span>01</span>Colloques, congrès et conférences</li>
+              <li><span>02</span>Jeux sportifs, tournois et championnats</li>
+              <li><span>03</span>Assemblées générales et rencontres communautaires</li>
+              <li><span>04</span>Conseils municipaux et consultations publiques</li>
+            </ol>
+          </aside>
         </section>
 
         <section id="ecoles" className="school-feature">

@@ -20,3 +20,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Mobile should preserve the cinematic desktop hierarchy: all three hero images remain visible, media chapters stay full-bleed, and photography cards use touch-friendly horizontal scroll.
 - A dedicated “Ils nous font confiance” section follows the testimonial and names ITUM, Ville de Sept-Îles, Chambre de commerce de Sept-Îles–Port-Cartier, Rio Tinto, and Métal 7.
 - The school section uses Behn J. Productions’ own family student portraits with the existing cinematic red-and-yellow treatment; do not substitute stock children.
+- The Diffusion web chapter includes four priority live-streaming markets: colloquia/conferences, sports, general/community assemblies, and municipal/public consultations.

@@ -517,6 +517,6 @@ button { color:inherit; }
   }
 
   .hero__media img:nth-child(3) {
-    object-position:78% center;
+    object-position:100% center;
   }
 }

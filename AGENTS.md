@@ -18,3 +18,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Portfolio imagery is stored as individual files so each photograph can be replaced independently.
 
 - Mobile should preserve the cinematic desktop hierarchy: all three hero images remain visible, media chapters stay full-bleed, and photography cards use touch-friendly horizontal scroll.
+- A dedicated “Ils nous font confiance” section follows the testimonial and names ITUM, Ville de Sept-Îles, Chambre de commerce, Rio Tinto, and Métal 7.

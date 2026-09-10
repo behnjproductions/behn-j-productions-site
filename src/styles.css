@@ -331,3 +331,96 @@ button { color:inherit; }
     justify-content:center;
   }
 }
+
+/* Client confidence — understated premium wordmarks */
+.client-trust {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(280px,.9fr) minmax(0,1.6fr);
+  gap:clamp(40px,7vw,110px);
+  align-items:center;
+  padding:clamp(58px,7vw,96px) clamp(28px,8vw,140px);
+  overflow:hidden;
+  border-top:1px solid rgba(255,182,4,.2);
+  border-bottom:1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 88% 18%,rgba(255,182,4,.12),transparent 34%),
+    linear-gradient(130deg,#070707 0%,#11100e 62%,#180805 100%);
+}
+.client-trust::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:clamp(28px,8vw,140px);
+  width:92px;
+  height:4px;
+  background:var(--gold);
+}
+.client-trust__intro { position:relative; z-index:1; }
+.client-trust__intro h2 {
+  margin:0;
+  font:400 clamp(40px,4.4vw,66px)/.98 var(--display);
+  text-transform:uppercase;
+}
+.client-trust__intro>p:last-child {
+  max-width:420px;
+  margin:20px 0 0;
+  color:rgba(255,255,255,.64);
+  font-size:17px;
+  line-height:1.55;
+}
+.client-trust__names {
+  position:relative;
+  z-index:1;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  border-top:1px solid rgba(255,255,255,.16);
+  border-left:1px solid rgba(255,255,255,.16);
+}
+.client-trust__names span {
+  min-height:112px;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  border-right:1px solid rgba(255,255,255,.16);
+  border-bottom:1px solid rgba(255,255,255,.16);
+  color:#fff;
+  font:400 clamp(21px,2.1vw,31px)/1.1 var(--display);
+  letter-spacing:.035em;
+  text-align:center;
+  text-transform:uppercase;
+  transition:color .2s ease,background .2s ease;
+}
+.client-trust__names span:last-child {
+  grid-column:1/-1;
+  color:var(--gold);
+}
+.client-trust__names span:hover {
+  color:var(--gold);
+  background:rgba(255,182,4,.055);
+}
+@media (max-width:760px) {
+  .client-trust {
+    grid-template-columns:1fr;
+    gap:36px;
+    padding:62px 22px 54px;
+    text-align:center;
+  }
+  .client-trust::before {
+    left:50%;
+    transform:translateX(-50%);
+  }
+  .client-trust__intro>p:last-child {
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .client-trust__names {
+    grid-template-columns:1fr;
+  }
+  .client-trust__names span,
+  .client-trust__names span:last-child {
+    grid-column:auto;
+    min-height:82px;
+  }
+}
+

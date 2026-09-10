@@ -134,6 +134,17 @@ export function App() {
 
         <section className="trust"><blockquote><p>« Un regard humain, une présence rassurante et des images qui racontent vraiment notre histoire. »</p><footer>— Une expérience pensée pour les gens d’ici</footer></blockquote><div className="local-pride"><span>Fiers de la Côte-Nord</span><strong>Nos gens.<br />Nos paysages.<br />Notre lumière.</strong></div></section>
 
+        <section className="client-trust" aria-labelledby="client-trust-title">
+          <div className="client-trust__intro">
+            <p className="eyebrow">Ils nous font confiance</p>
+            <h2 id="client-trust-title">Des relations bâties<br />sur la confiance.</h2>
+            <p>Quelques organisations avec lesquelles nous avons eu le privilège de travailler.</p>
+          </div>
+          <div className="client-trust__names" aria-label="Organisations clientes">
+            {['ITUM', 'Ville de Sept-Îles', 'Chambre de commerce', 'Rio Tinto', 'Métal 7'].map((client) => <span key={client}>{client}</span>)}
+          </div>
+        </section>
+
         <section id="contact" className="closing"><img src="/assets/coast-footer.png" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 

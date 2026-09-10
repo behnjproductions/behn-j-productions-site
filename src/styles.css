@@ -198,3 +198,136 @@ button { color:inherit; }
   .hero__media img:nth-child(3) { object-position:50% center; }
   .photo-triptych button { min-height:0; background:#080808!important; }
 }
+
+
+/* Mobile cinematic parity — 2026-09-10 */
+@media (max-width:760px) {
+  .hero {
+    min-height:780px;
+    display:block;
+    padding-top:72px;
+  }
+  .hero__media {
+    top:72px;
+    bottom:auto;
+    height:52%;
+    grid-template-columns:1.04fr .92fr 1.04fr;
+  }
+  .hero__media img {
+    border-right-color:rgba(255,255,255,.22);
+  }
+  .hero__shade {
+    background:
+      linear-gradient(180deg,rgba(0,0,0,.08) 9%,rgba(0,0,0,.12) 38%,rgba(0,0,0,.95) 58%,#080808 100%),
+      linear-gradient(90deg,rgba(159,18,4,.12),transparent 50%,rgba(255,182,4,.08));
+  }
+  .hero__content {
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    text-align:center;
+    padding:0 20px 54px;
+  }
+  .hero h1 {
+    font-size:clamp(56px,16.5vw,76px);
+    line-height:.92;
+  }
+  .hero__lead {
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:15px 0 22px;
+    font-size:17px;
+  }
+  .hero__actions {
+    justify-content:center;
+    align-items:stretch;
+    max-width:360px;
+    margin:0 auto;
+  }
+  .hero__actions .button,
+  .hero__actions .showreel {
+    width:100%;
+  }
+  .hero__scroll { display:none; }
+
+  .chapter--photo .chapter__number {
+    background:linear-gradient(90deg,#090909,#14100e);
+  }
+  .chapter__heading {
+    padding:34px 22px 30px;
+  }
+  .photo-triptych {
+    min-height:500px;
+    display:flex;
+    grid-template-columns:none;
+    grid-template-rows:none;
+    gap:12px;
+    padding:0 22px 22px;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scroll-padding:22px;
+    scrollbar-width:none;
+  }
+  .photo-triptych::-webkit-scrollbar { display:none; }
+  .photo-triptych button {
+    flex:0 0 min(84vw,360px);
+    min-height:478px;
+    border:1px solid rgba(255,255,255,.22);
+    scroll-snap-align:center;
+  }
+  .photo-triptych__label {
+    padding:22px 18px;
+  }
+
+  .chapter--media {
+    min-height:700px;
+  }
+  .chapter--media .chapter__number {
+    position:absolute;
+    z-index:4;
+    inset:0 0 auto;
+    min-height:126px;
+    background:linear-gradient(180deg,rgba(4,4,4,.92),rgba(4,4,4,.3));
+    border-bottom:0;
+  }
+  .chapter--media>img {
+    object-position:62% center;
+  }
+  .chapter--diffusion>img {
+    object-position:58% center;
+  }
+  .media-copy {
+    min-height:700px;
+    padding:280px 22px 44px;
+    text-align:center;
+    align-items:center;
+  }
+  .media-copy>p {
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .school-feature__content {
+    text-align:center;
+  }
+  .school-feature__content .button {
+    width:min(100%,340px);
+  }
+  .closing {
+    place-items:end center;
+    text-align:center;
+  }
+  .closing__content {
+    width:100%;
+    padding:0 22px 46px;
+  }
+  .footer {
+    justify-items:center;
+    text-align:center;
+  }
+  .footer-links {
+    justify-content:center;
+  }
+}

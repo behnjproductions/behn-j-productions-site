@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, FacebookLogo, InstagramLogo, List, Play, X, YoutubeLogo } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, List, Play, X, YoutubeLogo } from '@phosphor-icons/react';
 
 const BRAND = {
   email: 'contact@behnjphoto.com',
@@ -11,7 +11,7 @@ const BRAND = {
 
 const NAV = [
   ['Accueil', 'accueil'], ['Photographie', 'photographie'], ['Vidéo', 'video'],
-  ['Diffusion web', 'diffusion'], ['Écoles', 'ecoles'], ['Contact', 'contact'],
+  ['Diffusion web', 'diffusion'], ['Écoles', 'ecoles'], ['Séances', 'seances'], ['Contact', 'contact'],
 ];
 
 function scrollToSection(id) {
@@ -48,7 +48,57 @@ function Header({ onOpenContact }) {
   );
 }
 
-function ProjectModal({ open, onClose, onOpenPrivacy }) {
+const SESSIONS = [
+  { id: 'maternite', name: 'Maternité', price: 175, duration: '45 minutes', photos: 8, img: '/assets/sessions/maternite.jpg' },
+  { id: 'bebe', name: 'Bébé / nouveau-né', price: 175, duration: '45 minutes', photos: 8, img: '/assets/sessions/bebe.jpg' },
+  { id: 'famille', name: 'Famille', price: 175, duration: '45 minutes', photos: 8, img: '/assets/sessions/famille.jpg' },
+  { id: 'anniversaire', name: 'Anniversaire', price: 175, duration: '45 minutes', photos: 8, img: '/assets/sessions/anniversaire.jpg' },
+  { id: 'finissants', name: 'Bal de finissants', price: 250, duration: '30 minutes', photos: 15, img: '/assets/sessions/finissants.jpg', note: 'Le lieu et les poses sont choisis à l’avance avec vous, afin d’optimiser chaque minute de la séance.' },
+];
+
+function SessionsModal({ open, onClose, onBook }) {
+  const [selected, setSelected] = useState(null);
+  useEffect(() => { if (!open) setSelected(null); }, [open]);
+  if (!open) return null;
+  const session = SESSIONS.find((s) => s.id === selected);
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section className="modal sessions-modal" role="dialog" aria-modal="true" aria-labelledby="sessions-title" onMouseDown={(event) => event.stopPropagation()}>
+        <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer"><X size={24} /></button>
+
+        {!session ? <>
+          <p className="eyebrow">Choisis ton moment</p>
+          <h2 id="sessions-title" className="legal-title">Explorer nos séances.</h2>
+          <p className="modal-intro">Un aperçu du tarif et du style. Clique sur une séance pour voir tous les détails.</p>
+          <div className="sessions-grid">
+            {SESSIONS.map((s) => (
+              <button key={s.id} type="button" className="session-card" onClick={() => setSelected(s.id)}>
+                <img src={s.img} alt={s.name} />
+                <span className="session-card__name">{s.name}</span>
+                <span className="session-card__price">À partir de {s.price} $</span>
+              </button>
+            ))}
+          </div>
+        </> : <div className="session-detail">
+          <button className="session-back" type="button" onClick={() => setSelected(null)}><ArrowLeft size={18} /> Toutes les séances</button>
+          <img src={session.img} alt={session.name} />
+          <h2 className="legal-title">{session.name}</h2>
+          <p className="session-detail__price">{session.price} $ — séance unique</p>
+          <ul className="session-detail__list">
+            <li>{session.photos} photos retouchées</li>
+            <li>Séance d’environ {session.duration}</li>
+            <li>Galerie privée en ligne</li>
+          </ul>
+          {session.note && <p className="session-detail__note">{session.note}</p>}
+          <button className="button" type="button" onClick={() => onBook(session.name)}>Réserver cette séance <ArrowRight size={18} /></button>
+        </div>}
+      </section>
+    </div>
+  );
+}
+
+function ProjectModal({ open, onClose, onOpenPrivacy, prefillType }) {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -98,7 +148,7 @@ function ProjectModal({ open, onClose, onOpenPrivacy }) {
             <label>Votre courriel<input name="email" type="email" required placeholder="vous@exemple.ca" /></label>
             <label>Votre téléphone (optionnel)<input name="phone" type="tel" placeholder="514 000-0000" /></label>
             <label>Date envisagée (optionnel)<input name="date" type="date" /></label>
-            <label>Type de projet<select name="type" defaultValue="" required><option value="" disabled>Choisir un service</option><option>Corporatif / Institutionnel</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option></select></label>
+            <label>Type de projet<select name="type" defaultValue={prefillType || ''} required><option value="" disabled>Choisir un service</option><option>Corporatif / Institutionnel</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option><option>Maternité</option><option>Bébé / nouveau-né</option><option>Famille</option><option>Anniversaire</option><option>Bal de finissants</option></select></label>
             <label>Parlez-moi de votre idée<textarea name="message" required rows="4" placeholder="Lieu, ambiance et ce que vous souhaitez créer…" /></label>
             <div className="privacy-consent">
               <input id="privacy-consent" name="privacy-consent" type="checkbox" value="accepted" required />
@@ -153,6 +203,8 @@ function PrivacyModal({ open, onClose }) {
 export function App() {
   const [contactOpen, setContactOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [prefillType, setPrefillType] = useState('');
   return (
     <div className="site-shell">
       <Header onOpenContact={() => setContactOpen(true)} />
@@ -212,6 +264,16 @@ export function App() {
           <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><CTAButton href={BRAND.schoolPortal}>Ouvrir l’espace scolaire</CTAButton></div>
         </section>
 
+        <section id="seances" className="sessions-teaser">
+          <p className="eyebrow">Choisis ton moment. Je m’occupe du reste.</p>
+          <h2>Séances photo.</h2>
+          <p>Maternité, bébé, famille, anniversaire ou bal de finissants — des séances simples à réserver, avec un tarif clair dès le départ.</p>
+          <div className="sessions-teaser__actions">
+            <CTAButton onClick={() => { setPrefillType(''); setContactOpen(true); }}>Réserver en ligne</CTAButton>
+            <button className="sessions-teaser__explore" type="button" onClick={() => setSessionsOpen(true)}>Explorer nos séances <ArrowRight size={18} /></button>
+          </div>
+        </section>
+
         <section className="trust"><blockquote><p>« Bon photographe. Il a vraiment pris le temps avec moi pour essayer plusieurs poses. »</p><footer>— Jesse Robitaille, avis Google ★★★★★</footer></blockquote><div className="local-pride"><span>Fiers de la Côte-Nord</span><strong>Nos gens.<br />Nos paysages.<br />Notre lumière.</strong></div></section>
 
         <section className="client-trust" aria-labelledby="client-trust-title">
@@ -229,12 +291,13 @@ export function App() {
           </div>
         </section>
 
-        <section id="contact" className="closing"><img src="/assets/coast-footer.png" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
+        <section id="contact" className="closing"><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
       <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('diffusion')}>Diffusion web</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button><button onClick={() => scrollToSection('contact')}>Contact</button><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href="#instagram" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a><a href="#youtube" aria-label="YouTube"><YoutubeLogo /></a></div></footer>
-      <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} />
+      <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} prefillType={prefillType} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); setPrefillType(name); setContactOpen(true); }} />
     </div>
   );
 }

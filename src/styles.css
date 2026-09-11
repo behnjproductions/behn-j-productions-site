@@ -80,6 +80,40 @@ button { color:inherit; }
 .school-feature__note { position:absolute; z-index:2; top:52px; right:4vw; margin:0; font-size:16px; font-style:italic; line-height:1.45; text-align:right; }
 
 .trust { display:grid; grid-template-columns:1.5fr 1fr; gap:70px; align-items:center; min-height:260px; padding:54px clamp(28px,8vw,140px); background:var(--paper); color:#24201d; }
+
+.sessions-teaser { display:grid; gap:16px; padding:72px clamp(28px,8vw,140px); background:#0d0d0d; border-top:1px solid #262220; border-bottom:1px solid #262220; text-align:center; justify-items:center; }
+.sessions-teaser h2 { margin:0; font:400 clamp(38px,5vw,58px)/1 var(--display); text-transform:uppercase; color:#f7f0e6; }
+.sessions-teaser p { max-width:560px; color:rgba(255,255,255,.72); font-size:17px; line-height:1.5; margin:0; }
+.sessions-teaser__actions { display:flex; align-items:center; gap:26px; margin-top:10px; flex-wrap:wrap; justify-content:center; }
+.sessions-teaser__explore { display:inline-flex; align-items:center; gap:10px; border:0; background:transparent; color:var(--gold); font-size:16px; font-weight:600; cursor:pointer; }
+.sessions-teaser__explore:hover { color:#fff; }
+
+.sessions-modal { width:min(820px,100%); }
+.sessions-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:26px; }
+.session-card { position:relative; display:flex; flex-direction:column; justify-content:flex-end; height:220px; padding:16px; border:1px solid #3c3935; background:#191919; cursor:pointer; overflow:hidden; text-align:left; }
+.session-card img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.55; transition:.25s ease; }
+.session-card:hover img { opacity:.72; transform:scale(1.04); }
+.session-card::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.85) 82%); }
+.session-card__name, .session-card__price { position:relative; z-index:1; color:#fff; }
+.session-card__name { font:600 17px/1.2 Arial,sans-serif; margin-bottom:4px; }
+.session-card__price { font-size:13px; color:var(--gold); }
+
+.session-detail { display:grid; gap:14px; }
+.session-back { display:inline-flex; align-items:center; gap:8px; border:0; background:transparent; color:rgba(255,255,255,.7); font-size:14px; cursor:pointer; padding:0; margin-bottom:6px; }
+.session-back:hover { color:#fff; }
+.session-detail img { width:100%; max-height:280px; object-fit:cover; }
+.session-detail__price { font-size:20px; color:var(--gold); font-weight:600; margin:0; }
+.session-detail__list { list-style:none; margin:0; padding:0; display:grid; gap:6px; color:#eee5da; font-size:15px; }
+.session-detail__list li::before { content:'— '; color:var(--gold); }
+.session-detail__note { font-size:14px; color:rgba(255,255,255,.65); font-style:italic; }
+
+@media (max-width:720px) {
+  .sessions-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:520px) {
+  .sessions-grid { grid-template-columns:1fr; }
+  .sessions-teaser__actions { flex-direction:column; width:100%; }
+}
 .trust blockquote { margin:0; padding-left:28px; border-left:4px solid var(--red); }
 .trust blockquote p { margin:0 0 14px; font-size:clamp(19px,2vw,27px); line-height:1.45; font-style:italic; }
 .trust blockquote footer { color:#6c625b; }

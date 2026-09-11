@@ -126,7 +126,7 @@ export function App() {
             <img src="/assets/hero-evenement.jpg" alt="Événement photographié par Behn J. Productions" />
           </div>
           <div className="hero__shade" />
-          <div className="hero__content"><p className="eyebrow">Sept-Îles · Côte-Nord</p><h1>Des images<br />qui se vivent<span>.</span></h1><p className="hero__lead">Photographie <i /> Vidéo <i /> Diffusion web</p><div className="hero__actions"><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton><a className="showreel" href={BRAND.facebook} target="_blank" rel="noreferrer"><FacebookLogo size={20} weight="fill" /> Voir nos réalisations</a></div></div>
+          <div className="hero__content"><p className="eyebrow">Sept-Îles · Côte-Nord</p><h1>Chaque détail<br />compte<span>.</span></h1><p className="hero__lead">Photographie <i /> Vidéo <i /> Diffusion web</p><div className="hero__actions"><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton><a className="showreel" href={BRAND.facebook} target="_blank" rel="noreferrer"><FacebookLogo size={20} weight="fill" /> Voir nos réalisations</a></div></div>
           <p className="hero__manifesto">Des gens d’ici.<br />Des lieux d’ici.<br />Des histoires<br />en mouvement.</p>
           <button className="hero__scroll" type="button" onClick={() => scrollToSection('photographie')}>Découvrir <span /></button>
         </section>

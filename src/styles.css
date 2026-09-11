@@ -164,8 +164,8 @@ button { color:inherit; }
   object-fit:cover;
   border-right:1px solid rgba(255,255,255,.18);
 }
-.hero__media img:nth-child(1) { object-position:50% 48%; }
-.hero__media img:nth-child(2) { object-position:50% 40%; }
+.hero__media img:nth-child(1) { object-position:50% 30%; }
+.hero__media img:nth-child(2) { object-position:50% 18%; }
 .hero__media img:nth-child(3) { object-position:50% 50%; border-right:0; }
 .showreel { color:var(--white); text-decoration:none; }
 .photo-triptych button {
@@ -219,6 +219,9 @@ button { color:inherit; }
   .hero__media img:nth-child(3) { object-position:50% center; }
   .photo-triptych button { min-height:0; background:#080808!important; }
 }
+
+/* Signature rouge entre chaque chapitre */
+main > section { border-bottom:2px solid var(--red); }
 
 
 /* Mobile cinematic parity — 2026-09-10 */

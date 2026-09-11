@@ -24,3 +24,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 - On mobile, keep the hero copy noticeably higher over the corporate portrait (around chest level), and bias the event image crop toward the singer so the performer remains visible.
 - The marketing site includes a French-Canadian privacy policy modal linked from the footer and a required privacy-consent checkbox in the contact form.
+- On desktop, the hero wedding and corporate portraits are biased upward within their image files so the subjects appear lower and their full heads remain visible; the event musician framing stays unchanged.
+- Use the brand red divider between every main content section.

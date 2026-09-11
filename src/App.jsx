@@ -39,7 +39,7 @@ function Header({ onOpenContact }) {
       </nav>
       <div className="header-actions">
         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
-        <button className="header-cta" type="button" onClick={onOpenContact}>Parler de mon projet</button>
+        <button className="header-cta" type="button" onClick={onOpenContact}>Nous contacter</button>
       </div>
       <button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
         {menuOpen ? <X size={26} /> : <List size={28} />}
@@ -194,7 +194,7 @@ export function App() {
         <section id="contact" className="closing"><img src="/assets/coast-footer.png" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button></div><div className="socials" aria-label="Réseaux sociaux"><a href="#instagram" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a><a href="#youtube" aria-label="YouTube"><YoutubeLogo /></a></div></footer>
+      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('diffusion')}>Diffusion web</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button><button onClick={() => scrollToSection('contact')}>Contact</button></div><div className="socials" aria-label="Réseaux sociaux"><a href="#instagram" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a><a href="#youtube" aria-label="YouTube"><YoutubeLogo /></a></div></footer>
       <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </div>
   );

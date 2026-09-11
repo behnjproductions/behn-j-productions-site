@@ -68,7 +68,8 @@ button { color:inherit; }
 .media-copy .button { margin-top:12px; }
 .chapter--diffusion .media-shade { background:linear-gradient(90deg,rgba(0,0,0,.98) 0,rgba(0,0,0,.88) 28%,rgba(0,0,0,.12) 62%); }
 
-.school-feature { position:relative; min-height:430px; overflow:hidden; color:var(--ink); border-bottom:1px solid #ffe39d; }\n.school-feature>img { object-position:50% top; }
+.school-feature { position:relative; min-height:430px; overflow:hidden; color:var(--ink); border-bottom:1px solid #ffe39d; }
+.school-feature>img { object-position:50% top; }
 .school-feature__wash { position:absolute; inset:0; background:linear-gradient(90deg,rgba(255,182,4,.98) 0,rgba(255,182,4,.93) 27%,rgba(255,182,4,.2) 53%,rgba(255,182,4,.05)); }
 .school-feature__number { position:absolute; z-index:2; left:3vw; top:42px; color:var(--red); font:400 clamp(76px,8vw,116px)/1 var(--display); }
 .school-feature__content { position:relative; z-index:2; width:550px; padding:50px 20px 45px 14vw; }

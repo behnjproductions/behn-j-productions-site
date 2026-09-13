@@ -26,3 +26,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - The marketing site includes a French-Canadian privacy policy modal linked from the footer and a required privacy-consent checkbox in the contact form.
 - On desktop, the hero wedding and corporate portraits are biased upward within their image files so the subjects appear lower and their full heads remain visible; the event musician framing stays unchanged.
 - Use the brand red divider between every main content section.
+- The marketing site should feel visibly alive and cinematic: staggered hero entrance, clear scroll reveals, subtle image depth, and premium microinteractions, while remaining smooth and restrained on mobile.

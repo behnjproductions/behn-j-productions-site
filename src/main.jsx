@@ -4,8 +4,6 @@ import { AProposPage } from "./AProposPage.jsx";
 import { ServicesPage } from "./ServicesPage.jsx";
 import { ContactPage } from "./ContactPage.jsx";
 import { RealisationsPage } from "./RealisationsPage.jsx";
-import { GaleriePage } from "./GaleriePage.jsx";
-import { AdminPage } from "./AdminPage.jsx";
 import "./styles.css";
 
 const SITE = "https://behnjproductions.ca";
@@ -28,16 +26,6 @@ const ROUTES = {
     title: "Réalisations | Mariages, corporatif, scolaire et culture — Sept-Îles",
     description:
       "Portfolio de Behn J. Productions : mariages, portraits corporatifs, photographie scolaire et vie culturelle de la Côte-Nord, à Sept-Îles.",
-  },
-  "/galerie": {
-    component: GaleriePage,
-    title: "Votre galerie | Behn J. Productions",
-    description: "Galerie privée — choisissez vos photos préférées.",
-  },
-  "/admin": {
-    component: AdminPage,
-    title: "Collections | Behn J. Productions",
-    description: "Panneau d'administration des galeries client.",
   },
   "/contact": {
     component: ContactPage,

@@ -80,6 +80,7 @@ button { color:inherit; }
 
 .services-intro { display:grid; justify-items:center; gap:30px; background:var(--paper); border-bottom:2px solid var(--red); padding:clamp(64px,7vw,104px) clamp(24px,6vw,48px); text-align:center; }
 .services-intro>* { max-width:1000px; }
+.band-divider { height:clamp(52px,6vw,88px); background:var(--paper); border-top:2px solid var(--red); border-bottom:2px solid var(--red); }
 .services-intro p { margin:0; color:#14110f; font:clamp(16px,1.35vw,19px)/1.75 var(--body); }
 .services-band--page { min-height:clamp(340px,38vw,520px); border-bottom:2px solid var(--red); }
 .services-page .about-closing { border-bottom:0; }
@@ -109,17 +110,17 @@ button { color:inherit; }
 /* Diffusion web + Design graphique côte à côte sur grand écran */
 @media (min-width:1041px) {
   .chapter-pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .chapter-pair>.chapter--media { min-height:700px; grid-template-columns:104px 1fr; border-right:1px solid rgba(255,255,255,.16); }
+  .chapter-pair>.chapter--media { min-height:700px; grid-template-columns:104px 1fr; grid-template-rows:auto 1fr; border-right:1px solid rgba(255,255,255,.16); }
   .chapter-pair>.chapter--media:last-child { border-right:0; }
-  .chapter-pair .chapter__number { padding:38px 16px; }
+  .chapter-pair .chapter__number { grid-row:1/-1; padding:38px 16px; }
   .chapter-pair .chapter__number strong { font-size:clamp(58px,4.4vw,80px); }
   .chapter-pair .chapter__number span { margin-top:14px; font-size:9px; }
-  .chapter-pair .media-copy { align-self:start; max-width:none; padding:46px 34px 0; }
+  .chapter-pair .media-copy { grid-column:2; grid-row:1; align-self:start; max-width:none; padding:46px 34px 30px; }
   .chapter-pair .media-copy h2 { font-size:clamp(44px,3.6vw,62px); }
   .chapter-pair .media-copy>p { max-width:330px; }
   .chapter-pair .media-copy__proof { max-width:330px; }
   .chapter-pair .media-shade { background:linear-gradient(180deg,rgba(0,0,0,.92) 0,rgba(0,0,0,.72) 42%,rgba(0,0,0,.9)); }
-  .chapter-pair .media-markets { top:auto; right:34px; bottom:34px; left:calc(104px + 34px); width:auto; transform:none; }
+  .chapter-pair .media-markets { position:relative; grid-column:2; grid-row:2; align-self:end; inset:auto; width:auto; margin:0 34px 34px; transform:none; }
   .chapter-pair .chapter--media[data-reveal] .media-markets { transform:translateY(26px); }
   .chapter-pair .chapter--media[data-reveal].is-visible .media-markets { transform:none; }
 }

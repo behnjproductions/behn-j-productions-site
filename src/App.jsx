@@ -184,6 +184,8 @@ export function App() {
           </div>
         </div>
 
+        <div className="band-divider" aria-hidden="true" />
+
         <section id="seances" className="sessions-teaser" data-reveal>
           <p className="eyebrow">Choisis ton moment. Je m’occupe du reste.</p>
           <h2>Séances photo.</h2>

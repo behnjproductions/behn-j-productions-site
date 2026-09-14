@@ -48,11 +48,11 @@ export function AProposPage() {
             <span>Chaque détail compte.</span>
           </div>
 
-          <div id="about-intro-gallery" className="about-intro__gallery" aria-label="Univers visuel de Behn J. Productions">
-            <figure><img src="/assets/about-intro/portrait-emotion.webp" alt="Moment de complicité capté pendant un événement" loading="lazy" /></figure>
-            <figure><img src="/assets/about-intro/culture-innu.webp" alt="Portrait culturel d’une mère et de son enfant" loading="lazy" /></figure>
-            <figure><img src="/assets/about-intro/concert-live.webp" alt="Artistes sur scène pendant un spectacle" loading="lazy" /></figure>
-            <figure><img src="/assets/about-intro/enfance-famille.webp" alt="Portrait de trois enfants réunis" loading="lazy" /></figure>
+          <div id="about-intro-gallery" className="about-intro__gallery" aria-label="Behn J. Productions en chiffres">
+            <figure><img src="/assets/about-intro/portrait-emotion.webp" alt="Moment de complicité capté pendant un événement" loading="lazy" /><figcaption>13+ années d’expérience</figcaption></figure>
+            <figure><img src="/assets/about-intro/culture-innu.webp" alt="Portrait culturel d’une mère et de son enfant" loading="lazy" /><figcaption>200+ clients accompagnés</figcaption></figure>
+            <figure><img src="/assets/about-intro/concert-live.webp" alt="Artistes sur scène pendant un spectacle" loading="lazy" /><figcaption>Des centaines de projets réalisés</figcaption></figure>
+            <figure><img src="/assets/about-intro/enfance-famille.webp" alt="Portrait de trois enfants réunis" loading="lazy" /><figcaption>Plusieurs communautés visitées</figcaption></figure>
           </div>
         </section>
 
@@ -101,16 +101,22 @@ export function AProposPage() {
           </div>
 
           <div className="about-team__grid">
-            <article className="team-member">
-              <figure><img src="/assets/team/behn-j.webp" alt="Behn Jedy, directeur de production" loading="lazy" /></figure>
+            <article className="team-member" tabIndex={0}>
+              <figure><img src="/assets/team/behn-j.webp" alt="Behn Jedy, directeur de production" loading="lazy" />
+                <figcaption className="team-member__bio"><strong>Directeur de production</strong><span>Fondateur de Behn J. Productions, il supervise chaque mandat de la planification à la livraison. Il est aussi derrière la caméra, en photo comme en vidéo.</span></figcaption>
+              </figure>
               <div className="team-member__identity"><h3>Behn Jedy</h3><p>Directeur de production</p></div>
             </article>
-            <article className="team-member">
-              <figure><img src="/assets/team/danysa-regis-labbe.webp" alt="Danysa Régis-Labbé, directrice adjointe" loading="lazy" /></figure>
+            <article className="team-member" tabIndex={0}>
+              <figure><img src="/assets/team/danysa-regis-labbe.webp" alt="Danysa Régis-Labbé, directrice adjointe" loading="lazy" />
+                <figcaption className="team-member__bio"><strong>Directrice adjointe</strong><span>Elle coordonne les projets et le lien avec la clientèle, de la première rencontre jusqu’à la remise des images.</span></figcaption>
+              </figure>
               <div className="team-member__identity"><h3>Danysa Régis-Labbé</h3><p>Directrice adjointe</p></div>
             </article>
-            <article className="team-member">
-              <figure><img src="/assets/team/leon-nyeningabo.webp" alt="Léon Nyeningabo, assistant photographe" loading="lazy" /></figure>
+            <article className="team-member" tabIndex={0}>
+              <figure><img src="/assets/team/leon-nyeningabo.webp" alt="Léon Nyeningabo, assistant photographe" loading="lazy" />
+                <figcaption className="team-member__bio"><strong>Assistant photographe</strong><span>Il assiste sur le terrain en photo et en vidéo : éclairage, matériel et captation lors des mandats.</span></figcaption>
+              </figure>
               <div className="team-member__identity"><h3>Léon Nyeningabo</h3><p>Assistant photographe</p></div>
             </article>
           </div>

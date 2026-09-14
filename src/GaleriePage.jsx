@@ -101,10 +101,12 @@ export function GaleriePage() {
   const photos = gallery?.photos || [];
   const maxPicks = gallery?.maxPicks;
 
+  // Le forfait n'est pas un mur : le client peut choisir au-delà, chaque photo
+  // supplémentaire lui est facturée et le total s'affiche pendant qu'il choisit.
   const toggle = (photoId) => setPicks((prev) => {
     const next = new Set(prev);
     if (next.has(photoId)) next.delete(photoId);
-    else if (!maxPicks || next.size < maxPicks) next.add(photoId);
+    else next.add(photoId);
     return next;
   });
 
@@ -164,9 +166,10 @@ export function GaleriePage() {
   if (state === 'verrouillée') return <LockScreen gallery={gallery} onOpen={load} />;
 
   const current = lightbox === null ? null : photos[lightbox];
-  const atLimit = maxPicks && picks.size >= maxPicks;
   const showGrid = () => gridRef.current?.scrollIntoView({ behavior: 'smooth' });
   const dateLabel = formatDate(gallery.date);
+  const extraPrice = gallery.extraPrice ?? 25;
+  const extras = maxPicks ? Math.max(0, picks.size - maxPicks) : 0;
 
   return (
     <div className="gal">
@@ -194,8 +197,27 @@ export function GaleriePage() {
         <p className="gal-head__hint">Touchez le <Heart size={14} weight="fill" /> sur vos photos préférées.</p>
       </div>
 
+      {/* Mode d'emploi */}
+      <section className="gal-guide" ref={gridRef} aria-labelledby="guide-titre">
+        <h2 id="guide-titre">Comment choisir vos photos</h2>
+        <ol className="gal-guide__etapes">
+          <li><b aria-hidden="true">1</b><span>Touchez le <Heart size={14} weight="fill" /> sur chaque photo que vous aimez.</span></li>
+          <li><b aria-hidden="true">2</b><span>Touchez la photo elle-même pour l’agrandir et mieux comparer.</span></li>
+          <li><b aria-hidden="true">3</b><span>Quand votre choix est fait, appuyez sur <strong>« Envoyer ma sélection »</strong>, en bas de l’écran.</span></li>
+        </ol>
+        {maxPicks ? (
+          <p className="gal-guide__forfait">
+            Votre forfait comprend <strong>{maxPicks} photos retouchées</strong>. Vous pouvez en choisir
+            davantage si vous le souhaitez : chaque photo supplémentaire est de <strong>{extraPrice} $ CAD</strong>,
+            ajoutée à votre facture.
+          </p>
+        ) : (
+          <p className="gal-guide__forfait">Choisissez toutes les photos que vous aimez.</p>
+        )}
+      </section>
+
       {/* Grille */}
-      <main className="gal-grid" ref={gridRef} aria-label="Vos photos">
+      <main className="gal-grid" aria-label="Vos photos">
         {photos.length === 0 && <p className="gal-vide">Les photos arrivent bientôt.</p>}
         {photos.map((photo, index) => {
           const chosen = picks.has(photo.id);
@@ -206,7 +228,7 @@ export function GaleriePage() {
                 <img src={photoUrl(photo.id)} alt={`Photo ${index + 1}`} loading="lazy" decoding="async" />
               </button>
               <button type="button" className="gal-heart" onClick={() => toggle(photo.id)}
-                aria-pressed={chosen} disabled={!chosen && atLimit}
+                aria-pressed={chosen}
                 aria-label={chosen ? `Retirer la photo ${index + 1}` : `Choisir la photo ${index + 1}`}>
                 <Heart size={19} weight={chosen ? 'fill' : 'regular'} />
               </button>
@@ -221,7 +243,15 @@ export function GaleriePage() {
 
       {/* Barre d'envoi */}
       <div className="gal-bar" role="status">
-        <span><strong>{picks.size}</strong> photo{picks.size > 1 ? 's' : ''} choisie{picks.size > 1 ? 's' : ''}{maxPicks ? ` sur ${maxPicks}` : ''}</span>
+        <span>
+          <strong>{picks.size}</strong> photo{picks.size > 1 ? 's' : ''} choisie{picks.size > 1 ? 's' : ''}
+          {maxPicks ? ` sur ${maxPicks} incluses` : ''}
+        </span>
+        {extras > 0 && (
+          <span className="gal-bar__extra">
+            +{extras} supplémentaire{extras > 1 ? 's' : ''} · {extras * extraPrice} $ CAD
+          </span>
+        )}
         {sendError && <span className="gal-bar__error">{sendError}</span>}
         <button className="gal-send" type="button" disabled={picks.size === 0 || sending} onClick={send}>
           {sending ? 'Envoi…' : sent ? <>Renvoyer ma sélection <ArrowRight size={18} weight="bold" /></>
@@ -254,6 +284,11 @@ export function GaleriePage() {
             <p className="gal-merci__eyebrow">Sélection reçue</p>
             <h2 id="merci-titre">Merci! C’est noté.</h2>
             <p className="gal-merci__lead">Vos {picks.size} photo{picks.size > 1 ? 's' : ''} sont entre mes mains. Je vous reviens avec les images finales sous peu.</p>
+            {extras > 0 && (
+              <p className="gal-merci__extra">
+                Dont {extras} au-delà de votre forfait : {extras * extraPrice} $ CAD s’ajouteront à votre facture.
+              </p>
+            )}
 
             <div className="gal-merci__avis">
               <div className="gal-merci__stars" aria-hidden="true">

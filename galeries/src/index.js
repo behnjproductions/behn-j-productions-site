@@ -11,12 +11,6 @@ const SESSION_HOURS = 24 * 30; // Un client garde son accès un mois.
 const ADMIN_HOURS = 12;
 const MAX_FAILS = 10; // Essais de mot de passe ratés tolérés par 15 minutes.
 
-// Un Worker du forfait gratuit ne dispose que de 10 ms de calcul par requête :
-// un PBKDF2 à 120 000 tours le dépasse et la requête est coupée. 4 000 tours
-// tiennent dans le budget. La vraie défense reste la limite d'essais
-// ci-dessus — sans elle, aucun nombre de tours ne sauve un mot de passe court.
-const PBKDF2_ROUNDS = 4000;
-
 /* ------------------------------------------------------------------ outils */
 
 const enc = new TextEncoder();
@@ -65,8 +59,8 @@ async function readToken(secret, scope, token) {
 async function hashPassword(password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: PBKDF2_ROUNDS, hash: 'SHA-256' }, key, 256);
-  return `pbkdf2$${PBKDF2_ROUNDS}$${b64url(salt)}$${b64url(bits)}`;
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' }, key, 256);
+  return `pbkdf2$120000$${b64url(salt)}$${b64url(bits)}`;
 }
 
 async function checkPassword(password, stored) {
@@ -152,17 +146,29 @@ async function sendSelectionEmail(env, collection, photos, note) {
   if (!env.RESEND_API_KEY) return;
   const url = `${env.SITE_ORIGIN}/galerie/${collection.slug}`;
   const list = photos.map((p) => `<li>${escapeHtml(p.filename || p.id)}</li>`).join('');
+
+  // Au-delà du forfait, chaque photo est facturée : le total est calculé ici
+  // pour qu'il soit dans le courriel, prêt à reporter sur la facture.
+  const included = collection.max_picks || 0;
+  const price = collection.extra_price ?? 25;
+  const extras = included ? Math.max(0, photos.length - included) : 0;
+  const supplement = extras
+    ? `<p style="padding:12px 14px;background:#fdf6e6;border-left:3px solid #ffb604"><strong>${extras} photo${extras > 1 ? 's' : ''} au-delà du forfait</strong> (${included} incluses) — ${extras} × ${price} $ = <strong>${extras * price} $ CAD à facturer</strong></p>`
+    : '';
+
   const html = `
     <div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#1a1a1a;line-height:1.55">
       <h2 style="margin:0 0 4px">Nouvelle sélection reçue</h2>
       <p style="margin:0 0 18px;color:#666">${escapeHtml(collection.client)}${collection.title ? ` — ${escapeHtml(collection.title)}` : ''}</p>
       <p><strong>${photos.length}</strong> photo${photos.length > 1 ? 's' : ''} choisie${photos.length > 1 ? 's' : ''} :</p>
       <ol>${list}</ol>
+      ${supplement}
       ${note ? `<p><strong>Message du client :</strong><br>${escapeHtml(note).replace(/\n/g, '<br>')}</p>` : ''}
       <p><a href="${url}">Ouvrir la galerie</a></p>
     </div>`;
   const text = `${collection.client} — ${photos.length} photo(s) choisie(s)\n\n`
     + photos.map((p) => p.filename || p.id).join('\n')
+    + (extras ? `\n\n${extras} au-dela du forfait (${included} incluses) : ${extras} x ${price} $ = ${extras * price} $ CAD a facturer` : '')
     + (note ? `\n\nMessage : ${note}` : '')
     + `\n\n${url}`;
 
@@ -172,7 +178,9 @@ async function sendSelectionEmail(env, collection, photos, note) {
     body: JSON.stringify({
       from: env.MAIL_FROM,
       to: [env.MAIL_TO],
-      subject: `Sélection — ${collection.client} (${photos.length} photos)`,
+      subject: extras
+        ? `Sélection — ${collection.client} (${photos.length} photos, ${extras * price} $ à facturer)`
+        : `Sélection — ${collection.client} (${photos.length} photos)`,
       html,
       text,
     }),
@@ -274,9 +282,6 @@ async function route(request, env, url, path, ip) {
       const { results: photos } = await listPhotos(env, collection.id);
       const chosen = photos.filter((p) => wanted.includes(p.id));
       if (!chosen.length) return json({ error: 'Photos introuvables.' }, 400);
-      if (collection.max_picks && chosen.length > collection.max_picks) {
-        return json({ error: `Maximum ${collection.max_picks} photos.` }, 400);
-      }
 
       const note = String(body.note || '').slice(0, 2000);
       await env.DB.prepare('INSERT INTO selections (collection_id, photo_ids, note) VALUES (?, ?, ?)')
@@ -294,6 +299,7 @@ async function route(request, env, url, path, ip) {
         title: collection.title,
         date: collection.event_date,
         maxPicks: collection.max_picks,
+        extraPrice: collection.extra_price ?? 25,
       };
       if (!open) {
         const exists = collection.status === 'publié';
@@ -367,11 +373,12 @@ async function route(request, env, url, path, ip) {
         title: String(body.title || '').trim() || null,
         event_date: body.eventDate || null,
         max_picks: Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null,
+        extra_price: Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25,
         password_hash: password ? await hashPassword(password) : null,
       };
-      await env.DB.prepare(`INSERT INTO collections (id, slug, client, title, event_date, status, max_picks, password_hash)
-        VALUES (?, ?, ?, ?, ?, 'brouillon', ?, ?)`)
-        .bind(row.id, row.slug, row.client, row.title, row.event_date, row.max_picks, row.password_hash).run();
+      await env.DB.prepare(`INSERT INTO collections (id, slug, client, title, event_date, status, max_picks, extra_price, password_hash)
+        VALUES (?, ?, ?, ?, ?, 'brouillon', ?, ?, ?)`)
+        .bind(row.id, row.slug, row.client, row.title, row.event_date, row.max_picks, row.extra_price, row.password_hash).run();
       return json({ collection: publicShape({ ...row, status: 'brouillon', photo_count: 0, selection_count: 0 }) }, 201);
     }
   }
@@ -412,6 +419,7 @@ async function route(request, env, url, path, ip) {
       if (body.title !== undefined) put('title', String(body.title).trim() || null);
       if (body.eventDate !== undefined) put('event_date', body.eventDate || null);
       if (body.maxPicks !== undefined) put('max_picks', Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null);
+      if (body.extraPrice !== undefined) put('extra_price', Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25);
       if (body.status !== undefined) put('status', body.status === 'publié' ? 'publié' : 'brouillon');
       if (body.cover !== undefined) put('cover_key', body.cover || null);
       if (body.password !== undefined) {
@@ -495,6 +503,7 @@ function publicShape(row) {
     date: row.event_date,
     status: row.status,
     maxPicks: row.max_picks,
+    extraPrice: row.extra_price ?? 25,
     cover: row.cover_key,
     hasPassword: Boolean(row.password_hash),
     photoCount: row.photo_count ?? undefined,

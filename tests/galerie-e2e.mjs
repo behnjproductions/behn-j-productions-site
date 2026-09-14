@@ -44,7 +44,7 @@ async function preparer(slug) {
     method: 'POST',
     body: JSON.stringify({
       client: 'Galerie de test', slug, title: 'Séance de vérification',
-      eventDate: '2026-09-20', password: MOT_DE_PASSE, maxPicks: 8,
+      eventDate: '2026-09-20', password: MOT_DE_PASSE, maxPicks: 2, extraPrice: 25,
     }),
   });
 
@@ -61,7 +61,7 @@ async function preparer(slug) {
     await apiCall(`/admin/collections/${slug}/photos`, { method: 'POST', body: form });
   }
   await apiCall(`/admin/collections/${slug}`, { method: 'PATCH', body: JSON.stringify({ status: 'publié' }) });
-  console.log(`  (galerie de test prête : ${fichiers.length} photos, maximum 8 choix)`);
+  console.log(`  (galerie de test prête : ${fichiers.length} photos, forfait de 2, extra 25 $)`);
 }
 
 /* ----------------------------------------------------------- le parcours --- */
@@ -110,12 +110,22 @@ async function run(label, viewport, extra = {}) {
   await page.screenshot({ path: `${SHOTS}/${label}-3-grille.png` });
   step(`grille affichée (${await page.locator('.gal-grid figure').count()} photos, ${broken} cassée(s))`);
 
-  // 5. Choisir trois photos
+  // 4 bis. Le mode d'emploi est visible et annonce le tarif
+  const guide = await page.locator('.gal-guide').innerText();
+  if (!guide.includes('25 $')) errors.push(`${label} — le tarif des photos supplémentaires n'apparaît pas`);
+  await page.screenshot({ path: `${SHOTS}/${label}-3b-mode-emploi.png` });
+  step('mode d’emploi affiché avec le tarif');
+
+  // 5. Choisir trois photos : une de plus que le forfait de deux
   const hearts = page.locator('.gal-heart');
   for (const i of [0, 2, 4]) await hearts.nth(i).click();
   const compteur = (await page.locator('.gal-bar span').first().innerText()).replace(/\s+/g, ' ');
   if (!compteur.startsWith('3')) errors.push(`${label} — compteur inattendu : ${compteur}`);
-  step(`compteur : ${compteur}`);
+  const supplement = await page.locator('.gal-bar__extra').count()
+    ? (await page.locator('.gal-bar__extra').innerText()).replace(/\s+/g, ' ')
+    : '';
+  if (!supplement.includes('25')) errors.push(`${label} — le supplément ne s'affiche pas (${supplement || 'absent'})`);
+  step(`compteur : ${compteur} | supplément : ${supplement}`);
 
   // 6. Visionneuse plein écran
   await page.locator('.gal-zoom').nth(1).click();

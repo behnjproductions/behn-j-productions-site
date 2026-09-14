@@ -1279,3 +1279,43 @@ section[data-reveal].is-visible > img { transform:scale(1); }
   .gal-merci__avis h3 { font-size:20px; }
   .gal-merci__avis p { font-size:13px; }
 }
+
+/* ------------------------------------------------- mode d'emploi du client */
+.gal-guide { max-width:760px; margin:0 auto; padding:30px clamp(18px,4vw,26px) 8px; text-align:left; scroll-margin-top:86px; }
+.gal-guide h2 { margin:0 0 16px; color:#16130f; font:400 clamp(21px,2.4vw,26px)/1.1 var(--display); letter-spacing:.015em; text-transform:uppercase; }
+.gal-guide__etapes { display:grid; gap:11px; margin:0; padding:0; list-style:none; counter-reset:etape; }
+.gal-guide__etapes li { display:flex; align-items:flex-start; gap:11px; color:#3a342e; font-size:15px; line-height:1.5; }
+.gal-guide__etapes li > b { flex:0 0 24px; display:grid; place-items:center; height:24px; margin-top:1px; border-radius:50%; background:#2c2926; color:#fff; font:700 12px/1 Arial,sans-serif; }
+.gal-guide__etapes li > span { flex:1; }
+.gal-guide__etapes svg { vertical-align:-2px; margin:0 1px; color:var(--red); }
+.gal-guide__forfait { margin:18px 0 0; padding:14px 16px; border-left:3px solid var(--gold); background:#fdf7e9; color:#3a342e; font-size:14px; line-height:1.6; }
+.gal-guide__forfait strong { color:#16130f; }
+
+.gal-bar__extra { padding:5px 12px; border-radius:20px; background:#fdf7e9; color:#7a5b00; font-size:13px; font-weight:700; }
+.gal-merci__extra { margin:10px 0 0; padding:9px 13px; background:#fdf7e9; color:#7a5b00; font-size:13px; line-height:1.5; }
+
+/* ------------------------------------------- couverture : le nom sur la photo */
+@media (max-width:860px) {
+  /* Sur un cellulaire, le panneau blanc mangeait tout l'écran avant la photo :
+     le nom passe par-dessus l'image, comme une vraie couverture. */
+  .gal-cover { position:relative; min-height:82vh; }
+  .gal-cover__media { grid-area:1/1; height:82vh; }
+  .gal-cover__media::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.18) 0%,rgba(0,0,0,.05) 30%,rgba(0,0,0,.55) 66%,rgba(0,0,0,.88) 100%); }
+  .gal-cover__panel { grid-area:1/1; z-index:2; margin:0; padding:30px 24px 40px; background:transparent; align-content:end; gap:10px; }
+  .gal-cover__brand { color:rgba(255,255,255,.82); }
+  .gal-cover h1 { margin:0; max-width:15ch; color:#fff; font-size:clamp(30px,8.4vw,44px); text-shadow:0 2px 24px rgba(0,0,0,.55); }
+  .gal-cover__date { color:rgba(255,255,255,.85); }
+  .gal-cover__cta { width:100%; margin-top:14px; background:#fff; color:#16130f; }
+  .gal-cover__cta:hover { background:var(--gold); color:#16130f; }
+  .gal-guide { padding-top:24px; }
+}
+
+/* --------------------------------------------------- suppression au panneau */
+.adm-card__media { position:relative; }
+.adm-card__del { position:absolute; top:9px; right:9px; display:grid; place-items:center; width:30px; height:30px; border:0; border-radius:8px; background:rgba(0,0,0,.55); color:#fff; cursor:pointer; opacity:0; transition:opacity .18s ease,background .18s ease; }
+.adm-card__media:hover .adm-card__del { opacity:1; }
+.adm-card__del:hover { background:var(--red-bright); }
+@media (hover:none) { .adm-card__del { opacity:1; } }
+
+.adm-selection__extra { margin:0 0 12px; padding:11px 14px; border-left:3px solid var(--gold); background:#fdf7e9; color:#7a5b00; font-size:14px; }
+.adm-selection__extra strong { color:#16130f; }

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS collections (
   event_date TEXT,
   status TEXT NOT NULL DEFAULT 'brouillon',
   max_picks INTEGER,
+  extra_price INTEGER DEFAULT 25,
   cover_key TEXT,
   password_hash TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))

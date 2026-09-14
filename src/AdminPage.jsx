@@ -71,7 +71,7 @@ function Login({ onIn }) {
 
 /* --------------------------------------------------------------- la liste --- */
 
-function CollectionList({ collections, onOpen, onNew, query, setQuery }) {
+function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery }) {
   const shown = collections.filter((c) => `${c.client} ${c.title || ''}`.toLowerCase().includes(query.toLowerCase()));
   return (
     <>
@@ -94,9 +94,15 @@ function CollectionList({ collections, onOpen, onNew, query, setQuery }) {
         <div className="adm-grid">
           {shown.map((c) => (
             <article className="adm-card" key={c.id}>
-              <button type="button" className="adm-card__cover" onClick={() => onOpen(c.slug)}>
-                {c.cover ? <img src={photoUrl(c.cover)} alt="" /> : <span className="adm-card__blank"><ImageIcon size={28} /></span>}
-              </button>
+              <div className="adm-card__media">
+                <button type="button" className="adm-card__cover" onClick={() => onOpen(c.slug)}>
+                  {c.cover ? <img src={photoUrl(c.cover)} alt="" /> : <span className="adm-card__blank"><ImageIcon size={28} /></span>}
+                </button>
+                <button type="button" className="adm-card__del" onClick={() => onDelete(c)}
+                  aria-label={`Supprimer la galerie de ${c.client}`} title="Supprimer cette galerie">
+                  <Trash size={15} />
+                </button>
+              </div>
               <h2>{c.client}</h2>
               <p>
                 <i className={c.status === 'publié' ? 'is-live' : ''} />
@@ -114,7 +120,7 @@ function CollectionList({ collections, onOpen, onNew, query, setQuery }) {
 /* ------------------------------------------------------------- création --- */
 
 function NewCollection({ onCancel, onCreate }) {
-  const [form, setForm] = useState({ client: '', title: '', eventDate: '', password: '', maxPicks: '' });
+  const [form, setForm] = useState({ client: '', title: '', eventDate: '', password: '', maxPicks: '', extraPrice: '25' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -153,6 +159,10 @@ function NewCollection({ onCancel, onCreate }) {
         <label>Nombre de photos incluses <small>facultatif</small>
           <input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} placeholder="p. ex. : 15" />
         </label>
+        <label>Prix par photo supplémentaire ($ CAD)
+          <input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} placeholder="25" />
+        </label>
+        <p className="adm-hint">Le client peut dépasser le forfait; chaque photo en plus lui est facturée à ce prix, et le total apparaît dans le courriel de sélection.</p>
         {error && <p className="adm-error" role="alert">{error}</p>}
         <button className="adm-primary" type="submit" disabled={busy}>{busy ? 'Création…' : 'Créer la collection'}</button>
       </form>
@@ -274,7 +284,7 @@ function Editor({ slug, onBack, onChanged }) {
 
         {settings && <Settings collection={c} onSave={patch} onDelete={removeCollection} />}
 
-        {selection && <Selection selection={selection} client={c.client} copied={copied} copy={copy} />}
+        {selection && <Selection selection={selection} collection={c} copied={copied} copy={copy} />}
 
         <h2>Photos <small>{data.photos.length}</small></h2>
 
@@ -327,6 +337,7 @@ function Settings({ collection, onSave, onDelete }) {
     eventDate: collection.date || '',
     slug: collection.slug,
     maxPicks: collection.maxPicks || '',
+    extraPrice: collection.extraPrice ?? 25,
     password: '',
   });
   const [saved, setSaved] = useState(false);
@@ -334,7 +345,10 @@ function Settings({ collection, onSave, onDelete }) {
 
   const submit = async (event) => {
     event.preventDefault();
-    const body = { client: form.client, title: form.title, eventDate: form.eventDate, slug: form.slug, maxPicks: form.maxPicks };
+    const body = {
+      client: form.client, title: form.title, eventDate: form.eventDate,
+      slug: form.slug, maxPicks: form.maxPicks, extraPrice: form.extraPrice,
+    };
     if (form.password.trim()) body.password = form.password.trim();
     if (await onSave(body)) {
       setSaved(true);
@@ -355,6 +369,9 @@ function Settings({ collection, onSave, onDelete }) {
       </div>
       <div className="adm-settings__row">
         <label>Photos incluses<input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} /></label>
+        <label>Prix par photo supplémentaire ($)<input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} /></label>
+      </div>
+      <div className="adm-settings__row">
         <label>Nouveau mot de passe
           <input value={form.password} onChange={set('password')}
             placeholder={collection.hasPassword ? 'Laisser vide pour ne pas changer' : 'Aucun mot de passe'} />
@@ -373,8 +390,12 @@ function Settings({ collection, onSave, onDelete }) {
 
 /* ------------------------------------------------------------- sélection --- */
 
-function Selection({ selection, client, copied, copy }) {
+function Selection({ selection, collection, copied, copy }) {
+  const client = collection.client;
   const names = selection.photos.map((p) => p.filename).join('\n');
+  const included = collection.maxPicks || 0;
+  const price = collection.extraPrice ?? 25;
+  const extras = included ? Math.max(0, selection.photos.length - included) : 0;
 
   const download = () => {
     const blob = new Blob([names], { type: 'text/plain;charset=utf-8' });
@@ -397,6 +418,12 @@ function Selection({ selection, client, copied, copy }) {
           <button className="adm-ghost" type="button" onClick={download}><DownloadSimple size={16} /> Télécharger</button>
         </div>
       </header>
+      {extras > 0 && (
+        <p className="adm-selection__extra">
+          {extras} photo{extras > 1 ? 's' : ''} au-delà du forfait de {included} —
+          {' '}{extras} × {price} $ = <strong>{extras * price} $ CAD à facturer</strong>
+        </p>
+      )}
       {selection.note && <p className="adm-selection__note">« {selection.note} »</p>}
       <ul className="adm-selection__list">
         {selection.photos.map((p) => <li key={p.id}>{p.filename}</li>)}
@@ -437,6 +464,16 @@ export function AdminPage() {
     setView({ name: 'editor', slug: collection.slug });
   };
 
+  const remove = async (c) => {
+    if (!window.confirm(`Supprimer définitivement la galerie de ${c.client} et ses ${c.photoCount} photos?\n\nCette action est irréversible.`)) return;
+    try {
+      await api(`/admin/collections/${c.slug}`, { method: 'DELETE' });
+      setCollections((prev) => prev.filter((x) => x.id !== c.id));
+    } catch (err) {
+      window.alert(`Impossible de supprimer : ${err.message}`);
+    }
+  };
+
   const logout = async () => {
     await api('/admin/session', { method: 'DELETE' }).catch(() => {});
     clearSession('admin');
@@ -461,7 +498,8 @@ export function AdminPage() {
       <main className="adm-main">
         {view.name === 'list' && (
           <CollectionList collections={collections} query={query} setQuery={setQuery}
-            onNew={() => setView({ name: 'new' })} onOpen={(slug) => setView({ name: 'editor', slug })} />
+            onNew={() => setView({ name: 'new' })} onOpen={(slug) => setView({ name: 'editor', slug })}
+            onDelete={remove} />
         )}
         {view.name === 'new' && <NewCollection onCancel={() => setView({ name: 'list' })} onCreate={create} />}
         {view.name === 'editor' && (

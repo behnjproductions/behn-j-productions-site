@@ -1,0 +1,456 @@
+From d1f8d1818e01e1b59f0255f43d749887698707b3 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 14 Sep 2026 02:57:02 +0000
+Subject: [PATCH] =?UTF-8?q?SEO=20par=20page,=20hi=C3=A9rarchie=20des=20tit?=
+ =?UTF-8?q?res=20et=20poids=20des=20pages?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Chaque route a désormais son titre, sa description, ses balises
+  Open Graph et son lien canonique (les quatre pages partageaient
+  jusqu'ici le titre de l'accueil)
+- /services et /contact n'avaient aucun h1 ; /a-propos en avait deux.
+  Une seule balise h1 par page maintenant
+- Le bouton « Nous contacter » mène à /contact sur toutes les pages
+- Retrait des règles CSS qui posaient photography-triptych en fond sur
+  mobile : le sélecteur .photo-triptych>img ne correspondait plus au
+  balisage, l'image n'était jamais affichée
+- Chargement différé des images sous la ligne de flottaison :
+  l'accueil passe de ~1770 Ko à ~1335 Ko sur mobile
+- Suppression du fichier bouton-contact.patch versionné par erreur
+
+Les trois images devenues inutiles sont à retirer avec git rm
+(voir le message accompagnant ce correctif).
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TYoa3FFDCuiYDCb54YiDuP
+---
+ bouton-contact.patch | 104 -------------------------------------------
+ src/AProposPage.jsx  |   4 +-
+ src/App.jsx          |  18 ++++----
+ src/ContactPage.jsx  |   6 +--
+ src/ServicesPage.jsx |  14 +++---
+ src/main.jsx         |  55 +++++++++++++++++++++--
+ src/styles.css       |  10 ++---
+ 7 files changed, 78 insertions(+), 133 deletions(-)
+ delete mode 100644 bouton-contact.patch
+
+diff --git a/bouton-contact.patch b/bouton-contact.patch
+deleted file mode 100644
+index 7809570..0000000
+--- a/bouton-contact.patch
++++ /dev/null
+@@ -1,104 +0,0 @@
+-From cf6572b7cbb43284a017e12125ca927860735944 Mon Sep 17 00:00:00 2001
+-From: Claude <noreply@anthropic.com>
+-Date: Mon, 14 Sep 2026 02:47:32 +0000
+-Subject: [PATCH] =?UTF-8?q?Relier=20le=20bouton=20=C2=AB=20Nous=20contacte?=
+- =?UTF-8?q?r=20=C2=BB=20=C3=A0=20la=20page=20/contact?=
+-MIME-Version: 1.0
+-Content-Type: text/plain; charset=UTF-8
+-Content-Transfer-Encoding: 8bit
+-
+-Sur l'accueil il ouvrait la modale, sur les autres pages il ouvrait le
+-client courriel. Partout il mène désormais à /contact. Sur /contact
+-lui-même, il descend au formulaire.
+-
+-Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+-Claude-Session: https://claude.ai/code/session_01TYoa3FFDCuiYDCb54YiDuP
+----
+- src/AProposPage.jsx  | 2 +-
+- src/App.jsx          | 6 +++---
+- src/ContactPage.jsx  | 4 ++--
+- src/ServicesPage.jsx | 2 +-
+- 4 files changed, 7 insertions(+), 7 deletions(-)
+-
+-diff --git a/src/AProposPage.jsx b/src/AProposPage.jsx
+-index c96c3ba..e20175f 100644
+---- a/src/AProposPage.jsx
+-+++ b/src/AProposPage.jsx
+-@@ -25,7 +25,7 @@ export function AProposPage() {
+-       <header className="site-header about-header">
+-         <a className="brand" href="/" aria-label="Retour à l'accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
+-         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
+--        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous contacter</a></div>
+-+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
+-       </header>
+- 
+-       <main className="about-main">
+-diff --git a/src/App.jsx b/src/App.jsx
+-index d3e5edf..0a534c5 100644
+---- a/src/App.jsx
+-+++ b/src/App.jsx
+-@@ -18,7 +18,7 @@ function CTAButton({ children, secondary = false, onClick, href }) {
+-   );
+- }
+- 
+--function Header({ onOpenContact }) {
+-+function Header() {
+-   const [menuOpen, setMenuOpen] = useState(false);
+-   return (
+-     <header className="site-header">
+-@@ -34,7 +34,7 @@ function Header({ onOpenContact }) {
+-       </nav>
+-       <div className="header-actions">
+-         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
+--        <button className="header-cta" type="button" onClick={onOpenContact}>Nous contacter</button>
+-+        <a className="header-cta" href="/contact">Nous contacter</a>
+-       </div>
+-       <button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
+-         {menuOpen ? <X size={26} /> : <List size={28} />}
+-@@ -137,7 +137,7 @@ export function App() {
+-   }, []);
+-   return (
+-     <div className="site-shell">
+--      <Header onOpenContact={() => setContactOpen(true)} />
+-+      <Header />
+-       <main>
+-         <section id="accueil" className="hero">
+-           <div className="hero__media" aria-label="Mariage, portrait corporatif et événement captés par Behn J. Productions">
+-diff --git a/src/ContactPage.jsx b/src/ContactPage.jsx
+-index afc2ad0..a8b871c 100644
+---- a/src/ContactPage.jsx
+-+++ b/src/ContactPage.jsx
+-@@ -19,7 +19,7 @@ export function ContactPage() {
+-       <header className="site-header about-header">
+-         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
+-         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
+--        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous écrire</a></div>
+-+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="#formulaire">Nous écrire</a></div>
+-       </header>
+- 
+-       <main className="about-main">
+-@@ -34,7 +34,7 @@ export function ContactPage() {
+-         </div>
+- 
+-         <section className="contact-layout">
+--          <div className="contact-form-card" data-reveal>
+-+          <div className="contact-form-card" id="formulaire" data-reveal>
+-             <p className="eyebrow">Votre histoire commence ici</p>
+-             <h3>Parlons de votre projet.</h3>
+-             <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>
+-diff --git a/src/ServicesPage.jsx b/src/ServicesPage.jsx
+-index 76e9fec..c46aa61 100644
+---- a/src/ServicesPage.jsx
+-+++ b/src/ServicesPage.jsx
+-@@ -23,7 +23,7 @@ export function ServicesPage() {
+-       <header className="site-header about-header">
+-         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
+-         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
+--        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous contacter</a></div>
+-+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
+-       </header>
+- 
+-       <main className="about-main">
+--- 
+-2.43.0
+-
+diff --git a/src/AProposPage.jsx b/src/AProposPage.jsx
+index c96c3ba..605ce2f 100644
+--- a/src/AProposPage.jsx
++++ b/src/AProposPage.jsx
+@@ -25,7 +25,7 @@ export function AProposPage() {
+       <header className="site-header about-header">
+         <a className="brand" href="/" aria-label="Retour à l'accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
+         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
+-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous contacter</a></div>
++        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
+       </header>
+ 
+       <main className="about-main">
+@@ -59,7 +59,7 @@ export function AProposPage() {
+         <section className="about-story">
+           <div className="about-story__copy">
+             <p className="eyebrow">À propos de Behn J</p>
+-            <h1>Une caméra.<br /><span>Une passion.</span><br />Une histoire.</h1>
++            <h2>Une caméra.<br /><span>Une passion.</span><br />Une histoire.</h2>
+             <div className="about-story__text">
+               <p>Tout a commencé en 2011, à La Vega, en République dominicaine. Avec notre groupe d’artistes, nous avions des chansons et des idées, mais personne pour les mettre en images. Mon père avait une petite caméra Flip. Je l’ai prise pour photographier et filmer le groupe — et j’ai découvert une passion.</p>
+               <p>Au début, je créais simplement par plaisir. Puis des gens ont commencé à me dire : « J’aime tes images. Peux-tu photographier ma fille, mon fils, ma famille? » J’ai alors compris que cette passion pouvait devenir un métier.</p>
+diff --git a/src/App.jsx b/src/App.jsx
+index d3e5edf..13fab87 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -18,7 +18,7 @@ function CTAButton({ children, secondary = false, onClick, href }) {
+   );
+ }
+ 
+-function Header({ onOpenContact }) {
++function Header() {
+   const [menuOpen, setMenuOpen] = useState(false);
+   return (
+     <header className="site-header">
+@@ -34,7 +34,7 @@ function Header({ onOpenContact }) {
+       </nav>
+       <div className="header-actions">
+         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
+-        <button className="header-cta" type="button" onClick={onOpenContact}>Nous contacter</button>
++        <a className="header-cta" href="/contact">Nous contacter</a>
+       </div>
+       <button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
+         {menuOpen ? <X size={26} /> : <List size={28} />}
+@@ -69,7 +69,7 @@ function SessionsModal({ open, onClose, onBook }) {
+           <div className="sessions-grid">
+             {SESSIONS.map((s) => (
+               <button key={s.id} type="button" className="session-card" onClick={() => setSelected(s.id)}>
+-                <img src={s.img} alt={s.name} />
++                <img src={s.img} alt={s.name} loading="lazy" decoding="async" />
+                 <span className="session-card__name">{s.name}</span>
+                 <span className="session-card__price">À partir de {s.price} $</span>
+               </button>
+@@ -77,7 +77,7 @@ function SessionsModal({ open, onClose, onBook }) {
+           </div>
+         </> : <div className="session-detail">
+           <button className="session-back" type="button" onClick={() => setSelected(null)}><ArrowLeft size={18} /> Toutes les séances</button>
+-          <img src={session.img} alt={session.name} />
++          <img src={session.img} alt={session.name} loading="lazy" decoding="async" />
+           <h2 className="legal-title">{session.name}</h2>
+           <p className="session-detail__price">{session.price} $ — séance unique</p>
+           <ul className="session-detail__list">
+@@ -137,11 +137,11 @@ export function App() {
+   }, []);
+   return (
+     <div className="site-shell">
+-      <Header onOpenContact={() => setContactOpen(true)} />
++      <Header />
+       <main>
+         <section id="accueil" className="hero">
+           <div className="hero__media" aria-label="Mariage, portrait corporatif et événement captés par Behn J. Productions">
+-            <img src="/assets/hero-mariage.jpg" alt="Mariage photographié par Behn J. Productions" />
++            <img fetchPriority="high" src="/assets/hero-mariage.jpg" alt="Mariage photographié par Behn J. Productions" />
+             <img src="/assets/hero-corporatif.jpg" alt="Portrait corporatif réalisé par Behn J. Productions" />
+             <img src="/assets/hero-evenement.jpg" alt="Événement photographié par Behn J. Productions" />
+           </div>
+@@ -161,7 +161,7 @@ export function App() {
+               ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène'],
+             ].map(([label, src, alt], i) => (
+               <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={() => setContactOpen(true)}>
+-                <img className="photo-triptych__image" src={src} alt={alt} />
++                <img className="photo-triptych__image" src={src} alt={alt} loading="lazy" decoding="async" />
+                 <span className="photo-triptych__label"><span>{label}</span><ArrowRight /></span>
+               </button>
+             ))}
+@@ -174,7 +174,7 @@ export function App() {
+         </section>
+ 
+         <div className="services-band" data-reveal>
+-          <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
++          <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" loading="lazy" decoding="async" />
+           <div className="services-band__shade" />
+           <div className="services-band__content">
+             <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
+@@ -216,7 +216,7 @@ export function App() {
+           </div>
+         </section>
+ 
+-        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
++        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" loading="lazy" decoding="async" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
+       </main>
+ 
+       <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><a href="/services">Services</a><button onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
+diff --git a/src/ContactPage.jsx b/src/ContactPage.jsx
+index afc2ad0..f4bbf9a 100644
+--- a/src/ContactPage.jsx
++++ b/src/ContactPage.jsx
+@@ -19,7 +19,7 @@ export function ContactPage() {
+       <header className="site-header about-header">
+         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
+         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
+-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous écrire</a></div>
++        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="#formulaire">Nous écrire</a></div>
+       </header>
+ 
+       <main className="about-main">
+@@ -28,13 +28,13 @@ export function ContactPage() {
+           <div className="services-band__shade" />
+           <div className="services-band__content">
+             <p className="eyebrow">Sept-Îles · Côte-Nord</p>
+-            <h2>Contact</h2>
++            <h1>Contact</h1>
+             <p>Racontez-nous votre projet. Nous répondons à chaque demande.</p>
+           </div>
+         </div>
+ 
+         <section className="contact-layout">
+-          <div className="contact-form-card" data-reveal>
++          <div className="contact-form-card" id="formulaire" data-reveal>
+             <p className="eyebrow">Votre histoire commence ici</p>
+             <h3>Parlons de votre projet.</h3>
+             <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>
+diff --git a/src/ServicesPage.jsx b/src/ServicesPage.jsx
+index 76e9fec..04078bd 100644
+--- a/src/ServicesPage.jsx
++++ b/src/ServicesPage.jsx
+@@ -23,7 +23,7 @@ export function ServicesPage() {
+       <header className="site-header about-header">
+         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
+         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
+-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous contacter</a></div>
++        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
+       </header>
+ 
+       <main className="about-main">
+@@ -32,7 +32,7 @@ export function ServicesPage() {
+           <div className="services-band__shade" />
+           <div className="services-band__content">
+             <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
+-            <h2>Nos services</h2>
++            <h1>Nos services</h1>
+             <p>Découvrez tout ce qu’on peut créer pour vous.</p>
+             <a className="button" href={`mailto:${BRAND.email}`}>Commencer mon projet <ArrowRight size={18} weight="bold" /></a>
+           </div>
+@@ -48,7 +48,7 @@ export function ServicesPage() {
+     ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène'],
+     ].map(([label, src, alt], i) => (
+     <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={openContact}>
+-    <img className="photo-triptych__image" src={src} alt={alt} />
++    <img className="photo-triptych__image" src={src} alt={alt} loading="lazy" decoding="async" />
+     <span className="photo-triptych__label"><span>{label}</span><ArrowRight /></span>
+     </button>
+     ))}
+@@ -56,14 +56,14 @@ export function ServicesPage() {
+     </section>
+ 
+     <section id="video" className="chapter chapter--media" data-reveal>
+-    <img src="/assets/video-premium.jpg" alt="Production vidéo professionnelle en studio" /><div className="media-shade" />
++    <img src="/assets/video-premium.jpg" alt="Production vidéo professionnelle en studio" loading="lazy" decoding="async" /><div className="media-shade" />
+     <div className="chapter__number"><strong>02</strong><span>Des histoires<br />qui font bouger.</span></div>
+     <div className="media-copy"><p className="eyebrow">Production · Réalisation · Drone</p><h2>Vidéo</h2><p>Plus que des vidéos.<br />Des émotions en mouvement.</p><a className="button button--secondary" href={BRAND.facebook} target="_blank" rel="noreferrer">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div>
+     </section>
+ 
+     <div className="chapter-pair">
+     <section id="diffusion" className="chapter chapter--media chapter--diffusion" data-reveal>
+-    <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" /><div className="media-shade" />
++    <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" loading="lazy" decoding="async" /><div className="media-shade" />
+     <div className="chapter__number"><strong>03</strong><span>Une plus grande<br />portée pour vos histoires.</span></div>
+     <div className="media-copy"><p className="eyebrow">Création · Stratégie · Réseaux sociaux</p><h2>Diffusion web</h2><p>Vos images. Plus loin.<br />Sur toutes les plateformes.</p><a className="button button--secondary" href={`mailto:${BRAND.email}`}>Stratégie et diffusion <ArrowRight size={18} weight="bold" /></a></div>
+     <aside className="media-markets" aria-label="Événements disponibles en diffusion en direct">
+@@ -78,7 +78,7 @@ export function ServicesPage() {
+     </section>
+ 
+     <section id="design" className="chapter chapter--media chapter--design" data-reveal>
+-    <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" /><div className="media-shade" />
++    <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" loading="lazy" decoding="async" /><div className="media-shade" />
+     <div className="chapter__number"><strong>04</strong><span>Un site qui travaille<br />pour vous.</span></div>
+     <div className="media-copy"><p className="eyebrow">Création web · Design graphique · Identité visuelle</p><h2>Sites web</h2><p>Un site qui vous ressemble,<br />pensé pour être trouvé.</p><p className="media-copy__proof">Ce site en est un exemple : conçu, écrit et mis en ligne par notre équipe.</p><a className="button button--secondary" href={`mailto:${BRAND.email}`}>Créer mon site <ArrowRight size={18} weight="bold" /></a></div>
+     <aside className="media-markets" aria-label="Services de création web et de design">
+@@ -94,7 +94,7 @@ export function ServicesPage() {
+     </div>
+ 
+     <section id="ecoles" className="school-feature" data-reveal>
+-    <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
++    <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" loading="lazy" decoding="async" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
+     <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><a className="button" href={BRAND.schoolPortal}>Ouvrir l’espace scolaire <ArrowRight size={18} weight="bold" /></a></div>
+     </section>
+ 
+diff --git a/src/main.jsx b/src/main.jsx
+index 733c402..6a21578 100644
+--- a/src/main.jsx
++++ b/src/main.jsx
+@@ -5,8 +5,57 @@ import { ServicesPage } from "./ServicesPage.jsx";
+ import { ContactPage } from "./ContactPage.jsx";
+ import "./styles.css";
+ 
++const SITE = "https://behnjproductions.ca";
++
++const ROUTES = {
++  "/": {
++    component: App,
++    title: "Behn J. Productions | Photographie, Vidéo & Diffusion web — Sept-Îles",
++    description:
++      "Photographie, vidéo et diffusion web à Sept-Îles et sur la Côte-Nord. Corporatif, mariages, événements et écoles — des images qui se vivent.",
++  },
++  "/services": {
++    component: ServicesPage,
++    title: "Services | Photographie, vidéo, sites web et design — Sept-Îles",
++    description:
++      "Photographie, vidéo, diffusion web en direct, création de sites web, design graphique et portraits scolaires à Sept-Îles et sur la Côte-Nord.",
++  },
++  "/contact": {
++    component: ContactPage,
++    title: "Contact | Demandez une soumission — Behn J. Productions, Sept-Îles",
++    description:
++      "Parlons de votre projet photo, vidéo ou web. Studio au 416 Av. Iberville à Sept-Îles. Téléphone, courriel et formulaire de demande.",
++  },
++  "/a-propos": {
++    component: AProposPage,
++    title: "À propos | Behn J. Productions — Photographe à Sept-Îles",
++    description:
++      "De La Vega à Sept-Îles : l'histoire de Behn J. Productions et l'équipe derrière chaque projet photo, vidéo et web sur la Côte-Nord.",
++  },
++};
++
+ const path = window.location.pathname.replace(/\/+$/, "") || "/";
+-const ROUTES = { "/a-propos": AProposPage, "/services": ServicesPage, "/contact": ContactPage };
+-const RootComponent = ROUTES[path] || App;
++const route = ROUTES[path] || ROUTES["/"];
++
++function setMeta(selector, attr, value) {
++  const el = document.head.querySelector(selector);
++  if (el) el.setAttribute(attr, value);
++}
++
++document.title = route.title;
++setMeta('meta[name="description"]', "content", route.description);
++setMeta('meta[property="og:title"]', "content", route.title);
++setMeta('meta[property="og:description"]', "content", route.description);
++setMeta('meta[property="og:url"]', "content", SITE + (path === "/" ? "" : path));
++setMeta('meta[name="twitter:title"]', "content", route.title);
++setMeta('meta[name="twitter:description"]', "content", route.description);
++
++let canonical = document.head.querySelector('link[rel="canonical"]');
++if (!canonical) {
++  canonical = document.createElement("link");
++  canonical.rel = "canonical";
++  document.head.appendChild(canonical);
++}
++canonical.href = SITE + (path === "/" ? "/" : path);
+ 
+-createRoot(document.getElementById("root")).render(<RootComponent />);
++createRoot(document.getElementById("root")).render(<route.component />);
+diff --git a/src/styles.css b/src/styles.css
+index 2c15bb1..20d6aa4 100644
+--- a/src/styles.css
++++ b/src/styles.css
+@@ -74,7 +74,7 @@ button { color:inherit; }
+ .services-band>img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 42%; }
+ .services-band__shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,.6) 45%,rgba(0,0,0,.82)); }
+ .services-band__content { position:relative; z-index:2; display:grid; justify-items:center; gap:6px; padding:clamp(44px,5vw,72px) clamp(22px,5vw,48px); text-align:center; }
+-.services-band__content h2 { margin:0; color:var(--white); font:400 clamp(52px,7vw,112px)/1 var(--display); letter-spacing:-.01em; text-transform:uppercase; text-shadow:0 4px 28px rgba(0,0,0,.6); }
++.services-band__content h1,.services-band__content h2 { margin:0; color:var(--white); font:400 clamp(52px,7vw,112px)/1 var(--display); letter-spacing:-.01em; text-transform:uppercase; text-shadow:0 4px 28px rgba(0,0,0,.6); }
+ .services-band__content>p:last-of-type { margin:2px 0 22px; max-width:520px; color:rgba(255,255,255,.84); font-size:clamp(17px,1.5vw,21px); line-height:1.5; }
+ @media (max-width:760px) { .services-band { min-height:280px; } .services-band__content { gap:4px; } }
+ 
+@@ -238,7 +238,7 @@ button { color:inherit; }
+   .site-header{height:72px;grid-template-columns:1fr auto;padding:6px 18px;background:rgba(5,5,5,.92)}.brand img{width:106px;height:48px}.menu-toggle{display:grid;place-items:center;cursor:pointer}.main-nav{position:fixed;inset:72px 0 auto;display:none;flex-direction:column;gap:0;padding:18px;background:rgba(5,5,5,.98);border-bottom:1px solid #332c27}.main-nav--open{display:flex}.main-nav button{padding:15px;text-align:left;font-size:18px}
+   .hero{min-height:700px}.hero__image{object-position:19% center}.hero__shade{background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.92) 74%)}.hero__content{text-align:left;padding:0 22px 78px}.hero h1{font-size:clamp(60px,20vw,88px)}.hero__lead{justify-content:flex-start;flex-wrap:wrap;gap:8px;font-size:19px}.hero__actions{justify-content:flex-start;align-items:stretch;flex-direction:column;max-width:320px}.hero__manifesto{display:none}.hero__scroll{left:22px}
+   .chapter,.chapter--media{display:block;min-height:auto}.chapter__number{position:relative;min-height:130px;display:flex;align-items:center;gap:22px;padding:24px 22px;border-right:0;border-bottom:1px solid rgba(255,255,255,.12)}.chapter__number strong{font-size:76px}.chapter__number span{margin-top:0}.chapter__heading{padding:35px 22px}.chapter__heading h2,.media-copy h2{font-size:58px}
+-  .photo-triptych{min-height:920px;grid-template-columns:1fr;grid-template-rows:repeat(3,1fr)}.photo-triptych>img{display:none}.photo-triptych button{border-right:0;border-bottom:1px solid rgba(255,255,255,.4)}.photo-triptych button:nth-of-type(1){background:linear-gradient(180deg,transparent,#000),url('/assets/photography-triptych.png') left center/300% 100% no-repeat}.photo-triptych button:nth-of-type(2){background:linear-gradient(180deg,transparent,#000),url('/assets/photography-triptych.png') center center/300% 100% no-repeat}.photo-triptych button:nth-of-type(3){background:linear-gradient(180deg,transparent,#000),url('/assets/photography-triptych.png') right center/300% 100% no-repeat}
++  .photo-triptych{min-height:920px;grid-template-columns:1fr;grid-template-rows:repeat(3,1fr)}.photo-triptych button{border-right:0;border-bottom:1px solid rgba(255,255,255,.4)}
+   .chapter--media{min-height:620px}.chapter--media .chapter__number{position:relative;z-index:3}.chapter--media>img{object-position:64% center}.chapter--diffusion>img{object-position:70% center}.media-shade,.chapter--diffusion .media-shade{background:linear-gradient(180deg,rgba(0,0,0,.15) 15%,rgba(0,0,0,.94) 72%)}.media-copy{position:relative;z-index:2;min-height:490px;display:flex;flex-direction:column;justify-content:flex-end;padding:180px 22px 40px}
+   .school-feature{min-height:640px}.school-feature>img{object-position:65% top}.school-feature__wash{background:linear-gradient(180deg,rgba(255,182,4,.05) 20%,rgba(255,182,4,.96) 63%)}.school-feature__number{left:22px;top:24px;font-size:78px}.school-feature__content{position:absolute;bottom:0;width:100%;padding:25px 22px 36px}.school-feature__note{display:none}
+   .trust{grid-template-columns:1fr;gap:34px;padding:46px 24px}.local-pride{padding-left:28px}.closing{min-height:560px;text-align:left;place-items:end start}.closing>img{object-position:68% center}.closing__shade{background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.88))}.closing__content{padding:0 22px 46px}.closing h2{font-size:64px}
+@@ -881,8 +881,8 @@ section[data-reveal].is-visible > img { transform:scale(1); }
+ .about-story__copy { position:relative; z-index:2; align-self:center; max-width:790px; padding:clamp(70px,7vw,108px) clamp(38px,6vw,92px); }
+ .about-story__copy::before { content:''; position:absolute; top:clamp(54px,5.5vw,82px); left:clamp(38px,6vw,92px); width:84px; height:3px; background:var(--red-bright); }
+ .about-story__copy>.eyebrow { margin-top:23px; }
+-.about-story h1 { margin:0 0 30px; color:var(--white); font:400 clamp(52px,5vw,78px)/.95 var(--display); letter-spacing:.012em; text-transform:uppercase; }
+-.about-story h1 span { color:var(--gold); }
++.about-story h2 { margin:0 0 30px; color:var(--white); font:400 clamp(52px,5vw,78px)/.95 var(--display); letter-spacing:.012em; text-transform:uppercase; }
++.about-story h2 span { color:var(--gold); }
+ .about-story__text { max-width:650px; color:rgba(255,255,255,.72); font-size:17px; line-height:1.62; }
+ .about-story__text p { margin:0 0 15px; }
+ .about-story__text strong { color:var(--white); font-weight:400; }
+@@ -976,7 +976,7 @@ section[data-reveal].is-visible > img { transform:scale(1); }
+   .about-story::before { display:none; }
+   .about-story__copy { order:1; padding:64px 22px 54px; }
+   .about-story__copy::before { top:46px; left:22px; width:64px; }
+-  .about-story h1 { font-size:clamp(48px,14vw,67px); }
++  .about-story h2 { font-size:clamp(48px,14vw,67px); }
+   .about-story__text { font-size:16px; line-height:1.55; }
+   .about-timeline { margin-top:30px; }
+   .about-timeline li { padding-right:8px; }
+-- 
+2.43.0
+

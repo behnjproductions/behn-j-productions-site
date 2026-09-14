@@ -268,6 +268,7 @@ export function App() {
           <div className="media-copy"><p className="eyebrow">Production · Réalisation · Drone</p><h2>Vidéo</h2><p>Plus que des vidéos.<br />Des émotions en mouvement.</p><CTAButton secondary href={BRAND.facebook}>Voir nos réalisations</CTAButton></div>
         </section>
 
+        <div className="chapter-pair">
         <section id="diffusion" className="chapter chapter--media chapter--diffusion" data-reveal>
           <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" /><div className="media-shade" />
           <div className="chapter__number"><strong>03</strong><span>Une plus grande<br />portée pour vos histoires.</span></div>
@@ -297,6 +298,7 @@ export function App() {
             </ol>
           </aside>
         </section>
+        </div>
 
         <section id="ecoles" className="school-feature" data-reveal>
           <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>

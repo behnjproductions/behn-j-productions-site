@@ -3,9 +3,8 @@ import { ArrowRight, CaretLeft, CaretRight, Check, Heart, Star, X } from '@phosp
 import { BRAND } from './brand.js';
 import { DEMO_GALLERY } from './galleries.js';
 
-// Lien d'avis Google — à remplacer par celui de la fiche
-// (business.google.com > Read Reviews > Get more reviews)
-const GOOGLE_REVIEW_URL = 'https://search.google.com/local/writereview?placeid=REMPLACER';
+// Lien direct vers la fiche Google de Behn J. Productions.
+const GOOGLE_REVIEW_URL = 'https://g.page/r/CQkeWPsjYGSdEBM/review';
 
 function readStore(k) { try { return window.localStorage.getItem(k); } catch { return null; } }
 function writeStore(k, v) { try { window.localStorage.setItem(k, v); } catch { /* navigation privée */ } }

@@ -1,1 +1,6 @@
+# L'API des galeries client vit dans un Worker Cloudflare (photos sur R2,
+# données sur D1). Netlify la relaie : pour le visiteur, tout reste sur
+# behnjproductions.ca. Cette règle doit rester AVANT la règle générale.
+/api/*  https://bjp-galeries.behnjedy.workers.dev/api/:splat  200
+
 /*  /index.html  200

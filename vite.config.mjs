@@ -10,6 +10,10 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
+    // En développement, /api/* part vers le Worker lancé par `wrangler dev`.
+    proxy: {
+      "/api": { target: "http://127.0.0.1:8787", changeOrigin: false },
+    },
     allowedHosts: ["terminal.local"],
     warmup: {
       clientFiles: ["./src/main.jsx"],

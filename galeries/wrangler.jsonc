@@ -1,0 +1,26 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "bjp-galeries",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-10",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "SITE_ORIGIN": "https://behnjproductions.ca",
+    "MAIL_TO": "contact@behnjphoto.com",
+    "MAIL_FROM": "Galeries Behn J. <galeries@behnjphotos.ca>"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bjp-galeries-db",
+      "database_id": "94e9140a-8b8b-4573-872b-5bd06bc5a056"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "bjp-galeries"
+    }
+  ]
+}

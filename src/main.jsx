@@ -4,6 +4,8 @@ import { AProposPage } from "./AProposPage.jsx";
 import { ServicesPage } from "./ServicesPage.jsx";
 import { ContactPage } from "./ContactPage.jsx";
 import { RealisationsPage } from "./RealisationsPage.jsx";
+import { GaleriePage } from "./GaleriePage.jsx";
+import { AdminPage } from "./AdminPage.jsx";
 import "./styles.css";
 
 const SITE = "https://behnjproductions.ca";
@@ -27,6 +29,18 @@ const ROUTES = {
     description:
       "Portfolio de Behn J. Productions : mariages, portraits corporatifs, photographie scolaire et vie culturelle de la Côte-Nord, à Sept-Îles.",
   },
+  "/galerie": {
+    component: GaleriePage,
+    title: "Votre galerie | Behn J. Productions",
+    description: "Galerie privée — choisissez vos photos préférées.",
+    noindex: true,
+  },
+  "/admin": {
+    component: AdminPage,
+    title: "Collections | Behn J. Productions",
+    description: "Panneau d'administration des galeries client.",
+    noindex: true,
+  },
   "/contact": {
     component: ContactPage,
     title: "Contact | Demandez une soumission — Behn J. Productions, Sept-Îles",
@@ -42,7 +56,9 @@ const ROUTES = {
 };
 
 const path = window.location.pathname.replace(/\/+$/, "") || "/";
-const route = ROUTES[path] || ROUTES["/"];
+// Les galeries client vivent sous /galerie/<client> : une adresse par collection.
+const routeKey = path.startsWith("/galerie/") ? "/galerie" : path;
+const route = ROUTES[routeKey] || ROUTES["/"];
 
 function setMeta(selector, attr, value) {
   const el = document.head.querySelector(selector);
@@ -56,6 +72,13 @@ setMeta('meta[property="og:description"]', "content", route.description);
 setMeta('meta[property="og:url"]', "content", SITE + (path === "/" ? "" : path));
 setMeta('meta[name="twitter:title"]', "content", route.title);
 setMeta('meta[name="twitter:description"]', "content", route.description);
+
+if (route.noindex) {
+  const robots = document.createElement("meta");
+  robots.name = "robots";
+  robots.content = "noindex, nofollow";
+  document.head.appendChild(robots);
+}
 
 let canonical = document.head.querySelector('link[rel="canonical"]');
 if (!canonical) {

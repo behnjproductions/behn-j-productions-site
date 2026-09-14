@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build && node scripts/prepare-sites-build.mjs",
     "preview": "vite preview",
-    "test:sites": "node --test tests/sites-worker.test.mjs"
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "galeries:dev": "npx --yes wrangler@4 dev -c galeries/wrangler.jsonc --port 8787 --local",
+    "galeries:deploy": "npx --yes wrangler@4 deploy -c galeries/wrangler.jsonc",
+    "galeries:test": "node tests/galerie-e2e.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

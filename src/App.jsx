@@ -12,7 +12,7 @@ const BRAND = {
 
 const NAV = [
   ['Accueil', 'accueil'], ['Photographie', 'photographie'], ['Vidéo', 'video'],
-  ['Diffusion web', 'diffusion'], ['Écoles', 'ecoles'], ['Séances', 'seances'], ['Contact', 'contact'],
+  ['Diffusion web', 'diffusion'], ['Design & Web', 'design'], ['Écoles', 'ecoles'], ['Séances', 'seances'], ['Contact', 'contact'],
 ];
 
 function scrollToSection(id) {
@@ -283,8 +283,23 @@ export function App() {
           </aside>
         </section>
 
+        <section id="design" className="chapter chapter--media chapter--design" data-reveal>
+          <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" /><div className="media-shade" />
+          <div className="chapter__number"><strong>04</strong><span>Une image de marque<br />qui vous ressemble.</span></div>
+          <div className="media-copy"><p className="eyebrow">Identité visuelle · Affiches · Sites web</p><h2>Design graphique</h2><p>Votre marque, pensée<br />pour être reconnue.</p><CTAButton secondary onClick={() => setContactOpen(true)}>Créer mon identité</CTAButton></div>
+          <aside className="media-markets" aria-label="Services de design et de création web">
+            <p>Ce que nous créons</p>
+            <ol>
+              <li><span>01</span>Identité visuelle, logos et chartes graphiques</li>
+              <li><span>02</span>Affiches, dépliants et cartes d’affaires</li>
+              <li><span>03</span>Sites web, pages de destination et boutiques</li>
+              <li><span>04</span>Habillage de réseaux sociaux et infolettres</li>
+            </ol>
+          </aside>
+        </section>
+
         <section id="ecoles" className="school-feature" data-reveal>
-          <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">04</div>
+          <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
           <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><CTAButton href={BRAND.schoolPortal}>Ouvrir l’espace scolaire</CTAButton></div>
         </section>
 
@@ -318,7 +333,7 @@ export function App() {
         <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('diffusion')}>Diffusion web</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button><a href="/a-propos">À propos</a><button onClick={() => scrollToSection('contact')}>Contact</button><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
+      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('diffusion')}>Diffusion web</button><button onClick={() => scrollToSection('design')}>Design &amp; Web</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button><a href="/a-propos">À propos</a><button onClick={() => scrollToSection('contact')}>Contact</button><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
       <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} prefillType={prefillType} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); setPrefillType(name); setContactOpen(true); }} />

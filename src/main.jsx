@@ -3,6 +3,7 @@ import { App } from "./App.jsx";
 import { AProposPage } from "./AProposPage.jsx";
 import { ServicesPage } from "./ServicesPage.jsx";
 import { ContactPage } from "./ContactPage.jsx";
+import { RealisationsPage } from "./RealisationsPage.jsx";
 import "./styles.css";
 
 const SITE = "https://behnjproductions.ca";
@@ -19,6 +20,12 @@ const ROUTES = {
     title: "Services | Photographie, vidéo, sites web et design — Sept-Îles",
     description:
       "Photographie, vidéo, diffusion web en direct, création de sites web, design graphique et portraits scolaires à Sept-Îles et sur la Côte-Nord.",
+  },
+  "/realisations": {
+    component: RealisationsPage,
+    title: "Réalisations | Mariages, corporatif, scolaire et culture — Sept-Îles",
+    description:
+      "Portfolio de Behn J. Productions : mariages, portraits corporatifs, photographie scolaire et vie culturelle de la Côte-Nord, à Sept-Îles.",
   },
   "/contact": {
     component: ContactPage,

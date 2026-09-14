@@ -58,7 +58,7 @@ export function ServicesPage() {
     <section id="video" className="chapter chapter--media" data-reveal>
     <img src="/assets/video-premium.jpg" alt="Production vidéo professionnelle en studio" loading="lazy" decoding="async" /><div className="media-shade" />
     <div className="chapter__number"><strong>02</strong><span>Des histoires<br />qui font bouger.</span></div>
-    <div className="media-copy"><p className="eyebrow">Production · Réalisation · Drone</p><h2>Vidéo</h2><p>Plus que des vidéos.<br />Des émotions en mouvement.</p><a className="button button--secondary" href={BRAND.facebook} target="_blank" rel="noreferrer">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div>
+    <div className="media-copy"><p className="eyebrow">Production · Réalisation · Drone</p><h2>Vidéo</h2><p>Plus que des vidéos.<br />Des émotions en mouvement.</p><a className="button button--secondary" href="/realisations">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div>
     </section>
 
     <div className="chapter-pair">
@@ -108,7 +108,7 @@ export function ServicesPage() {
       <footer className="footer">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
         <div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
-        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact">Contact</a></div>
+        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact">Contact</a></div>
         <div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div>
       </footer>
     </div>

@@ -18,7 +18,7 @@ function CTAButton({ children, secondary = false, onClick, href }) {
   );
 }
 
-function Header({ onOpenContact }) {
+function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <header className="site-header">
@@ -34,7 +34,7 @@ function Header({ onOpenContact }) {
       </nav>
       <div className="header-actions">
         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
-        <button className="header-cta" type="button" onClick={onOpenContact}>Nous contacter</button>
+        <a className="header-cta" href="/contact">Nous contacter</a>
       </div>
       <button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
         {menuOpen ? <X size={26} /> : <List size={28} />}
@@ -69,7 +69,7 @@ function SessionsModal({ open, onClose, onBook }) {
           <div className="sessions-grid">
             {SESSIONS.map((s) => (
               <button key={s.id} type="button" className="session-card" onClick={() => setSelected(s.id)}>
-                <img src={s.img} alt={s.name} />
+                <img src={s.img} alt={s.name} loading="lazy" decoding="async" />
                 <span className="session-card__name">{s.name}</span>
                 <span className="session-card__price">À partir de {s.price} $</span>
               </button>
@@ -77,7 +77,7 @@ function SessionsModal({ open, onClose, onBook }) {
           </div>
         </> : <div className="session-detail">
           <button className="session-back" type="button" onClick={() => setSelected(null)}><ArrowLeft size={18} /> Toutes les séances</button>
-          <img src={session.img} alt={session.name} />
+          <img src={session.img} alt={session.name} loading="lazy" decoding="async" />
           <h2 className="legal-title">{session.name}</h2>
           <p className="session-detail__price">{session.price} $ — séance unique</p>
           <ul className="session-detail__list">
@@ -137,11 +137,11 @@ export function App() {
   }, []);
   return (
     <div className="site-shell">
-      <Header onOpenContact={() => setContactOpen(true)} />
+      <Header />
       <main>
         <section id="accueil" className="hero">
           <div className="hero__media" aria-label="Mariage, portrait corporatif et événement captés par Behn J. Productions">
-            <img src="/assets/hero-mariage.jpg" alt="Mariage photographié par Behn J. Productions" />
+            <img fetchPriority="high" src="/assets/hero-mariage.jpg" alt="Mariage photographié par Behn J. Productions" />
             <img src="/assets/hero-corporatif.jpg" alt="Portrait corporatif réalisé par Behn J. Productions" />
             <img src="/assets/hero-evenement.jpg" alt="Événement photographié par Behn J. Productions" />
           </div>
@@ -161,7 +161,7 @@ export function App() {
               ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène'],
             ].map(([label, src, alt], i) => (
               <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={() => setContactOpen(true)}>
-                <img className="photo-triptych__image" src={src} alt={alt} />
+                <img className="photo-triptych__image" src={src} alt={alt} loading="lazy" decoding="async" />
                 <span className="photo-triptych__label"><span>{label}</span><ArrowRight /></span>
               </button>
             ))}
@@ -174,7 +174,7 @@ export function App() {
         </section>
 
         <div className="services-band" data-reveal>
-          <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
+          <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" loading="lazy" decoding="async" />
           <div className="services-band__shade" />
           <div className="services-band__content">
             <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
@@ -216,7 +216,7 @@ export function App() {
           </div>
         </section>
 
-        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
+        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" loading="lazy" decoding="async" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
       <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><a href="/services">Services</a><button onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>

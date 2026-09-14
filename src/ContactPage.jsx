@@ -19,7 +19,7 @@ export function ContactPage() {
       <header className="site-header about-header">
         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous écrire</a></div>
+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="#formulaire">Nous écrire</a></div>
       </header>
 
       <main className="about-main">
@@ -28,13 +28,13 @@ export function ContactPage() {
           <div className="services-band__shade" />
           <div className="services-band__content">
             <p className="eyebrow">Sept-Îles · Côte-Nord</p>
-            <h2>Contact</h2>
+            <h1>Contact</h1>
             <p>Racontez-nous votre projet. Nous répondons à chaque demande.</p>
           </div>
         </div>
 
         <section className="contact-layout">
-          <div className="contact-form-card" data-reveal>
+          <div className="contact-form-card" id="formulaire" data-reveal>
             <p className="eyebrow">Votre histoire commence ici</p>
             <h3>Parlons de votre projet.</h3>
             <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>

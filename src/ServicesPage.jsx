@@ -23,7 +23,7 @@ export function ServicesPage() {
       <header className="site-header about-header">
         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous contacter</a></div>
+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
       </header>
 
       <main className="about-main">
@@ -32,7 +32,7 @@ export function ServicesPage() {
           <div className="services-band__shade" />
           <div className="services-band__content">
             <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
-            <h2>Nos services</h2>
+            <h1>Nos services</h1>
             <p>Découvrez tout ce qu’on peut créer pour vous.</p>
             <a className="button" href={`mailto:${BRAND.email}`}>Commencer mon projet <ArrowRight size={18} weight="bold" /></a>
           </div>
@@ -48,7 +48,7 @@ export function ServicesPage() {
     ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène'],
     ].map(([label, src, alt], i) => (
     <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={openContact}>
-    <img className="photo-triptych__image" src={src} alt={alt} />
+    <img className="photo-triptych__image" src={src} alt={alt} loading="lazy" decoding="async" />
     <span className="photo-triptych__label"><span>{label}</span><ArrowRight /></span>
     </button>
     ))}
@@ -56,14 +56,14 @@ export function ServicesPage() {
     </section>
 
     <section id="video" className="chapter chapter--media" data-reveal>
-    <img src="/assets/video-premium.jpg" alt="Production vidéo professionnelle en studio" /><div className="media-shade" />
+    <img src="/assets/video-premium.jpg" alt="Production vidéo professionnelle en studio" loading="lazy" decoding="async" /><div className="media-shade" />
     <div className="chapter__number"><strong>02</strong><span>Des histoires<br />qui font bouger.</span></div>
     <div className="media-copy"><p className="eyebrow">Production · Réalisation · Drone</p><h2>Vidéo</h2><p>Plus que des vidéos.<br />Des émotions en mouvement.</p><a className="button button--secondary" href={BRAND.facebook} target="_blank" rel="noreferrer">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div>
     </section>
 
     <div className="chapter-pair">
     <section id="diffusion" className="chapter chapter--media chapter--diffusion" data-reveal>
-    <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" /><div className="media-shade" />
+    <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" loading="lazy" decoding="async" /><div className="media-shade" />
     <div className="chapter__number"><strong>03</strong><span>Une plus grande<br />portée pour vos histoires.</span></div>
     <div className="media-copy"><p className="eyebrow">Création · Stratégie · Réseaux sociaux</p><h2>Diffusion web</h2><p>Vos images. Plus loin.<br />Sur toutes les plateformes.</p><a className="button button--secondary" href={`mailto:${BRAND.email}`}>Stratégie et diffusion <ArrowRight size={18} weight="bold" /></a></div>
     <aside className="media-markets" aria-label="Événements disponibles en diffusion en direct">
@@ -78,7 +78,7 @@ export function ServicesPage() {
     </section>
 
     <section id="design" className="chapter chapter--media chapter--design" data-reveal>
-    <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" /><div className="media-shade" />
+    <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" loading="lazy" decoding="async" /><div className="media-shade" />
     <div className="chapter__number"><strong>04</strong><span>Un site qui travaille<br />pour vous.</span></div>
     <div className="media-copy"><p className="eyebrow">Création web · Design graphique · Identité visuelle</p><h2>Sites web</h2><p>Un site qui vous ressemble,<br />pensé pour être trouvé.</p><p className="media-copy__proof">Ce site en est un exemple : conçu, écrit et mis en ligne par notre équipe.</p><a className="button button--secondary" href={`mailto:${BRAND.email}`}>Créer mon site <ArrowRight size={18} weight="bold" /></a></div>
     <aside className="media-markets" aria-label="Services de création web et de design">
@@ -94,7 +94,7 @@ export function ServicesPage() {
     </div>
 
     <section id="ecoles" className="school-feature" data-reveal>
-    <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
+    <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" loading="lazy" decoding="async" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
     <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><a className="button" href={BRAND.schoolPortal}>Ouvrir l’espace scolaire <ArrowRight size={18} weight="bold" /></a></div>
     </section>
 

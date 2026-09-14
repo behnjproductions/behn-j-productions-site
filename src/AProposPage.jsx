@@ -25,7 +25,7 @@ export function AProposPage() {
       <header className="site-header about-header">
         <a className="brand" href="/" aria-label="Retour à l'accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href={`mailto:${BRAND.email}`}>Nous contacter</a></div>
+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
       </header>
 
       <main className="about-main">
@@ -59,7 +59,7 @@ export function AProposPage() {
         <section className="about-story">
           <div className="about-story__copy">
             <p className="eyebrow">À propos de Behn J</p>
-            <h1>Une caméra.<br /><span>Une passion.</span><br />Une histoire.</h1>
+            <h2>Une caméra.<br /><span>Une passion.</span><br />Une histoire.</h2>
             <div className="about-story__text">
               <p>Tout a commencé en 2011, à La Vega, en République dominicaine. Avec notre groupe d’artistes, nous avions des chansons et des idées, mais personne pour les mettre en images. Mon père avait une petite caméra Flip. Je l’ai prise pour photographier et filmer le groupe — et j’ai découvert une passion.</p>
               <p>Au début, je créais simplement par plaisir. Puis des gens ont commencé à me dire : « J’aime tes images. Peux-tu photographier ma fille, mon fils, ma famille? » J’ai alors compris que cette passion pouvait devenir un métier.</p>

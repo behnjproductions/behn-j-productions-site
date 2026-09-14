@@ -10,8 +10,8 @@ const CATEGORIES = [
     label: 'Mariages',
     lead: 'L’émotion vraie d’une journée qui ne se rejoue pas.',
     photos: [
-      { src: '/assets/portfolio/mariage-ceremonie.jpg', alt: 'Mariés joue contre joue sous l’arche florale' },
-      { src: '/assets/portfolio/mariage-bouquet.jpg', alt: 'Bouquets levés par le cortège pendant la réception' },
+      { src: '/assets/portfolio/mariage-ceremonie.jpg', pos: '50% 38%', alt: 'Mariés joue contre joue sous l’arche florale' },
+      { src: '/assets/portfolio/mariage-bouquet.jpg', alt: 'Bouquets levés par le cortège pendant la réception', wide: true },
       { src: '/assets/hero-mariage.jpg', alt: 'Couple de mariés dans une lumière dorée' },
       { src: '/assets/photo-mariage.jpg', alt: 'Mariés au coucher du soleil sur la Côte-Nord' },
     ],
@@ -21,21 +21,25 @@ const CATEGORIES = [
     label: 'Corporatif',
     lead: 'Des portraits et des événements qui donnent un visage à votre organisation.',
     photos: [
+      { src: '/assets/portfolio/corporatif-portrait-studio.jpg', alt: 'Portrait professionnel en studio sur fond sombre' },
+      { src: '/assets/portfolio/corporatif-portrait-fond-sable.jpg', alt: 'Portrait professionnel sur fond sable' },
       { src: '/assets/hero-corporatif.jpg', alt: 'Portrait corporatif en studio' },
       { src: '/assets/photo-corporatif.jpg', alt: 'Portrait professionnel sur fond coloré' },
-      { src: '/assets/about-intro/cote-nord-audience.webp', alt: 'Public réuni lors d’un événement d’entreprise' },
+      { src: '/assets/about-intro/cote-nord-audience.webp', alt: 'Public réuni lors d’un événement d’entreprise', wide: true },
     ],
   },
   {
     id: 'scolaire',
     label: 'Scolaire et sportif',
-    lead: 'Portraits d’élèves et d’équipes, du studio au plateau.',
+    lead: 'Finissants, portraits d’élèves et équipes sportives, du studio au plateau.',
     photos: [
-      { src: '/assets/portfolio/scolaire-rentree.jpg', alt: 'Portrait de rentrée scolaire sur fond vert' },
+      { src: '/assets/portfolio/scolaire-diplomee-uqac.jpg', alt: 'Diplômée de l’UQAC en toge, avec broderie florale et boucles perlées' },
+      { src: '/assets/portfolio/scolaire-finissante-bibliotheque.jpg', alt: 'Finissante tenant son mortier devant une bibliothèque' },
+      { src: '/assets/portfolio/scolaire-portrait-finissante.jpg', alt: 'Portrait de finissante en studio' },
+      { src: '/assets/portfolio/scolaire-rentree.jpg', pos: '50% 6%', alt: 'Portrait de rentrée scolaire sur fond vert' },
       { src: '/assets/portfolio/sport-cheer-solo.jpg', alt: 'Portrait de cheerleading en lumière néon' },
-      { src: '/assets/portfolio/sport-cheer-equipe.jpg', alt: 'Portrait d’équipe de cheerleading en studio' },
-      { src: '/assets/portfolio/sport-course.jpg', alt: 'Coureurs franchissant le parcours lors d’une course sur route' },
-      { src: '/assets/school-premium.jpg', alt: 'Portraits scolaires naturels et joyeux' },
+      { src: '/assets/portfolio/sport-course.jpg', pos: '50% 32%', alt: 'Coureurs franchissant le parcours lors d’une course sur route' },
+      { src: '/assets/school-premium.jpg', alt: 'Portraits scolaires naturels et joyeux', wide: true },
     ],
   },
   {
@@ -46,12 +50,10 @@ const CATEGORIES = [
       { src: '/assets/portfolio/culture-aines-innus.jpg', alt: 'Aînés innus en tenue traditionnelle lors d’une cérémonie' },
       { src: '/assets/portfolio/culture-teueikan.jpg', alt: 'Aîné au teueikan devant un montage de perches' },
       { src: '/assets/portfolio/culture-guitariste.jpg', alt: 'Guitariste sur scène sous les projecteurs' },
-      { src: '/assets/portfolio/culture-danse-amazigh.jpg', alt: 'Danseuse en tenue traditionnelle amazighe' },
+      { src: '/assets/portfolio/culture-danse-amazigh.jpg', pos: '50% 34%', alt: 'Danseuse en tenue traditionnelle amazighe' },
       { src: '/assets/portfolio/culture-chanteuse.jpg', alt: 'Chanteuse en plein spectacle sur scène extérieure' },
-      { src: '/assets/portfolio/culture-chanteuse-micro.jpg', alt: 'Chanteuse au micro, de profil' },
-      { src: '/assets/portfolio/culture-mocassins.jpg', alt: 'Homme présentant une paire de mocassins perlés' },
-      { src: '/assets/portfolio/culture-tambour-scene.jpg', alt: 'Aîné au tambour pendant une prestation communautaire' },
-      { src: '/assets/portfolio/culture-scene-acrobate.jpg', alt: 'Artiste en performance sur scène devant le public' },
+      { src: '/assets/portfolio/culture-mocassins.jpg', alt: 'Homme présentant une paire de mocassins perlés', wide: true },
+      { src: '/assets/portfolio/culture-scene-acrobate.jpg', alt: 'Artiste en performance sur scène devant le public', wide: true },
       { src: '/assets/about-intro/culture-innu.webp', alt: 'Portrait culturel d’une mère et de son enfant en régalia' },
     ],
   },
@@ -105,8 +107,8 @@ export function RealisationsPage() {
             </div>
             <div className="gallery-grid">
               {c.photos.map((p) => (
-                <figure key={p.src} data-reveal>
-                  <img src={p.src} alt={p.alt} loading="lazy" decoding="async" />
+                <figure key={p.src} className={p.wide ? 'is-wide' : undefined} data-reveal>
+                  <img src={p.src} alt={p.alt} style={p.pos ? { objectPosition: p.pos } : undefined} loading="lazy" decoding="async" />
                 </figure>
               ))}
             </div>

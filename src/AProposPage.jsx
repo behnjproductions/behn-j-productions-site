@@ -31,6 +31,33 @@ export function AProposPage() {
       </header>
 
       <main className="about-main">
+        <section className="about-intro" aria-labelledby="about-intro-title">
+          <div className="about-intro__hero">
+            <img
+              src="/assets/about-intro/cote-nord-audience.webp"
+              alt="Public réuni lors d’un événement sur la Côte-Nord"
+              loading="eager"
+            />
+            <div className="about-intro__shade" />
+            <p>Photographie · Vidéo · Diffusion web</p>
+            <h1 id="about-intro-title">À propos</h1>
+          </div>
+
+          <div className="about-intro__statement">
+            <p><strong>Behn J. Productions</strong> est une entreprise créative établie sur la Côte-Nord, spécialisée en photographie, vidéo et diffusion web.</p>
+            <p>De Sept-Îles à l’ensemble de la région, nous créons des images authentiques pour les familles, les entreprises, les écoles, les artistes et les organisations.</p>
+            <p>Une approche humaine. Un regard cinématographique. Une attention portée à ce que les autres ne voient pas toujours.</p>
+            <span>Chaque détail compte.</span>
+          </div>
+
+          <div id="about-intro-gallery" className="about-intro__gallery" aria-label="Univers visuel de Behn J. Productions">
+            <figure><img src="/assets/about-intro/portrait-emotion.webp" alt="Moment de complicité capté pendant un événement" loading="lazy" /></figure>
+            <figure><img src="/assets/about-intro/culture-innu.webp" alt="Portrait culturel d’une mère et de son enfant" loading="lazy" /></figure>
+            <figure><img src="/assets/about-intro/concert-live.webp" alt="Artistes sur scène pendant un spectacle" loading="lazy" /></figure>
+            <figure><img src="/assets/about-intro/enfance-famille.webp" alt="Portrait de trois enfants réunis" loading="lazy" /></figure>
+          </div>
+        </section>
+
         <section className="about-story">
           <div className="about-story__copy">
             <p className="eyebrow">À propos de Behn J</p>

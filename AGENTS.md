@@ -27,3 +27,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - On desktop, the hero wedding and corporate portraits are biased upward within their image files so the subjects appear lower and their full heads remain visible; the event musician framing stays unchanged.
 - Use the brand red divider between every main content section.
 - The marketing site should feel visibly alive and cinematic: staggered hero entrance, clear scroll reveals, subtle image depth, and premium microinteractions, while remaining smooth and restrained on mobile.
+- The About page begins with an editorial introduction inspired by the approved Canva reference: a wide documentary photograph, an oversized red “À propos” title, a concise company description, and a four-image portfolio strip before the founder biography. Use Behn J. Productions' own photographs for this section.

@@ -80,7 +80,13 @@ button { color:inherit; }
 
 .services-intro { display:grid; justify-items:center; gap:30px; background:var(--paper); border-bottom:2px solid var(--red); padding:clamp(64px,7vw,104px) clamp(24px,6vw,48px); text-align:center; }
 .services-intro>* { max-width:1000px; }
-.band-divider { height:clamp(52px,6vw,88px); background:var(--paper); border-top:2px solid var(--red); border-bottom:2px solid var(--red); }
+.quote-band { display:flex; align-items:center; justify-content:center; gap:clamp(14px,1.6vw,24px); padding:clamp(30px,3.6vw,54px) clamp(24px,5vw,48px); background:var(--paper); border-top:2px solid var(--red); border-bottom:2px solid var(--red); color:#14110f; text-decoration:none; text-align:center; transition:background .3s ease; }
+.quote-band span { font:400 clamp(22px,2.7vw,40px)/1.1 var(--display); letter-spacing:.012em; text-transform:uppercase; }
+.quote-band svg { flex:none; color:var(--red); transition:transform .3s cubic-bezier(.2,.7,.2,1); }
+.quote-band:hover,.quote-band:focus-visible { background:#ece3d4; }
+.quote-band:hover svg,.quote-band:focus-visible svg { transform:translateX(8px); }
+.quote-band:focus-visible { outline:2px solid var(--red); outline-offset:-6px; }
+@media (max-width:760px) { .quote-band { gap:12px; padding:30px 22px; } .quote-band span { font-size:clamp(20px,6vw,26px); } .quote-band svg { width:20px; height:20px; } }
 .services-intro p { margin:0; color:#14110f; font:clamp(16px,1.35vw,19px)/1.75 var(--body); }
 .services-band--page { min-height:clamp(340px,38vw,520px); border-bottom:2px solid var(--red); }
 .services-page .about-closing { border-bottom:0; }

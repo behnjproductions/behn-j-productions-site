@@ -184,7 +184,10 @@ export function App() {
           </div>
         </div>
 
-        <div className="band-divider" aria-hidden="true" />
+        <a className="quote-band" href="/contact">
+          <span>Obtenez une soumission pour votre projet</span>
+          <ArrowRight size={26} weight="bold" />
+        </a>
 
         <section id="seances" className="sessions-teaser" data-reveal>
           <p className="eyebrow">Choisis ton moment. Je m’occupe du reste.</p>

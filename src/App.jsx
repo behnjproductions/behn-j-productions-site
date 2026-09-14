@@ -1,19 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, List, X } from '@phosphor-icons/react';
+import { BRAND } from './brand.js';
+import { ContactForm, PrivacyModal } from './ContactForm.jsx';
 
-const BRAND = {
-  email: 'contact@behnjphoto.com',
-  phone: '514 458-4730',
-  phoneHref: 'tel:+15144584730',
-  schoolPortal: 'https://behnjphotos.ca',
-  facebook: 'https://www.facebook.com/share/1P2sLfxUaz/?mibextid=wwXIfr',
-  instagram: 'https://www.instagram.com/behnjproductions',
-};
-
-const NAV = [
-  ['Accueil', 'accueil'], ['Photographie', 'photographie'],
-  ['Séances', 'seances'], ['Contact', 'contact'],
-];
+const NAV = [['Accueil', 'accueil']];
 
 function scrollToSection(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
@@ -38,7 +28,9 @@ function Header({ onOpenContact }) {
       <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Navigation principale">
         {NAV.map(([label, id]) => <button key={id} type="button" onClick={() => { scrollToSection(id); setMenuOpen(false); }}>{label}</button>)}
         <a href="/services" onClick={() => setMenuOpen(false)}>Services</a>
+        <button type="button" onClick={() => { scrollToSection('seances'); setMenuOpen(false); }}>Séances</button>
         <a href="/a-propos" onClick={() => setMenuOpen(false)}>À propos</a>
+        <a href="/contact" onClick={() => setMenuOpen(false)}>Contact</a>
       </nav>
       <div className="header-actions">
         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
@@ -102,102 +94,15 @@ function SessionsModal({ open, onClose, onBook }) {
 }
 
 function ProjectModal({ open, onClose, onOpenPrivacy, prefillType }) {
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    if (!open) {
-      setSent(false);
-      setSending(false);
-      setError('');
-    }
-  }, [open]);
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setSending(true);
-    setError('');
-    const formData = new FormData(event.currentTarget);
-    formData.set('form-name', 'project-contact');
-
-    try {
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formData).toString(),
-      });
-      if (!response.ok) throw new Error('Envoi impossible');
-      setSent(true);
-    } catch {
-      setError("Un problème est survenu. Réessayez ou écrivez-nous à contact@behnjphoto.com.");
-    } finally {
-      setSending(false);
-    }
-  }
-
   if (!open) return null;
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer"><X size={24} /></button>
-        {!sent ? <>
-          <p className="eyebrow">Votre histoire commence ici</p>
-          <h2 id="modal-title">Parlons de votre projet.</h2>
-          <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>
-          <form name="project-contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" onSubmit={handleSubmit}>
-            <input type="hidden" name="form-name" value="project-contact" />
-            <p hidden><label>Ne pas remplir : <input name="bot-field" /></label></p>
-            <label>Votre nom ou entreprise<input name="name" required placeholder="Nom complet ou entreprise" /></label>
-            <label>Votre courriel<input name="email" type="email" required placeholder="vous@exemple.ca" /></label>
-            <label>Votre téléphone (optionnel)<input name="phone" type="tel" placeholder="514 000-0000" /></label>
-            <label>Date envisagée (optionnel)<input name="date" type="date" /></label>
-            <label>Type de projet<select name="type" defaultValue={prefillType || ''} required><option value="" disabled>Choisir un service</option><option>Corporatif / Institutionnel</option><option>Mariage</option><option>Événement</option><option>Vidéo</option><option>Diffusion web</option><option>École</option><option>Maternité</option><option>Bébé / nouveau-né</option><option>Famille</option><option>Anniversaire</option><option>Bal de finissants</option></select></label>
-            <label>Parlez-moi de votre idée<textarea name="message" required rows="4" placeholder="Lieu, ambiance et ce que vous souhaitez créer…" /></label>
-            <div className="privacy-consent">
-              <input id="privacy-consent" name="privacy-consent" type="checkbox" value="accepted" required />
-              <label htmlFor="privacy-consent">J’ai lu et j’accepte la <button type="button" onClick={onOpenPrivacy}>Politique de confidentialité</button>. J’autorise Behn J. Productions à utiliser les renseignements fournis uniquement pour répondre à ma demande.</label>
-            </div>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="button modal-submit" type="submit" disabled={sending}>{sending ? 'Envoi en cours…' : 'Envoyer ma demande'} {!sending && <ArrowRight size={18} weight="bold" />}</button>
-          </form>
-        </> : <div className="success-state">
-          <p className="eyebrow">Demande envoyée</p><h2>Merci. Votre histoire est déjà en mouvement.</h2>
-          <p>Votre demande a bien été transmise à Behn J. Productions. Nous vous répondrons dans les meilleurs délais.</p>
-          <button className="button" type="button" onClick={onClose}>Continuer la visite <ArrowRight size={18} /></button>
-        </div>}
-      </section>
-    </div>
-  );
-}
-
-function PrivacyModal({ open, onClose }) {
-  useEffect(() => {
-    if (!open) return undefined;
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [open, onClose]);
-
-  if (!open) return null;
-  return (
-    <div className="modal-backdrop privacy-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="modal privacy-modal" role="dialog" aria-modal="true" aria-labelledby="privacy-title" onMouseDown={(event) => event.stopPropagation()}>
-        <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer la politique de confidentialité"><X size={24} /></button>
-        <p className="eyebrow">Protection de vos renseignements</p>
-        <h2 id="privacy-title">Politique de confidentialité</h2>
-        <p className="privacy-modal__updated">Dernière mise à jour : 11 septembre 2026</p>
-
-        <div className="privacy-modal__content">
-          <section><h3>Notre engagement</h3><p>Behn J. Productions respecte votre vie privée et protège les renseignements personnels qui lui sont confiés, conformément aux lois applicables au Québec et au Canada.</p></section>
-          <section><h3>Renseignements recueillis</h3><p>Lorsque vous utilisez notre formulaire, nous pouvons recueillir votre nom ou celui de votre entreprise, votre adresse courriel, votre numéro de téléphone, la date envisagée, le type de service et les renseignements contenus dans votre message.</p></section>
-          <section><h3>Pourquoi nous les utilisons</h3><p>Ces renseignements servent uniquement à répondre à votre demande, préparer une proposition, planifier le service demandé et assurer le suivi de notre relation avec vous.</p></section>
-          <section><h3>Conservation et communication</h3><p>Nous conservons les renseignements seulement pendant la durée nécessaire aux fins indiquées et à nos obligations administratives ou légales. Nous ne vendons ni ne louons vos renseignements. Ils peuvent être traités par nos fournisseurs technologiques uniquement lorsque cela est nécessaire au fonctionnement du site et du formulaire.</p></section>
-          <section><h3>Vos droits</h3><p>Vous pouvez demander l’accès à vos renseignements, leur rectification ou le retrait de votre consentement, sous réserve des obligations légales applicables.</p></section>
-          <section><h3>Nous joindre</h3><p>Pour toute question ou demande liée à la confidentialité, communiquez avec la personne responsable de la protection des renseignements personnels chez Behn J. Productions :</p><p><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><br /><a href={BRAND.phoneHref}>{BRAND.phone}</a></p></section>
-        </div>
-        <button className="button privacy-modal__close" type="button" onClick={onClose}>Fermer <X size={18} /></button>
+        <p className="eyebrow">Votre histoire commence ici</p>
+        <h2 id="modal-title">Parlons de votre projet.</h2>
+        <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>
+        <ContactForm prefillType={prefillType} onOpenPrivacy={onOpenPrivacy} resetKey={open} />
       </section>
     </div>
   );
@@ -265,11 +170,11 @@ export function App() {
 
         <section id="services" className="services-intro" data-reveal>
           <p>Behn J. Productions transforme vos idées en images concrètes. Établis à Sept-Îles et attachés à la Côte-Nord, nous mettons le même soin dans chaque mandat : photographie, vidéo, diffusion web et design graphique. Familles, entreprises, écoles, artistes et organisations — chaque projet est l’occasion de raconter ce qui se passe vraiment ici, avec une approche humaine, un regard cinématographique et une attention portée à ce que les autres ne voient pas toujours.</p>
-          <a className="button button--secondary" href="/services">Découvrir tous nos services <ArrowRight size={18} weight="bold" /></a>
+          <a className="button" href="/services">Découvrir tous nos services <ArrowRight size={18} weight="bold" /></a>
         </section>
 
         <div className="services-band" data-reveal>
-          <img src="/assets/photo-evenement.jpg" alt="Spectacle capté par Behn J. Productions" />
+          <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
           <div className="services-band__shade" />
           <div className="services-band__content">
             <p className="eyebrow">Photographie · Vidéo · Diffusion web · Design</p>
@@ -309,7 +214,7 @@ export function App() {
         <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><a href="/services">Services</a><button onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><button onClick={() => scrollToSection('contact')}>Contact</button><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
+      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><a href="/services">Services</a><button onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
       <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} prefillType={prefillType} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); setPrefillType(name); setContactOpen(true); }} />

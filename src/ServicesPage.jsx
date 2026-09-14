@@ -28,7 +28,7 @@ export function ServicesPage() {
 
       <main className="about-main">
         <div className="services-band services-band--page" data-reveal>
-          <img src="/assets/photo-evenement.jpg" alt="Spectacle capté par Behn J. Productions" />
+          <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
           <div className="services-band__shade" />
           <div className="services-band__content">
             <p className="eyebrow">Photographie · Vidéo · Diffusion web · Design</p>
@@ -108,7 +108,7 @@ export function ServicesPage() {
       <footer className="footer">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
         <div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
-        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/a-propos">À propos</a><a href="/#seances">Séances</a><a href="/#contact">Contact</a></div>
+        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact">Contact</a></div>
         <div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div>
       </footer>
     </div>

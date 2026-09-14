@@ -28,3 +28,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Use the brand red divider between every main content section.
 - The marketing site should feel visibly alive and cinematic: staggered hero entrance, clear scroll reveals, subtle image depth, and premium microinteractions, while remaining smooth and restrained on mobile.
 - The About page begins with an editorial introduction inspired by the approved Canva reference: a wide documentary photograph, an oversized red “À propos” title, a concise company description, and a four-image portfolio strip before the founder biography. Use Behn J. Productions' own photographs for this section.
+- The About page includes a “Notre équipe” section after the founder story with Behn J. (directeur de production), Danysa Régis-Labbé (directrice adjointe), and Léon Nyeningabo (assistant photographe), using their supplied portraits.

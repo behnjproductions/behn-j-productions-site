@@ -95,6 +95,29 @@ export function AProposPage() {
           </div>
         </section>
 
+        <section className="about-team" aria-labelledby="about-team-title">
+          <div className="about-team__heading">
+            <p className="eyebrow">Les visages derrière chaque projet</p>
+            <h2 id="about-team-title">Notre <span>équipe</span></h2>
+            <p>Trois regards, une même exigence : créer avec humanité, précision et passion.</p>
+          </div>
+
+          <div className="about-team__grid">
+            <article className="team-member">
+              <figure><img src="/assets/team/behn-j.webp" alt="Behn J., directeur de production" loading="lazy" /></figure>
+              <div className="team-member__identity"><span>01</span><div><h3>Behn J.</h3><p>Directeur de production</p></div></div>
+            </article>
+            <article className="team-member">
+              <figure><img src="/assets/team/danysa-regis-labbe.webp" alt="Danysa Régis-Labbé, directrice adjointe" loading="lazy" /></figure>
+              <div className="team-member__identity"><span>02</span><div><h3>Danysa Régis-Labbé</h3><p>Directrice adjointe</p></div></div>
+            </article>
+            <article className="team-member">
+              <figure><img src="/assets/team/leon-nyeningabo.webp" alt="Léon Nyeningabo, assistant photographe" loading="lazy" /></figure>
+              <div className="team-member__identity"><span>03</span><div><h3>Léon Nyeningabo</h3><p>Assistant photographe</p></div></div>
+            </article>
+          </div>
+        </section>
+
         <section className="about-closing">
           <p>Chaque détail compte.</p>
           <h2>Votre histoire<br />mérite d’être racontée<span>.</span></h2>

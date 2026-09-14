@@ -42,7 +42,10 @@ export async function api(path, options = {}) {
   try { data = await response.json(); } catch { /* réponse vide */ }
 
   if (!response.ok) {
-    const error = new Error((data && data.error) || `Erreur ${response.status}`);
+    const message = data && data.error
+      ? (data.detail ? `${data.error} : ${data.detail}` : data.error)
+      : `Erreur ${response.status}`;
+    const error = new Error(message);
     error.status = response.status;
     error.data = data;
     throw error;

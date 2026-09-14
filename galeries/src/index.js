@@ -11,6 +11,12 @@ const SESSION_HOURS = 24 * 30; // Un client garde son accès un mois.
 const ADMIN_HOURS = 12;
 const MAX_FAILS = 10; // Essais de mot de passe ratés tolérés par 15 minutes.
 
+// Un Worker du forfait gratuit ne dispose que de 10 ms de calcul par requête :
+// un PBKDF2 à 120 000 tours le dépasse et la requête est coupée. 4 000 tours
+// tiennent dans le budget. La vraie défense reste la limite d'essais
+// ci-dessus — sans elle, aucun nombre de tours ne sauve un mot de passe court.
+const PBKDF2_ROUNDS = 4000;
+
 /* ------------------------------------------------------------------ outils */
 
 const enc = new TextEncoder();
@@ -59,8 +65,8 @@ async function readToken(secret, scope, token) {
 async function hashPassword(password) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 120000, hash: 'SHA-256' }, key, 256);
-  return `pbkdf2$120000$${b64url(salt)}$${b64url(bits)}`;
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: PBKDF2_ROUNDS, hash: 'SHA-256' }, key, 256);
+  return `pbkdf2$${PBKDF2_ROUNDS}$${b64url(salt)}$${b64url(bits)}`;
 }
 
 async function checkPassword(password, stored) {

@@ -3,4 +3,9 @@
 # behnjproductions.ca. Cette règle doit rester AVANT la règle générale.
 /api/*  https://bjp-galeries.behnjedy.workers.dev/api/:splat  200
 
+# Les galeries et le panneau sont servis par une page qui porte son propre
+# aperçu de lien : le partage par messagerie ne montre plus la photo du site.
+/galerie/*  /galerie.html  200
+/admin      /galerie.html  200
+
 /*  /index.html  200

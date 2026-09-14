@@ -11,8 +11,8 @@ const BRAND = {
 };
 
 const NAV = [
-  ['Accueil', 'accueil'], ['Photographie', 'photographie'], ['Vidéo', 'video'],
-  ['Diffusion web', 'diffusion'], ['Design & Web', 'design'], ['Écoles', 'ecoles'], ['Séances', 'seances'], ['Contact', 'contact'],
+  ['Accueil', 'accueil'], ['Photographie', 'photographie'],
+  ['Séances', 'seances'], ['Contact', 'contact'],
 ];
 
 function scrollToSection(id) {
@@ -37,6 +37,7 @@ function Header({ onOpenContact }) {
       </button>
       <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Navigation principale">
         {NAV.map(([label, id]) => <button key={id} type="button" onClick={() => { scrollToSection(id); setMenuOpen(false); }}>{label}</button>)}
+        <a href="/services" onClick={() => setMenuOpen(false)}>Services</a>
         <a href="/a-propos" onClick={() => setMenuOpen(false)}>À propos</a>
       </nav>
       <div className="header-actions">
@@ -262,48 +263,21 @@ export function App() {
           </div>
         </section>
 
-        <section id="video" className="chapter chapter--media" data-reveal>
-          <img src="/assets/video-premium.jpg" alt="Production vidéo professionnelle en studio" /><div className="media-shade" />
-          <div className="chapter__number"><strong>02</strong><span>Des histoires<br />qui font bouger.</span></div>
-          <div className="media-copy"><p className="eyebrow">Production · Réalisation · Drone</p><h2>Vidéo</h2><p>Plus que des vidéos.<br />Des émotions en mouvement.</p><CTAButton secondary href={BRAND.facebook}>Voir nos réalisations</CTAButton></div>
+        <section id="services" className="services-intro" data-reveal>
+          <p>Behn J. Productions transforme vos idées en images concrètes. Établis à Sept-Îles et attachés à la Côte-Nord, nous mettons le même soin dans chaque mandat : photographie, vidéo, diffusion web et design graphique. Familles, entreprises, écoles, artistes et organisations — chaque projet est l’occasion de raconter ce qui se passe vraiment ici, avec une approche humaine, un regard cinématographique et une attention portée à ce que les autres ne voient pas toujours.</p>
+          <a className="button button--secondary" href="/services">Découvrir tous nos services <ArrowRight size={18} weight="bold" /></a>
         </section>
 
-        <div className="chapter-pair">
-        <section id="diffusion" className="chapter chapter--media chapter--diffusion" data-reveal>
-          <img src="/assets/diffusion-web-premium.jpg" alt="Régie professionnelle de diffusion web en direct" /><div className="media-shade" />
-          <div className="chapter__number"><strong>03</strong><span>Une plus grande<br />portée pour vos histoires.</span></div>
-          <div className="media-copy"><p className="eyebrow">Création · Stratégie · Réseaux sociaux</p><h2>Diffusion web</h2><p>Vos images. Plus loin.<br />Sur toutes les plateformes.</p><CTAButton secondary onClick={() => setContactOpen(true)}>Stratégie et diffusion</CTAButton></div>
-          <aside className="media-markets" aria-label="Événements disponibles en diffusion en direct">
-            <p>Diffusion en direct</p>
-            <ol>
-              <li><span>01</span>Colloques, congrès et conférences</li>
-              <li><span>02</span>Jeux sportifs, tournois et championnats</li>
-              <li><span>03</span>Assemblées générales et rencontres communautaires</li>
-              <li><span>04</span>Conseils municipaux et consultations publiques</li>
-            </ol>
-          </aside>
-        </section>
-
-        <section id="design" className="chapter chapter--media chapter--design" data-reveal>
-          <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" /><div className="media-shade" />
-          <div className="chapter__number"><strong>04</strong><span>Une image de marque<br />qui vous ressemble.</span></div>
-          <div className="media-copy"><p className="eyebrow">Identité visuelle · Affiches · Sites web</p><h2>Design graphique</h2><p>Votre marque, pensée<br />pour être reconnue.</p><CTAButton secondary onClick={() => setContactOpen(true)}>Créer mon identité</CTAButton></div>
-          <aside className="media-markets" aria-label="Services de design et de création web">
-            <p>Ce que nous créons</p>
-            <ol>
-              <li><span>01</span>Identité visuelle, logos et chartes graphiques</li>
-              <li><span>02</span>Affiches, dépliants et cartes d’affaires</li>
-              <li><span>03</span>Sites web, pages de destination et boutiques</li>
-              <li><span>04</span>Habillage de réseaux sociaux et infolettres</li>
-            </ol>
-          </aside>
-        </section>
+        <div className="services-band" data-reveal>
+          <img src="/assets/photo-evenement.jpg" alt="Spectacle capté par Behn J. Productions" />
+          <div className="services-band__shade" />
+          <div className="services-band__content">
+            <p className="eyebrow">Photographie · Vidéo · Diffusion web · Design</p>
+            <h2>Nos services</h2>
+            <p>Découvrez tout ce qu’on peut créer pour vous.</p>
+            <a className="button" href="/services">Voir nos services <ArrowRight size={18} weight="bold" /></a>
+          </div>
         </div>
-
-        <section id="ecoles" className="school-feature" data-reveal>
-          <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
-          <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><CTAButton href={BRAND.schoolPortal}>Ouvrir l’espace scolaire</CTAButton></div>
-        </section>
 
         <section id="seances" className="sessions-teaser" data-reveal>
           <p className="eyebrow">Choisis ton moment. Je m’occupe du reste.</p>
@@ -335,7 +309,7 @@ export function App() {
         <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><button onClick={() => scrollToSection('video')}>Vidéo</button><button onClick={() => scrollToSection('diffusion')}>Diffusion web</button><button onClick={() => scrollToSection('design')}>Design &amp; Web</button><button onClick={() => scrollToSection('ecoles')}>Écoles</button><a href="/a-propos">À propos</a><button onClick={() => scrollToSection('contact')}>Contact</button><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
+      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><button onClick={() => scrollToSection('photographie')}>Photographie</button><a href="/services">Services</a><button onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><button onClick={() => scrollToSection('contact')}>Contact</button><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
       <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} prefillType={prefillType} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
       <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); setPrefillType(name); setContactOpen(true); }} />

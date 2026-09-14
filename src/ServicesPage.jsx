@@ -31,7 +31,7 @@ export function ServicesPage() {
           <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
           <div className="services-band__shade" />
           <div className="services-band__content">
-            <p className="eyebrow">Photographie · Vidéo · Diffusion web · Design</p>
+            <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
             <h2>Nos services</h2>
             <p>Découvrez tout ce qu’on peut créer pour vous.</p>
             <a className="button" href={`mailto:${BRAND.email}`}>Commencer mon projet <ArrowRight size={18} weight="bold" /></a>
@@ -79,14 +79,14 @@ export function ServicesPage() {
 
     <section id="design" className="chapter chapter--media chapter--design" data-reveal>
     <img src="/assets/design-premium.jpg" alt="Création d’un site web et de contenus graphiques en atelier" /><div className="media-shade" />
-    <div className="chapter__number"><strong>04</strong><span>Une image de marque<br />qui vous ressemble.</span></div>
-    <div className="media-copy"><p className="eyebrow">Identité visuelle · Affiches · Sites web</p><h2>Design graphique</h2><p>Votre marque, pensée<br />pour être reconnue.</p><a className="button button--secondary" href={`mailto:${BRAND.email}`}>Créer mon identité <ArrowRight size={18} weight="bold" /></a></div>
-    <aside className="media-markets" aria-label="Services de design et de création web">
+    <div className="chapter__number"><strong>04</strong><span>Un site qui travaille<br />pour vous.</span></div>
+    <div className="media-copy"><p className="eyebrow">Création web · Design graphique · Identité visuelle</p><h2>Sites web</h2><p>Un site qui vous ressemble,<br />pensé pour être trouvé.</p><p className="media-copy__proof">Ce site en est un exemple : conçu, écrit et mis en ligne par notre équipe.</p><a className="button button--secondary" href={`mailto:${BRAND.email}`}>Créer mon site <ArrowRight size={18} weight="bold" /></a></div>
+    <aside className="media-markets" aria-label="Services de création web et de design">
     <p>Ce que nous créons</p>
     <ol>
-    <li><span>01</span>Identité visuelle, logos et chartes graphiques</li>
-    <li><span>02</span>Affiches, dépliants et cartes d’affaires</li>
-    <li><span>03</span>Sites web, pages de destination et boutiques</li>
+    <li><span>01</span>Sites web vitrines et pages de destination</li>
+    <li><span>02</span>Identité visuelle, logos et chartes graphiques</li>
+    <li><span>03</span>Affiches, dépliants et cartes d’affaires</li>
     <li><span>04</span>Habillage de réseaux sociaux et infolettres</li>
     </ol>
     </aside>

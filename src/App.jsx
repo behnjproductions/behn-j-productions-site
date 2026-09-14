@@ -169,7 +169,7 @@ export function App() {
         </section>
 
         <section id="services" className="services-intro" data-reveal>
-          <p>Behn J. Productions transforme vos idées en images concrètes. Établis à Sept-Îles et attachés à la Côte-Nord, nous mettons le même soin dans chaque mandat : photographie, vidéo, diffusion web et design graphique. Familles, entreprises, écoles, artistes et organisations — chaque projet est l’occasion de raconter ce qui se passe vraiment ici, avec une approche humaine, un regard cinématographique et une attention portée à ce que les autres ne voient pas toujours.</p>
+          <p>Behn J. Productions transforme vos idées en images concrètes. Établis à Sept-Îles et attachés à la Côte-Nord, nous mettons le même soin dans chaque mandat : photographie, vidéo, création de sites web et design graphique. Familles, entreprises, écoles, artistes et organisations — chaque projet est l’occasion de raconter ce qui se passe vraiment ici, avec une approche humaine, un regard cinématographique et une attention portée à ce que les autres ne voient pas toujours.</p>
           <a className="button" href="/services">Découvrir tous nos services <ArrowRight size={18} weight="bold" /></a>
         </section>
 
@@ -177,7 +177,7 @@ export function App() {
           <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
           <div className="services-band__shade" />
           <div className="services-band__content">
-            <p className="eyebrow">Photographie · Vidéo · Diffusion web · Design</p>
+            <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
             <h2>Nos services</h2>
             <p>Découvrez tout ce qu’on peut créer pour vous.</p>
             <a className="button" href="/services">Voir nos services <ArrowRight size={18} weight="bold" /></a>

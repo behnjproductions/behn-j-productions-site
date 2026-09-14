@@ -5,9 +5,7 @@ import { BRAND } from './brand.js';
 const SLIDES = [
   { src: '/assets/about/about-action.webp', alt: 'Behn J photographiant un événement sur scène', label: 'En action' },
   { src: '/assets/about/about-origin.webp', alt: 'Behn J avec son sac de photographie', label: 'La passion' },
-  { src: '/assets/about/about-craft.webp', alt: 'Behn J préparant son équipement Canon', label: 'Le savoir-faire' },
   { src: '/assets/about/about-production.webp', alt: 'Behn J en production photo et vidéo', label: 'Sur le terrain' },
-  { src: '/assets/about/about-portrait.webp', alt: 'Portrait professionnel de Behn J', label: 'Behn J' },
 ];
 
 export function AProposPage() {
@@ -104,8 +102,8 @@ export function AProposPage() {
 
           <div className="about-team__grid">
             <article className="team-member">
-              <figure><img src="/assets/team/behn-j.webp" alt="Behn J., directeur de production" loading="lazy" /></figure>
-              <div className="team-member__identity"><h3>Behn J.</h3><p>Directeur de production</p></div>
+              <figure><img src="/assets/team/behn-j.webp" alt="Behn Jedy, directeur de production" loading="lazy" /></figure>
+              <div className="team-member__identity"><h3>Behn Jedy</h3><p>Directeur de production</p></div>
             </article>
             <article className="team-member">
               <figure><img src="/assets/team/danysa-regis-labbe.webp" alt="Danysa Régis-Labbé, directrice adjointe" loading="lazy" /></figure>

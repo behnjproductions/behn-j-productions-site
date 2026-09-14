@@ -10,9 +10,10 @@ const CATEGORIES = [
     label: 'Mariages',
     lead: 'L’émotion vraie d’une journée qui ne se rejoue pas.',
     photos: [
+      { src: '/assets/portfolio/mariage-ceremonie.jpg', alt: 'Mariés joue contre joue sous l’arche florale' },
+      { src: '/assets/portfolio/mariage-bouquet.jpg', alt: 'Bouquets levés par le cortège pendant la réception' },
       { src: '/assets/hero-mariage.jpg', alt: 'Couple de mariés dans une lumière dorée' },
       { src: '/assets/photo-mariage.jpg', alt: 'Mariés au coucher du soleil sur la Côte-Nord' },
-      { src: '/assets/about-intro/portrait-emotion.webp', alt: 'Moment de complicité capté pendant la réception' },
     ],
   },
   {
@@ -27,12 +28,14 @@ const CATEGORIES = [
   },
   {
     id: 'scolaire',
-    label: 'Scolaire',
-    lead: 'Des sourires d’aujourd’hui pour les souvenirs de demain.',
+    label: 'Scolaire et sportif',
+    lead: 'Portraits d’élèves et d’équipes, du studio au plateau.',
     photos: [
+      { src: '/assets/portfolio/scolaire-rentree.jpg', alt: 'Portrait de rentrée scolaire sur fond vert' },
+      { src: '/assets/portfolio/sport-cheer-solo.jpg', alt: 'Portrait de cheerleading en lumière néon' },
+      { src: '/assets/portfolio/sport-cheer-equipe.jpg', alt: 'Portrait d’équipe de cheerleading en studio' },
+      { src: '/assets/portfolio/sport-course.jpg', alt: 'Coureurs franchissant le parcours lors d’une course sur route' },
       { src: '/assets/school-premium.jpg', alt: 'Portraits scolaires naturels et joyeux' },
-      { src: '/assets/about-intro/enfance-famille.webp', alt: 'Portrait de trois enfants réunis' },
-      { src: '/assets/sessions/finissants.jpg', alt: 'Portrait de bal de finissants' },
     ],
   },
   {
@@ -40,13 +43,20 @@ const CATEGORIES = [
     label: 'Culture et communautés',
     lead: 'Les gens d’ici, leurs traditions et leur musique.',
     photos: [
+      { src: '/assets/portfolio/culture-aines-innus.jpg', alt: 'Aînés innus en tenue traditionnelle lors d’une cérémonie' },
+      { src: '/assets/portfolio/culture-teueikan.jpg', alt: 'Aîné au teueikan devant un montage de perches' },
+      { src: '/assets/portfolio/culture-guitariste.jpg', alt: 'Guitariste sur scène sous les projecteurs' },
+      { src: '/assets/portfolio/culture-danse-amazigh.jpg', alt: 'Danseuse en tenue traditionnelle amazighe' },
+      { src: '/assets/portfolio/culture-chanteuse.jpg', alt: 'Chanteuse en plein spectacle sur scène extérieure' },
+      { src: '/assets/portfolio/culture-chanteuse-micro.jpg', alt: 'Chanteuse au micro, de profil' },
+      { src: '/assets/portfolio/culture-mocassins.jpg', alt: 'Homme présentant une paire de mocassins perlés' },
+      { src: '/assets/portfolio/culture-tambour-scene.jpg', alt: 'Aîné au tambour pendant une prestation communautaire' },
+      { src: '/assets/portfolio/culture-scene-acrobate.jpg', alt: 'Artiste en performance sur scène devant le public' },
       { src: '/assets/about-intro/culture-innu.webp', alt: 'Portrait culturel d’une mère et de son enfant en régalia' },
-      { src: '/assets/photo-evenement.jpg', alt: 'Performance culturelle sur scène au Africa Fest Sept-Îles' },
-      { src: '/assets/about-intro/concert-live.webp', alt: 'Artiste sur scène pendant un spectacle' },
-      { src: '/assets/services-hero.jpg', alt: 'Moment de complicité capté sur scène' },
     ],
   },
 ];
+
 
 export function RealisationsPage() {
   const [active, setActive] = useState('tout');
@@ -71,10 +81,10 @@ export function RealisationsPage() {
 
       <main className="about-main">
         <div className="services-band services-band--page" data-reveal>
-          <img src="/assets/photo-mariage.jpg" alt="Mariage photographié par Behn J. Productions" />
+          <img src="/assets/portfolio/culture-aines-innus.jpg" alt="Aînés innus en tenue traditionnelle" />
           <div className="services-band__shade" />
           <div className="services-band__content">
-            <p className="eyebrow">Mariages · Corporatif · Scolaire · Culture</p>
+            <p className="eyebrow">Mariages · Corporatif · Scolaire et sportif · Culture</p>
             <h1>Réalisations</h1>
             <p>Un aperçu de ce que nous créons sur la Côte-Nord.</p>
           </div>

@@ -105,15 +105,15 @@ export function AProposPage() {
           <div className="about-team__grid">
             <article className="team-member">
               <figure><img src="/assets/team/behn-j.webp" alt="Behn J., directeur de production" loading="lazy" /></figure>
-              <div className="team-member__identity"><span>01</span><div><h3>Behn J.</h3><p>Directeur de production</p></div></div>
+              <div className="team-member__identity"><h3>Behn J.</h3><p>Directeur de production</p></div>
             </article>
             <article className="team-member">
               <figure><img src="/assets/team/danysa-regis-labbe.webp" alt="Danysa Régis-Labbé, directrice adjointe" loading="lazy" /></figure>
-              <div className="team-member__identity"><span>02</span><div><h3>Danysa Régis-Labbé</h3><p>Directrice adjointe</p></div></div>
+              <div className="team-member__identity"><h3>Danysa Régis-Labbé</h3><p>Directrice adjointe</p></div>
             </article>
             <article className="team-member">
               <figure><img src="/assets/team/leon-nyeningabo.webp" alt="Léon Nyeningabo, assistant photographe" loading="lazy" /></figure>
-              <div className="team-member__identity"><span>03</span><div><h3>Léon Nyeningabo</h3><p>Assistant photographe</p></div></div>
+              <div className="team-member__identity"><h3>Léon Nyeningabo</h3><p>Assistant photographe</p></div>
             </article>
           </div>
         </section>

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  CaretLeft, Check, Copy, DownloadSimple, Image as ImageIcon, Lock, MagnifyingGlass,
+  ArrowRight, ArrowUpRight, CaretLeft, Check, Copy, DownloadSimple, Image as ImageIcon, Lock, MagnifyingGlass,
   Plus, SignOut, Star, Trash, UploadSimple, X,
 } from '@phosphor-icons/react';
 import { api, clearSession, photoUrl, prepareImage, saveSession, useSession } from './api.js';
+import './admin-cinema.css';
 
 const WEB_SIDE = 2000;   // côté le plus long de la version web
 const THUMB_SIDE = 700;  // côté le plus long de la vignette
@@ -51,20 +52,34 @@ function Login({ onIn }) {
   };
 
   return (
-    <div className="adm-login">
-      <form className="adm-login__panel" onSubmit={submit}>
-        <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
-        <div className="adm-login__icon" aria-hidden="true"><Lock size={22} /></div>
-        <h1>Administration</h1>
-        <label>Mot de passe
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-            autoFocus autoComplete="current-password" required />
-        </label>
-        {error && <p className="adm-error" role="alert">{error}</p>}
-        <button className="adm-primary" type="submit" disabled={busy || !password}>
-          {busy ? 'Vérification…' : 'Entrer'}
-        </button>
-      </form>
+    <div className="admin-cinema adm-login">
+      <header className="adm-login__masthead">
+        <a className="adm-wordmark" href="/">BEHN J. PRODUCTIONS</a>
+        <span className="adm-studio-label">Espace studio</span>
+      </header>
+      <main className="adm-login__layout">
+        <div className="adm-login__intro">
+          <p className="adm-eyebrow">L’art de livrer vos images</p>
+          <h1>Votre regard.<br /><em>Votre studio.</em></h1>
+          <p>Un espace pour vos collections,<br />et les instants qui comptent.</p>
+          <span className="adm-login__signature">Photographie &amp; films</span>
+        </div>
+        <form className="adm-login__panel" onSubmit={submit}>
+          <div className="adm-login__icon" aria-hidden="true"><Lock size={21} weight="light" /></div>
+          <p className="adm-eyebrow">Accès privé</p>
+          <h2>Bienvenue au studio.</h2>
+          <p className="adm-login__description">Retrouvez vos galeries et les sélections de vos clients.</p>
+          <label>Mot de passe
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+              placeholder="Votre mot de passe" autoFocus autoComplete="current-password" required />
+          </label>
+          {error && <p className="adm-error" role="alert">{error}</p>}
+          <button className="adm-primary" type="submit" disabled={busy || !password}>
+            {busy ? 'Vérification…' : 'Entrer dans le studio'} <ArrowRight size={20} />
+          </button>
+        </form>
+      </main>
+      <footer className="adm-login__footer"><span>Behn J. Productions</span><span>Administration des galeries</span></footer>
     </div>
   );
 }
@@ -75,13 +90,20 @@ function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery 
   const shown = collections.filter((c) => `${c.client} ${c.title || ''}`.toLowerCase().includes(query.toLowerCase()));
   return (
     <>
+      <header className="adm-overview">
+        <div>
+          <p className="adm-eyebrow">Votre espace de création</p>
+          <h1>Les collections<span>.</span></h1>
+          <p className="adm-overview__lead">Vos images. Leur histoire.</p>
+        </div>
+        <button className="adm-primary" type="button" onClick={onNew}><Plus size={18} /> Nouvelle collection</button>
+      </header>
       <div className="adm-topbar">
-        <h1>Collections</h1>
+        <p className="adm-collection-count">Toutes les collections <span>{String(collections.length).padStart(2, '0')}</span></p>
         <label className="adm-search">
           <MagnifyingGlass size={18} />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher" aria-label="Rechercher une collection" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher une collection" aria-label="Rechercher une collection" />
         </label>
-        <button className="adm-primary" type="button" onClick={onNew}><Plus size={17} weight="bold" /> Nouvelle collection</button>
       </div>
 
       {shown.length === 0 ? (
@@ -92,23 +114,23 @@ function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery 
         </div>
       ) : (
         <div className="adm-grid">
-          {shown.map((c) => (
+          {shown.map((c, index) => (
             <article className="adm-card" key={c.id}>
               <div className="adm-card__media">
-                <button type="button" className="adm-card__cover" onClick={() => onOpen(c.slug)}>
-                  {c.cover ? <img src={photoUrl(c.cover)} alt="" /> : <span className="adm-card__blank"><ImageIcon size={28} /></span>}
+                <button type="button" className="adm-card__cover" onClick={() => onOpen(c.slug)} aria-label={`Ouvrir la collection de ${c.client}`}>
+                  {c.cover ? <img src={photoUrl(c.cover)} alt="" loading="lazy" /> : <span className="adm-card__blank"><ImageIcon size={40} weight="thin" /><span>Votre prochaine histoire</span></span>}
+                  <span className="adm-card__open">Ouvrir la collection <ArrowUpRight size={20} /></span>
                 </button>
                 <button type="button" className="adm-card__del" onClick={() => onDelete(c)}
                   aria-label={`Supprimer la galerie de ${c.client}`} title="Supprimer cette galerie">
                   <Trash size={15} />
                 </button>
               </div>
-              <h2>{c.client}</h2>
-              <p>
-                <i className={c.status === 'publié' ? 'is-live' : ''} />
-                {c.photoCount} photo{c.photoCount === 1 ? '' : 's'} · {c.status}
-                {c.selectionCount > 0 && <strong className="adm-card__flag"> · sélection reçue</strong>}
-              </p>
+              <div className="adm-card__details">
+                <div className="adm-card__meta"><span>{String(index + 1).padStart(2, '0')}</span><span>{c.photoCount} photo{c.photoCount === 1 ? '' : 's'}</span><span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span></div>
+                <h2><button type="button" onClick={() => onOpen(c.slug)}>{c.client}<ArrowUpRight size={22} weight="light" /></button></h2>
+                <p>{c.title || 'Collection privée'}{c.selectionCount > 0 && <strong className="adm-card__flag"><Check size={13} /> Sélection reçue</strong>}</p>
+              </div>
             </article>
           ))}
         </div>
@@ -140,31 +162,45 @@ function NewCollection({ onCancel, onCreate }) {
 
   return (
     <div className="adm-form-wrap">
-      <button className="adm-back" type="button" onClick={onCancel}><CaretLeft size={18} /> Retour</button>
-      <h1>Créer une nouvelle collection</h1>
+      <button className="adm-back" type="button" onClick={onCancel}><CaretLeft size={18} /> Collections</button>
+      <header className="adm-form-heading">
+        <p className="adm-eyebrow">Une nouvelle histoire</p>
+        <h1>Créer une collection.</h1>
+        <p>Préparez un espace personnel pour les images de votre client.</p>
+      </header>
       <form className="adm-form" onSubmit={submit}>
-        <label>Nom du client
-          <input value={form.client} onChange={set('client')} placeholder="p. ex. : Jessie et Ryan" required autoFocus />
-        </label>
-        {slug && <p className="adm-hint">Adresse de la galerie : <code>behnjproductions.ca/galerie/{slug}</code></p>}
-        <label>Titre de la séance <small>facultatif</small>
-          <input value={form.title} onChange={set('title')} placeholder="p. ex. : Mariage au Vieux-Quai" />
-        </label>
-        <label>Date de l’événement
-          <input type="date" value={form.eventDate} onChange={set('eventDate')} />
-        </label>
-        <label>Mot de passe de la galerie
-          <input value={form.password} onChange={set('password')} placeholder="Laissez vide pour une galerie sans mot de passe" />
-        </label>
-        <label>Nombre de photos incluses <small>facultatif</small>
-          <input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} placeholder="p. ex. : 15" />
-        </label>
-        <label>Prix par photo supplémentaire ($ CAD)
-          <input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} placeholder="25" />
-        </label>
-        <p className="adm-hint">Le client peut dépasser le forfait; chaque photo en plus lui est facturée à ce prix, et le total apparaît dans le courriel de sélection.</p>
+        <fieldset className="adm-form-section">
+          <legend><span>01</span> La séance</legend>
+          <div className="adm-settings__row">
+            <label>Nom du client
+              <input value={form.client} onChange={set('client')} placeholder="p. ex. : Jessie et Ryan" required autoFocus />
+            </label>
+            <label><span>Titre de la séance <small>facultatif</small></span>
+              <input value={form.title} onChange={set('title')} placeholder="p. ex. : Mariage au Vieux-Quai" />
+            </label>
+          </div>
+          <label>Date de l’événement
+            <input type="date" value={form.eventDate} onChange={set('eventDate')} />
+          </label>
+          {slug && <p className="adm-hint">Adresse de la galerie : <code>behnjproductions.ca/galerie/{slug}</code></p>}
+        </fieldset>
+        <fieldset className="adm-form-section">
+          <legend><span>02</span> L’accès &amp; la sélection</legend>
+          <label>Mot de passe de la galerie
+            <input value={form.password} onChange={set('password')} placeholder="Laissez vide pour un accès sans mot de passe" />
+          </label>
+          <div className="adm-settings__row">
+            <label><span>Nombre de photos incluses <small>facultatif</small></span>
+              <input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} placeholder="p. ex. : 15" />
+            </label>
+            <label>Photo supplémentaire ($ CAD)
+              <input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} placeholder="25" />
+            </label>
+          </div>
+          <p className="adm-hint">Les photos choisies au-delà du forfait sont calculées à ce prix. Le total apparaît dans le courriel de sélection.</p>
+        </fieldset>
         {error && <p className="adm-error" role="alert">{error}</p>}
-        <button className="adm-primary" type="submit" disabled={busy}>{busy ? 'Création…' : 'Créer la collection'}</button>
+        <div className="adm-form__footer"><button className="adm-ghost" type="button" onClick={onCancel}>Annuler</button><button className="adm-primary" type="submit" disabled={busy}>{busy ? 'Création…' : 'Créer la collection'}<ArrowRight size={19} /></button></div>
       </form>
     </div>
   );
@@ -248,22 +284,25 @@ function Editor({ slug, onBack, onChanged }) {
 
   return (
     <div className="adm-editor">
-      <div className="adm-editor__bar">
+      <div className="adm-editor__navigation">
         <button className="adm-back" type="button" onClick={() => onBack(false)}><CaretLeft size={18} /> Collections</button>
+        <div className="adm-editor__actions">
+          <a className="adm-ghost" href={`/galerie/${c.slug}`} target="_blank" rel="noreferrer">Voir la galerie <ArrowUpRight size={17} /></a>
+          <button className="adm-ghost" type="button" aria-expanded={settings} aria-controls="collection-settings" onClick={() => setSettings((s) => !s)}>Réglages</button>
+          <button className="adm-primary" type="button"
+            onClick={() => patch({ status: c.status === 'publié' ? 'brouillon' : 'publié' })}>
+            {c.status === 'publié' ? 'Dépublier' : 'Publier la galerie'}
+          </button>
+        </div>
+      </div>
+      <header className="adm-editor__bar">
         <div className="adm-editor__title">
+          <p className="adm-eyebrow">Collection privée</p>
           <h1>{c.client}</h1>
           <span>{[c.title, formatDate(c.date)].filter(Boolean).join(' · ')}</span>
         </div>
         <span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span>
-        <div className="adm-editor__actions">
-          <a className="adm-ghost" href={`/galerie/${c.slug}`} target="_blank" rel="noreferrer">Aperçu</a>
-          <button className="adm-ghost" type="button" onClick={() => setSettings((s) => !s)}>Réglages</button>
-          <button className="adm-primary" type="button"
-            onClick={() => patch({ status: c.status === 'publié' ? 'brouillon' : 'publié' })}>
-            {c.status === 'publié' ? 'Dépublier' : 'Publier'}
-          </button>
-        </div>
-      </div>
+      </header>
 
       {error && <p className="adm-error" role="alert">{error}</p>}
 
@@ -286,17 +325,17 @@ function Editor({ slug, onBack, onChanged }) {
 
         {selection && <Selection selection={selection} collection={c} copied={copied} copy={copy} />}
 
-        <h2>Photos <small>{data.photos.length}</small></h2>
+        <div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(data.photos.length).padStart(2, '0')}</small></h2></div><p><Star size={14} /> L’étoile définit la photo de couverture.</p></div>
 
         <div className={`adm-drop ${dragging ? 'is-dragging' : ''}`}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}>
-          <UploadSimple size={34} />
-          <p><strong>Glissez vos photos ici</strong></p>
-          <p className="adm-hint">Elles sont réduites sur votre ordinateur avant l’envoi : les originaux restent chez vous.</p>
+          <div className="adm-drop__icon"><UploadSimple size={26} weight="light" /></div>
+          <div className="adm-drop__copy"><p><strong>Ajoutez les images de cette histoire.</strong></p>
+          <p className="adm-hint">Glissez vos photos ici. Les originaux restent sur votre ordinateur.</p></div>
           <button className="adm-ghost" type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(upload)}>
-            Choisir depuis l’ordinateur
+            <Plus size={17} /> Ajouter des photos
           </button>
           <input ref={inputRef} type="file" accept="image/*" multiple hidden
             onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
@@ -310,13 +349,14 @@ function Editor({ slug, onBack, onChanged }) {
 
         {data.photos.length > 0 && (
           <div className="adm-photos">
-            {data.photos.map((p) => (
+            {data.photos.map((p, index) => (
               <figure key={p.id} className={c.cover === p.id ? 'is-cover' : ''}>
-                <img src={photoUrl(p.id)} alt="" loading="lazy" />
+                <img src={photoUrl(p.id)} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
+                <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span></figcaption>
                 <button type="button" className="adm-photos__del" onClick={() => removePhoto(p)}
                   aria-label={`Retirer ${p.filename || 'la photo'}`}><X size={14} weight="bold" /></button>
                 <button type="button" className="adm-photos__cover" onClick={() => patch({ cover: p.id })}
-                  aria-label="Choisir comme couverture" title="Photo de couverture">
+                  aria-label={`Choisir ${p.filename || 'cette photo'} comme couverture`} aria-pressed={c.cover === p.id} title="Photo de couverture">
                   <Star size={14} weight={c.cover === p.id ? 'fill' : 'regular'} />
                 </button>
               </figure>
@@ -358,18 +398,19 @@ function Settings({ collection, onSave, onDelete }) {
   };
 
   return (
-    <form className="adm-settings" onSubmit={submit}>
+    <form id="collection-settings" className="adm-settings" onSubmit={submit}>
+      <header className="adm-settings__heading"><p className="adm-eyebrow">Les détails de la collection</p><h2>Réglages</h2></header>
       <div className="adm-settings__row">
         <label>Nom du client<input value={form.client} onChange={set('client')} required /></label>
         <label>Titre<input value={form.title} onChange={set('title')} /></label>
       </div>
       <div className="adm-settings__row">
         <label>Date<input type="date" value={form.eventDate} onChange={set('eventDate')} /></label>
-        <label>Adresse (slug)<input value={form.slug} onChange={set('slug')} /></label>
+        <label>Adresse de la galerie<input value={form.slug} onChange={set('slug')} /></label>
       </div>
       <div className="adm-settings__row">
         <label>Photos incluses<input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} /></label>
-        <label>Prix par photo supplémentaire ($)<input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} /></label>
+        <label>Photo supplémentaire ($ CAD)<input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} /></label>
       </div>
       <div className="adm-settings__row">
         <label>Nouveau mot de passe
@@ -410,7 +451,7 @@ function Selection({ selection, collection, copied, copy }) {
   return (
     <section className="adm-selection">
       <header>
-        <h2>Sélection du client <small>{selection.photos.length} photos</small></h2>
+        <div className="adm-selection__title"><p className="adm-eyebrow"><Check size={14} /> Sélection reçue</p><h2>Le choix du client <small>{selection.photos.length} photos</small></h2></div>
         <div>
           <button className="adm-ghost" type="button" onClick={() => copy(names, 'sel')}>
             {copied === 'sel' ? <><Check size={16} weight="bold" /> Copié</> : <><Copy size={16} /> Copier la liste</>}
@@ -426,7 +467,7 @@ function Selection({ selection, collection, copied, copy }) {
       )}
       {selection.note && <p className="adm-selection__note">« {selection.note} »</p>}
       <ul className="adm-selection__list">
-        {selection.photos.map((p) => <li key={p.id}>{p.filename}</li>)}
+        {selection.photos.map((p) => <li key={p.id}><img src={photoUrl(p.id)} alt="" loading="lazy" /><span>{p.filename}</span></li>)}
       </ul>
     </section>
   );
@@ -455,7 +496,7 @@ export function AdminPage() {
 
   useEffect(() => { enter(); }, [enter]);
 
-  if (session === 'inconnue') return <p className="adm-empty">Chargement…</p>;
+  if (session === 'inconnue') return <div className="admin-cinema adm-loading"><span className="adm-wordmark">BEHN J. PRODUCTIONS</span><p role="status">Ouverture du studio…</p></div>;
   if (session === 'absente') return <Login onIn={enter} />;
 
   const create = async (form) => {
@@ -481,9 +522,10 @@ export function AdminPage() {
   };
 
   return (
-    <div className="adm">
-      <aside className="adm-side">
-        <div className="adm-brand"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></div>
+    <div className="adm admin-cinema">
+      <header className="adm-side">
+        <a className="adm-wordmark" href="/">BEHN J. PRODUCTIONS</a>
+        <span className="adm-studio-label">Espace studio</span>
         <nav aria-label="Sections">
           <button type="button" className="is-active" onClick={() => { setView({ name: 'list' }); refresh(); }}>
             <ImageIcon size={19} /> Collections
@@ -493,7 +535,7 @@ export function AdminPage() {
           <a className="adm-side__home" href="/">← Voir le site</a>
           <button className="adm-side__out" type="button" onClick={logout}><SignOut size={16} /> Se déconnecter</button>
         </div>
-      </aside>
+      </header>
 
       <main className="adm-main">
         {view.name === 'list' && (
@@ -511,6 +553,7 @@ export function AdminPage() {
             }} />
         )}
       </main>
+      <footer className="adm-footer"><span>Behn J. Productions</span><span>Chaque détail compte.</span></footer>
     </div>
   );
 }

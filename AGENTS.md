@@ -10,6 +10,9 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 ## Durable brand/site decisions
 
+- The client gallery and administration area use the approved September 15, 2026 cinematic hybrid: charcoal/ivory surfaces, large editorial client typography, an immersive photo viewer and a numbered thumbnail strip. The user approved the combination of displayed concepts 1 and 3. Preserve actual photographs and existing gallery/admin workflows.
+- The gallery's exact tagline is « Chaque détail compte ». The private gallery/admin identity uses Cormorant Garamond display typography and Inter interface text; the public marketing site's Anton/Alice typography remains separate.
+
 - Brand palette: red #9F1204 and yellow-orange #FFB604; Anton headings and Alice body text.
 - Premium marketing site and school platform remain separate products.
 - Marketing site destination: behnjproductions.ca. School platform destination: behnjphotos.ca.

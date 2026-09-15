@@ -7,6 +7,7 @@ import { RealisationsPage } from "./RealisationsPage.jsx";
 import { GaleriePage } from "./GaleriePage.jsx";
 import { AdminPage } from "./AdminPage.jsx";
 import "./styles.css";
+import "./cinema-fonts.css";
 
 const SITE = "https://behnjproductions.ca";
 

@@ -40,7 +40,7 @@ export function ContactPage() {
         </div>
 
         <section className="contact-layout">
-          <div className="contact-form-card" id="formulaire" data-reveal>
+          <div className="contact-form-card" id="formulaire">
             <p className="eyebrow">Votre histoire commence ici</p>
             <h2>Parlons de votre projet.</h2>
             <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>

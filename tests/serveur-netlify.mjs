@@ -59,6 +59,17 @@ createServer(async (req, res) => {
     return;
   }
 
+  // Ce serveur simule le routage, pas la réception des formulaires Netlify.
+  if (!['GET', 'HEAD'].includes(req.method)) {
+    req.resume();
+    res.writeHead(405, {
+      'content-type': 'application/json; charset=utf-8',
+      allow: 'GET, HEAD',
+    });
+    res.end(JSON.stringify({ error: 'Envoi de formulaire indisponible sur ce serveur local.' }));
+    return;
+  }
+
   // 2. Un vrai fichier du build
   const direct = await fichier(path.join(RACINE, url.pathname));
   if (direct) {

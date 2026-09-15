@@ -78,7 +78,7 @@ export function RealisationsPage() {
       <header className="site-header about-header">
         <a className="brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
         <nav className="about-nav" aria-label="Navigation principale"><a href="/">Retour à l’accueil</a></nav>
-        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact">Nous contacter</a></div>
+        <div className="header-actions"><a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a><a className="header-cta" href="/contact#formulaire">Nous contacter</a></div>
       </header>
 
       <main className="about-main">
@@ -118,14 +118,14 @@ export function RealisationsPage() {
         <section className="about-closing">
           <p>Chaque détail compte.</p>
           <h2>Votre histoire<br />mérite d’être racontée<span>.</span></h2>
-          <a className="button" href="/contact">Parlons de votre projet <ArrowRight size={18} weight="bold" /></a>
+          <a className="button" href="/contact#formulaire">Parlons de votre projet <ArrowRight size={18} weight="bold" /></a>
         </section>
       </main>
 
       <footer className="footer">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
-        <div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
-        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact">Contact</a></div>
+        <div><strong>Sept-Îles · Québec</strong><a href="/contact#formulaire">{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
+        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact#formulaire">Contact</a></div>
         <div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div>
       </footer>
     </div>

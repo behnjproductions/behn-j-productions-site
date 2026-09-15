@@ -5,6 +5,7 @@ import { api, photoUrl, saveSession, useSession } from './api.js';
 import './galerie-cinema.css';
 
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CQkeWPsjYGSdEBM/review';
+const GALLERY_CONTACT_URL = '/contact?type=Question%20sur%20ma%20galerie#formulaire';
 const number = (value) => String(value).padStart(2, '0');
 function displayName(value = '') {
   if (value !== value.toLocaleUpperCase('fr-CA')) return value;
@@ -81,8 +82,9 @@ function LockScreen({ gallery, onOpen }) {
     event.preventDefault(); setBusy(true); setError('');
     try {
       const data = await api(`/galerie/${gallery.slug}/session`, { method: 'POST', body: JSON.stringify({ password }) });
-      saveSession(`g:${gallery.slug}`, data.token); onOpen();
-    } catch (err) { setError(err.message); setBusy(false); }
+      saveSession(`g:${gallery.slug}`, data.token); await onOpen();
+    } catch (err) { setError(err.message); }
+    finally { setBusy(false); }
   };
   return <div className="cinema-gallery cinema-gallery--portal">
     <Masthead />
@@ -103,7 +105,7 @@ function LockScreen({ gallery, onOpen }) {
         <button className="cinema-send" type="submit" disabled={busy || !password}>
           {busy ? 'Vérification…' : <>Ouvrir ma galerie <ArrowRight size={22} weight="light" /></>}
         </button>
-        <p className="cinema-access__help">Mot de passe égaré? <a href={BRAND.phoneHref}>{BRAND.phone}</a></p>
+        <p className="cinema-access__help">Mot de passe égaré? <a href={GALLERY_CONTACT_URL}>Écrivez-nous</a> · <a href={BRAND.phoneHref}>{BRAND.phone}</a></p>
       </form>
     </main>
   </div>;
@@ -184,7 +186,7 @@ export function GaleriePage() {
   if (state === 'absente') return <div className="cinema-gallery cinema-gallery--portal"><Masthead />
     <main className="cinema-wait"><p className="cinema-eyebrow">Behn J. Productions</p><h1>Galerie introuvable</h1>
       <p>Ce lien n’est plus actif ou l’adresse est incomplète. Écrivez-moi et je vous renvoie le bon lien.</p>
-      <p><a href={BRAND.phoneHref}>{BRAND.phone}</a> · <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a></p>
+      <p><a href={BRAND.phoneHref}>{BRAND.phone}</a> · <a href={GALLERY_CONTACT_URL}>{BRAND.email}</a></p>
     </main>
   </div>;
   if (state === 'verrouillée') return <LockScreen gallery={gallery} onOpen={load} />;
@@ -245,7 +247,7 @@ export function GaleriePage() {
         </div>
         <p className="cinema-film__hint">Parcourez les photos, choisissez vos préférées avec le cœur, puis envoyez votre sélection.</p>
       </section>}
-      <footer className="cinema-footer"><p>Une question? <a href={BRAND.phoneHref}>{BRAND.phone}</a> <span aria-hidden="true">·</span> <a href={`mailto:${BRAND.email}`}>{BRAND.email}</a></p></footer>
+      <footer className="cinema-footer"><p>Une question? <a href={BRAND.phoneHref}>{BRAND.phone}</a> <span aria-hidden="true">·</span> <a href={GALLERY_CONTACT_URL}>{BRAND.email}</a></p></footer>
     </main>
     <div className="cinema-selection">
       <div className="cinema-selection__count" role="status" aria-live="polite" aria-atomic="true">

@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, EnvelopeSimple, FacebookLogo, InstagramLogo, MapPin, Phone } from '@phosphor-icons/react';
 import { BRAND } from './brand.js';
-import { ContactForm, PrivacyModal } from './ContactForm.jsx';
+import { CONTACT_TYPES, ContactForm, PrivacyModal } from './ContactForm.jsx';
 
 export function ContactPage() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
+  const requestedType = new URLSearchParams(window.location.search).get('type');
+  const prefillType = CONTACT_TYPES.includes(requestedType) ? requestedType : '';
+
+  useEffect(() => {
+    if (window.location.hash === '#formulaire') document.getElementById('formulaire')?.scrollIntoView();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -36,16 +42,16 @@ export function ContactPage() {
         <section className="contact-layout">
           <div className="contact-form-card" id="formulaire" data-reveal>
             <p className="eyebrow">Votre histoire commence ici</p>
-            <h3>Parlons de votre projet.</h3>
+            <h2>Parlons de votre projet.</h2>
             <p className="modal-intro">Quelques lignes suffisent. Je vous répondrai avec une proposition claire et humaine.</p>
-            <ContactForm onOpenPrivacy={() => setPrivacyOpen(true)} />
+            <ContactForm prefillType={prefillType} onOpenPrivacy={() => setPrivacyOpen(true)} />
           </div>
 
           <aside className="contact-details" data-reveal>
             <p className="eyebrow">Nous joindre directement</p>
             <ul>
               <li><Phone size={20} weight="bold" /><div><strong>Téléphone</strong><a href={BRAND.phoneHref}>{BRAND.phone}</a></div></li>
-              <li><EnvelopeSimple size={20} weight="bold" /><div><strong>Courriel</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a></div></li>
+              <li><EnvelopeSimple size={20} weight="bold" /><div><strong>Nous écrire</strong><a href="#formulaire">{BRAND.email}</a></div></li>
               <li><MapPin size={20} weight="bold" /><div><strong>Studio</strong><span>416 Av. Iberville<br />Sept-Îles (Québec) G4R 2E2</span></div></li>
             </ul>
             <div className="contact-details__socials">
@@ -68,7 +74,7 @@ export function ContactPage() {
 
       <footer className="footer">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
-        <div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
+        <div><strong>Sept-Îles · Québec</strong><a href="#formulaire">{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
         <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div>
         <div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div>
       </footer>

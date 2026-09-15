@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, List, X } from '@phosphor-icons/react';
 import { BRAND } from './brand.js';
 import { ContactForm, PrivacyModal } from './ContactForm.jsx';
+import { useDialog } from './useDialog.js';
 
 const NAV = [['Accueil', 'accueil']];
 
@@ -20,12 +21,23 @@ function CTAButton({ children, secondary = false, onClick, href }) {
 
 function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuToggleRef = useRef(null);
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const closeMenu = (event) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      setMenuOpen(false);
+      menuToggleRef.current?.focus();
+    };
+    window.addEventListener('keydown', closeMenu);
+    return () => window.removeEventListener('keydown', closeMenu);
+  }, [menuOpen]);
   return (
     <header className="site-header">
-      <button className="brand" type="button" onClick={() => scrollToSection('accueil')} aria-label="Retour à l'accueil">
+      <button className="brand" type="button" onClick={() => { scrollToSection('accueil'); setMenuOpen(false); }} aria-label="Retour à l'accueil">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
       </button>
-      <nav className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Navigation principale">
+      <nav id="home-main-navigation" className={`main-nav ${menuOpen ? 'main-nav--open' : ''}`} aria-label="Navigation principale">
         {NAV.map(([label, id]) => <button key={id} type="button" onClick={() => { scrollToSection(id); setMenuOpen(false); }}>{label}</button>)}
         <a href="/services" onClick={() => setMenuOpen(false)}>Services</a>
         <a href="/realisations" onClick={() => setMenuOpen(false)}>Réalisations</a>
@@ -37,7 +49,7 @@ function Header() {
         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
         <a className="header-cta" href="/contact">Nous contacter</a>
       </div>
-      <button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
+      <button className="menu-toggle" type="button" ref={menuToggleRef} aria-expanded={menuOpen} aria-controls="home-main-navigation" onClick={() => setMenuOpen((isOpen) => !isOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
         {menuOpen ? <X size={26} /> : <List size={28} />}
       </button>
     </header>
@@ -54,18 +66,22 @@ const SESSIONS = [
 
 function SessionsModal({ open, onClose, onBook }) {
   const [selected, setSelected] = useState(null);
+  const dialogRef = useDialog(open, onClose);
+  useEffect(() => {
+    if (open) dialogRef.current?.querySelector('#sessions-title')?.focus({ preventScroll: true });
+  }, [open, selected, dialogRef]);
   useEffect(() => { if (!open) setSelected(null); }, [open]);
   if (!open) return null;
   const session = SESSIONS.find((s) => s.id === selected);
 
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="modal sessions-modal" role="dialog" aria-modal="true" aria-labelledby="sessions-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section className="modal sessions-modal" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="sessions-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer"><X size={24} /></button>
 
         {!session ? <>
           <p className="eyebrow">Choisis ton moment</p>
-          <h2 id="sessions-title" className="legal-title">Explorer nos séances.</h2>
+          <h2 id="sessions-title" tabIndex={-1} className="legal-title">Explorer nos séances.</h2>
           <p className="modal-intro">Un aperçu du tarif et du style. Clique sur une séance pour voir tous les détails.</p>
           <div className="sessions-grid">
             {SESSIONS.map((s) => (
@@ -79,7 +95,7 @@ function SessionsModal({ open, onClose, onBook }) {
         </> : <div className="session-detail">
           <button className="session-back" type="button" onClick={() => setSelected(null)}><ArrowLeft size={18} /> Toutes les séances</button>
           <img src={session.img} alt={session.name} loading="lazy" decoding="async" />
-          <h2 className="legal-title">{session.name}</h2>
+          <h2 id="sessions-title" tabIndex={-1} className="legal-title">{session.name}</h2>
           <p className="session-detail__price">{session.price} $ — séance unique</p>
           <ul className="session-detail__list">
             <li>{session.photos} photos retouchées</li>
@@ -95,10 +111,11 @@ function SessionsModal({ open, onClose, onBook }) {
 }
 
 function ProjectModal({ open, onClose, onOpenPrivacy, prefillType }) {
+  const dialogRef = useDialog(open, onClose);
   if (!open) return null;
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}>
+      <section className="modal" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}>
         <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer"><X size={24} /></button>
         <p className="eyebrow">Votre histoire commence ici</p>
         <h2 id="modal-title">Parlons de votre projet.</h2>
@@ -114,6 +131,7 @@ export function App() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [prefillType, setPrefillType] = useState('');
+  const openProject = (type = '') => { setPrefillType(type); setContactOpen(true); };
 
   useEffect(() => {
     const els = document.querySelectorAll('[data-reveal]');
@@ -147,7 +165,7 @@ export function App() {
             <img src="/assets/hero-evenement.jpg" alt="Événement photographié par Behn J. Productions" />
           </div>
           <div className="hero__shade" />
-          <div className="hero__content"><p className="eyebrow">Sept-Îles · Côte-Nord</p><h1>Chaque détail<br />compte<span>.</span></h1><p className="hero__lead">Photographie <i /> Vidéo <i /> Diffusion web</p><div className="hero__actions"><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton><a className="showreel" href="/realisations">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div></div>
+          <div className="hero__content"><p className="eyebrow">Sept-Îles · Côte-Nord</p><h1>Chaque détail<br />compte<span>.</span></h1><p className="hero__lead">Photographie <i /> Vidéo <i /> Diffusion web</p><div className="hero__actions"><CTAButton onClick={() => openProject()}>Commencer mon projet</CTAButton><a className="showreel" href="/realisations">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div></div>
           <p className="hero__manifesto">Des gens d’ici.<br />Des lieux d’ici.<br />Des histoires<br />en mouvement.</p>
           <button className="hero__scroll" type="button" onClick={() => scrollToSection('photographie')}>Découvrir <span /></button>
         </section>
@@ -157,11 +175,11 @@ export function App() {
           <div className="chapter__heading" data-reveal><p className="eyebrow">L'art de saisir l'essentiel</p><h2>Photographie</h2><p>Des moments vrais, cadrés avec intention.</p></div>
           <div className="photo-triptych">
             {[
-              ['Corporatif', '/assets/photo-corporatif.jpg', 'Portrait corporatif haut de gamme'],
-              ['Mariages', '/assets/photo-mariage.jpg', 'Couple de mariés dans une lumière dorée'],
-              ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène'],
-            ].map(([label, src, alt], i) => (
-              <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={() => setContactOpen(true)}>
+              ['Corporatif', '/assets/photo-corporatif.jpg', 'Portrait corporatif haut de gamme', 'Corporatif / Institutionnel'],
+              ['Mariages', '/assets/photo-mariage.jpg', 'Couple de mariés dans une lumière dorée', 'Mariage'],
+              ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène', 'Événement'],
+            ].map(([label, src, alt, projectType], i) => (
+              <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={() => openProject(projectType)}>
                 <img className="photo-triptych__image" src={src} alt={alt} loading="lazy" decoding="async" />
                 <span className="photo-triptych__label"><span>{label}</span><ArrowRight /></span>
               </button>
@@ -195,7 +213,7 @@ export function App() {
           <h2>Séances photo.</h2>
           <p>Maternité, bébé, famille, anniversaire ou bal de finissants — des séances simples à réserver, avec un tarif clair dès le départ.</p>
           <div className="sessions-teaser__actions">
-            <CTAButton onClick={() => { setPrefillType(''); setContactOpen(true); }}>Demander une séance</CTAButton>
+            <CTAButton onClick={() => openProject()}>Demander une séance</CTAButton>
             <button className="sessions-teaser__explore" type="button" onClick={() => setSessionsOpen(true)}>Explorer nos séances <ArrowRight size={18} /></button>
           </div>
         </section>
@@ -217,13 +235,13 @@ export function App() {
           </div>
         </section>
 
-        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" loading="lazy" decoding="async" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => setContactOpen(true)}>Commencer mon projet</CTAButton></div></section>
+        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" loading="lazy" decoding="async" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => openProject()}>Commencer mon projet</CTAButton></div></section>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><a href={`mailto:${BRAND.email}`}>{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><a href="/services">Services</a><a href="/realisations">Réalisations</a><button onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
+      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><button className="footer-contact" type="button" onClick={() => openProject()}>{BRAND.email}</button><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><a href="/services">Services</a><a href="/realisations">Réalisations</a><button type="button" onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" type="button" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
       <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} prefillType={prefillType} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
-      <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); setPrefillType(name); setContactOpen(true); }} />
+      <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); openProject(name); }} />
     </div>
   );
 }

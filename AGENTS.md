@@ -17,6 +17,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Premium marketing site and school platform remain separate products.
 - Marketing site destination: behnjproductions.ca. School platform destination: behnjphotos.ca.
 - Official contact email: contact@behnjphoto.com.
+- Contact buttons and displayed email links must open the website's contact form, with a matching service preselected where relevant; do not launch an external mail app. The live Netlify form is `project-contact`, with notifications to the official contact email. Keep the static form declaration in `index.html` aligned with the React fields.
 - Facebook portfolio URL: https://www.facebook.com/share/1P2sLfxUaz/?mibextid=wwXIfr
 - Portfolio imagery is stored as individual files so each photograph can be replaced independently.
 

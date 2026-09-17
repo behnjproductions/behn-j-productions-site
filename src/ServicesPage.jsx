@@ -107,7 +107,7 @@ export function ServicesPage() {
       <footer className="footer">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
         <div><strong>Sept-Îles · Québec</strong><a href="/contact#formulaire">{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
-        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact#formulaire">Contact</a></div>
+        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/boutique">Boutique</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact#formulaire">Contact</a></div>
         <div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div>
       </footer>
     </div>

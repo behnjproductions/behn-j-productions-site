@@ -6,8 +6,10 @@ import { ContactPage } from "./ContactPage.jsx";
 import { RealisationsPage } from "./RealisationsPage.jsx";
 import { GaleriePage } from "./GaleriePage.jsx";
 import { AdminPage } from "./AdminPage.jsx";
+import { BoutiquePage } from "./BoutiquePage.jsx";
 import "./styles.css";
 import "./cinema-fonts.css";
+import "./boutique.css";
 
 const SITE = "https://behnjproductions.ca";
 
@@ -29,6 +31,12 @@ const ROUTES = {
     title: "Réalisations | Mariages, corporatif, scolaire et culture — Sept-Îles",
     description:
       "Portfolio de Behn J. Productions : mariages, portraits corporatifs, photographie scolaire et vie culturelle de la Côte-Nord, à Sept-Îles.",
+  },
+  "/boutique": {
+    component: BoutiquePage,
+    title: "Boutique | Tirages encadrés et objets souvenirs — Behn J. Productions",
+    description:
+      "Cadres fabriqués au Québec, toiles grand format et objets souvenirs imprimés à partir de vos photos. Voyez chaque format à l'échelle réelle avant de commander.",
   },
   "/galerie": {
     component: GaleriePage,

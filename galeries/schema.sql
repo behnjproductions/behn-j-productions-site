@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS selections (
   collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
   photo_ids TEXT NOT NULL,
   note TEXT,
+  -- 'envoye' ou la raison de l'echec du courriel de notification.
+  email_status TEXT,
   submitted_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

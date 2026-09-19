@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ArrowRight, ArrowUpRight, CaretLeft, Check, Copy, DownloadSimple, Image as ImageIcon, Lock, MagnifyingGlass,
-  Plus, SignOut, Star, Trash, UploadSimple, X,
+  ArrowRight, ArrowUpRight, CaretLeft, Check, Copy, DownloadSimple, EnvelopeSimple, Image as ImageIcon, Lock,
+  MagnifyingGlass, Plus, SignOut, Star, Trash, UploadSimple, Warning, X,
 } from '@phosphor-icons/react';
 import { api, clearSession, photoUrl, prepareImage, saveSession, useSession } from './api.js';
 import './admin-cinema.css';
@@ -431,6 +431,30 @@ function Settings({ collection, onSave, onDelete }) {
 
 /* ------------------------------------------------------------- sélection --- */
 
+// Une sélection reçue sans courriel est un piège : le choix du client dort dans
+// le panneau sans que personne ne le sache. On affiche donc toujours l'état.
+function MailState({ status }) {
+  if (!status) {
+    return (
+      <p className="adm-selection__mail">
+        <EnvelopeSimple size={15} /> État du courriel inconnu (sélection reçue avant cette vérification).
+      </p>
+    );
+  }
+  if (status === 'envoyé') {
+    return (
+      <p className="adm-selection__mail adm-selection__mail--ok">
+        <Check size={15} weight="bold" /> Avis envoyé par courriel.
+      </p>
+    );
+  }
+  return (
+    <p className="adm-selection__mail adm-selection__mail--warn">
+      <Warning size={15} weight="bold" /> <strong>Le courriel n’est pas parti.</strong> {status}
+    </p>
+  );
+}
+
 function Selection({ selection, collection, copied, copy }) {
   const client = collection.client;
   const names = selection.photos.map((p) => p.filename).join('\n');
@@ -459,6 +483,7 @@ function Selection({ selection, collection, copied, copy }) {
           <button className="adm-ghost" type="button" onClick={download}><DownloadSimple size={16} /> Télécharger</button>
         </div>
       </header>
+      <MailState status={selection.emailStatus} />
       {extras > 0 && (
         <p className="adm-selection__extra">
           {extras} photo{extras > 1 ? 's' : ''} au-delà du forfait de {included} —

@@ -105,6 +105,12 @@
 .boutique-page .bq-dim-h::after { bottom: 0; }
 .boutique-page .bq-dim-h span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); white-space: nowrap; }
 .boutique-page .bq-scene-floor { position: absolute; left: 26px; right: 26px; bottom: 48px; border-bottom: 1px solid var(--bq-line); }
+.boutique-page .bq-demo-swap {
+  position: absolute; top: 14px; right: 16px; z-index: 2;
+  border: 1px solid var(--bq-line); background: rgba(255, 255, 255, .9); color: var(--bq-muted);
+  font: inherit; font-size: 11.5px; padding: 6px 11px; border-radius: 999px; cursor: pointer;
+}
+.boutique-page .bq-demo-swap:hover { border-color: var(--bq-garnet); color: var(--bq-garnet); }
 .boutique-page .bq-scene-cap { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; font-size: 12px; color: var(--bq-muted); margin: 0; }
 
 /* ---------- sections ---------- */

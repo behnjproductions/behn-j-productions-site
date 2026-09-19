@@ -148,8 +148,12 @@ const listPhotos = (env, collectionId) => env.DB
 
 /* ------------------------------------------------------------------ courriel */
 
+// Renvoie l'etat de l'envoi ('envoye' ou la raison de l'echec). Cet etat est
+// enregistre avec la selection : le panneau doit pouvoir dire si le courriel
+// est parti, plutot que d'echouer en silence.
 async function sendSelectionEmail(env, collection, photos, note) {
-  if (!env.RESEND_API_KEY) return;
+  if (!env.RESEND_API_KEY) return 'non configure : le secret RESEND_API_KEY manque au Worker';
+  if (!env.MAIL_FROM || !env.MAIL_TO) return 'non configure : MAIL_FROM ou MAIL_TO manque au Worker';
   const url = `${env.SITE_ORIGIN}/galerie/${collection.slug}`;
   const list = photos.map((p) => `<li>${escapeHtml(p.filename || p.id)}</li>`).join('');
 
@@ -178,19 +182,28 @@ async function sendSelectionEmail(env, collection, photos, note) {
     + (note ? `\n\nMessage : ${note}` : '')
     + `\n\n${url}`;
 
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({
-      from: env.MAIL_FROM,
-      to: [env.MAIL_TO],
-      subject: extras
-        ? `Sélection — ${collection.client} (${photos.length} photos, ${extras * price} $ à facturer)`
-        : `Sélection — ${collection.client} (${photos.length} photos)`,
-      html,
-      text,
-    }),
-  });
+  const subject = extras
+    ? `Sélection — ${collection.client} (${photos.length} photos, ${extras * price} $ à facturer)`
+    : `Sélection — ${collection.client} (${photos.length} photos)`;
+
+  let response;
+  try {
+    response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ from: env.MAIL_FROM, to: [env.MAIL_TO], subject, html, text }),
+    });
+  } catch (error) {
+    return `Resend injoignable : ${String((error && error.message) || error)}`;
+  }
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    let detail = body.slice(0, 300);
+    try { detail = JSON.parse(body).message || detail; } catch { /* reponse non JSON */ }
+    return `refusé par Resend (${response.status}) : ${detail}`;
+  }
+  return 'envoyé';
 }
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
@@ -290,9 +303,18 @@ async function route(request, env, url, path, ip) {
       if (!chosen.length) return json({ error: 'Photos introuvables.' }, 400);
 
       const note = String(body.note || '').slice(0, 2000);
-      await env.DB.prepare('INSERT INTO selections (collection_id, photo_ids, note) VALUES (?, ?, ?)')
+      // La selection est enregistree d'abord : meme si le courriel echoue, le
+      // choix du client n'est jamais perdu.
+      const saved = await env.DB
+        .prepare('INSERT INTO selections (collection_id, photo_ids, note) VALUES (?, ?, ?)')
         .bind(collection.id, JSON.stringify(chosen.map((p) => p.id)), note || null).run();
-      await sendSelectionEmail(env, collection, chosen, note).catch(() => {});
+      const emailStatus = await sendSelectionEmail(env, collection, chosen, note)
+        .catch((error) => `erreur interne : ${String((error && error.message) || error)}`);
+      const selectionId = saved?.meta?.last_row_id;
+      if (selectionId) {
+        await env.DB.prepare('UPDATE selections SET email_status = ? WHERE id = ?')
+          .bind(emailStatus, selectionId).run().catch(() => {});
+      }
       return json({ ok: true, count: chosen.length });
     }
 
@@ -409,6 +431,7 @@ async function route(request, env, url, path, ip) {
           return {
             at: s.submitted_at,
             note: s.note,
+            emailStatus: s.email_status || null,
             photos: ids.map((pid) => ({ id: pid, filename: byId.get(pid)?.filename || pid })),
           };
         }),

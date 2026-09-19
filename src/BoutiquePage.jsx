@@ -58,6 +58,8 @@ const OBJETS = {
   ],
 };
 
+const DEMO = [`${A}apercu-1.jpg`, `${A}apercu-2.jpg`];
+
 const PREP = 10;
 const SHIP = 12;
 const SHIP_FREE = 150;
@@ -67,7 +69,8 @@ const EYE = 47; // hauteur du centre du cadre, en pouces
 const money = (n) => `${n.toFixed(2).replace('.', ',')} $`;
 const rateFor = (q) => (q >= 5 ? 0.1 : q >= 3 ? 0.05 : 0);
 
-function Frame({ size, colour, photo, ppi, showLabel = true }) {
+function Frame({ size, colour, photo, demo, ppi, showLabel = true }) {
+  const src = photo || demo || DEMO[0];
   const w = Math.round(size.w * ppi);
   const h = Math.round(size.h * ppi);
   return (
@@ -75,8 +78,8 @@ function Frame({ size, colour, photo, ppi, showLabel = true }) {
       <div className="bq-dim bq-dim-w"><span>{size.w} po</span></div>
       <div className="bq-dim bq-dim-h"><span>{size.h} po</span></div>
       <div className="bq-frame" style={{ '--bq-frame-col': colour.col, width: w, height: h }}>
-        <div className="bq-face" style={photo ? { backgroundImage: `url(${photo})` } : undefined}>
-          {showLabel && !photo && <span>{size.label.replace(' po', '')}</span>}
+        <div className="bq-face" style={{ backgroundImage: `url(${src})` }}>
+          {showLabel && false && <span>{size.label.replace(' po', '')}</span>}
         </div>
       </div>
     </div>
@@ -112,6 +115,7 @@ export function BoutiquePage() {
   const [colour, setColour] = useState(FRAMES[0]);
   const [qty, setQty] = useState(1);
   const [photo, setPhoto] = useState({ url: null, name: null });
+  const [demoIndex, setDemoIndex] = useState(0);
   const [galRef, setGalRef] = useState('');
   const [cart, setCart] = useState([]);
   const [pending, setPending] = useState(null);
@@ -239,8 +243,13 @@ export function BoutiquePage() {
               <div className="bq-scene-floor" />
               <div className="bq-scene">
                 <img className="bq-person" src={`${A}modele-echelle.png`} alt="Personne de 5 pi 9 po, pour l’échelle" width="135" height="392" />
-                <Frame size={size} colour={colour} photo={photo.url} ppi={PPI} />
+                <Frame size={size} colour={colour} photo={photo.url} demo={DEMO[demoIndex]} ppi={PPI} />
               </div>
+              {!photo.url && (
+                <button type="button" className="bq-demo-swap" onClick={() => setDemoIndex((i) => (i + 1) % DEMO.length)}>
+                  Voir une autre photo
+                </button>
+              )}
               <p className="bq-scene-cap">À l’échelle réelle — personne de 5 pi 9 po</p>
             </div>
 
@@ -319,7 +328,7 @@ export function BoutiquePage() {
                 <div className={`bq-trio${family === 'toile' ? ' bq-trio--toile' : ''}`}>
                   {FRAMES.map((f) => (
                     <button key={f.id} type="button" className="bq-triobtn" aria-pressed={f.id === colour.id} aria-label={`Cadre ${f.label.toLowerCase()}`} onClick={() => setColour(f)}>
-                      <span className="bq-tf" style={{ '--bq-tc': f.col }}><span style={photo.url ? { backgroundImage: `url(${photo.url})` } : undefined} /></span>
+                      <span className="bq-tf" style={{ '--bq-tc': f.col }}><span style={{ backgroundImage: `url(${photo.url || DEMO[demoIndex]})`, backgroundSize: 'cover', backgroundPosition: 'center 20%' }} /></span>
                       <span className="bq-cap">{f.label}</span>
                     </button>
                   ))}
@@ -373,7 +382,7 @@ export function BoutiquePage() {
                   </div>
                   <label className="bq-gal-lbl" htmlFor="bq-galref">ou le numéro de la photo dans votre galerie</label>
                   <input id="bq-galref" className="bq-galinput" type="text" placeholder="Ex. : IMG-0428" autoComplete="off" value={galRef} onChange={(e) => setGalRef(e.target.value)} />
-                  <p className="bq-pickhint">L’aperçu est indicatif : je recadre et calibre chaque image avant l’impression, et vous approuvez une épreuve.</p>
+                  <p className="bq-pickhint">Les photos affichées sont des exemples. L’aperçu est indicatif : je recadre et calibre chaque image avant l’impression, et vous approuvez une épreuve.</p>
                 </div>
 
                 <div className="bq-group">
@@ -388,7 +397,7 @@ export function BoutiquePage() {
 
               <div className="bq-sticky">
                 <div className="bq-mini-scene">
-                  <Frame size={size} colour={colour} photo={photo.url} ppi={132 / Math.max(size.w, size.h)} showLabel={false} />
+                  <Frame size={size} colour={colour} photo={photo.url} demo={DEMO[demoIndex]} ppi={132 / Math.max(size.w, size.h)} showLabel={false} />
                 </div>
                 <div className="bq-summary">
                   <div className="bq-row">

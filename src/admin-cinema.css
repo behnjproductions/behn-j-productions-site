@@ -144,6 +144,11 @@
 .admin-cinema .adm-selection header h2 { margin:11px 0 0; color:var(--studio-text); font:400 39px/1.1 var(--studio-serif); letter-spacing:-.02em; }
 .admin-cinema .adm-selection header h2 small { display:inline-block; margin:0 0 0 12px; color:var(--studio-muted); font:400 13px/1.5 var(--studio-ui); }
 .admin-cinema .adm-selection header>div:last-child { flex-wrap:wrap; }
+.admin-cinema .adm-selection__mail { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; color:var(--studio-muted); font:400 13px/1.6 var(--studio-ui); }
+.admin-cinema .adm-selection__mail svg { flex:none; margin-top:2px; }
+.admin-cinema .adm-selection__mail--ok { color:#a9c19a; }
+.admin-cinema .adm-selection__mail--warn { padding:12px 15px; border-left:2px solid #c9736a; background:rgba(201,115,106,.09); color:#e8b7b1; }
+.admin-cinema .adm-selection__mail--warn strong { color:#f6d8d3; }
 .admin-cinema .adm-selection__extra { padding:13px 16px; border-left:2px solid #b9a064; background:rgba(213,188,133,.055); color:#ddcda9; font:400 14px/1.7 var(--studio-ui); }
 .admin-cinema .adm-selection__extra strong { color:#f3e4c0; }
 .admin-cinema .adm-selection__note { margin:19px 0; color:var(--studio-text); font:italic 23px/1.4 var(--studio-serif); }

@@ -12,22 +12,24 @@ const compiled = transformSync(readFileSync(new URL('../src/GaleriePage.jsx', im
 const employeeKey = 'bjp-employee-selection-v1-metal-7';
 const legacyKey = 'bjp-picks-metal-7';
 const gallery = {
-  client: 'Métal 7', photos: [{ id: 'photo-1' }, { id: 'photo-2' }],
+  slug: 'metal-7', client: 'Métal 7', photos: [{ id: 'photo-1' }, { id: 'photo-2' }],
   submitted: { ids: ['photo-2'] },
 };
 
-function createPage({ slug = 'metal-7', storage = new Map(), data = gallery, post = async () => ({ ok: true }) } = {}) {
-  const slots = [];
+function createPage({ slug = 'metal-7', storage = new Map(), storageUnavailable = false, data = gallery, post = async () => ({ ok: true }) } = {}) {
+  const pageSlots = [];
+  const sessions = [];
   const requests = [];
-  let cursor = 0, dirty = true, tree, effects = [];
+  let slots = pageSlots, child, cursor = 0, dirty = true, tree, effects = [];
   const changed = (before, after) => !before || !after || before.length !== after.length || after.some((value, index) => !Object.is(value, before[index]));
   const hooks = {
     useState(initial) {
       const index = cursor++;
-      if (!(index in slots)) slots[index] = typeof initial === 'function' ? initial() : initial;
-      return [slots[index], (next) => {
-        const value = typeof next === 'function' ? next(slots[index]) : next;
-        if (!Object.is(value, slots[index])) { slots[index] = value; dirty = true; }
+      const owner = slots;
+      if (!(index in owner)) owner[index] = typeof initial === 'function' ? initial() : initial;
+      return [owner[index], (next) => {
+        const value = typeof next === 'function' ? next(owner[index]) : next;
+        if (!Object.is(value, owner[index])) { owner[index] = value; dirty = true; }
       }];
     },
     useRef(initial) {
@@ -41,20 +43,21 @@ function createPage({ slug = 'metal-7', storage = new Map(), data = gallery, pos
     },
     useEffect(callback, deps) {
       const index = cursor++;
-      if (changed(slots[index]?.deps, deps)) {
-        const previous = slots[index];
-        slots[index] = { deps };
-        effects.push(() => { previous?.cleanup?.(); slots[index].cleanup = callback(); });
+      const owner = slots;
+      if (changed(owner[index]?.deps, deps)) {
+        const previous = owner[index];
+        owner[index] = { deps };
+        effects.push(() => { previous?.cleanup?.(); owner[index].cleanup = callback(); });
       }
     },
   };
-  const jsx = (type, props) => ({ type, props });
+  const jsx = (type, props, key) => ({ type, props, key });
   const module = { exports: {} };
   const context = vm.createContext({
     module, exports: module.exports,
     window: { location: { pathname: `/galerie/${slug}` }, localStorage: {
-      getItem: (key) => storage.get(key) ?? null,
-      setItem: (key, value) => storage.set(key, value),
+      getItem: (key) => { if (storageUnavailable) throw new Error('Storage unavailable'); return storage.get(key) ?? null; },
+      setItem: (key, value) => { if (storageUnavailable) throw new Error('Storage unavailable'); storage.set(key, value); },
     } },
     require(name) {
       if (name === 'react') return hooks;
@@ -63,9 +66,9 @@ function createPage({ slug = 'metal-7', storage = new Map(), data = gallery, pos
       if (name === './brand.js') return { BRAND: {} };
       if (name === './galerie-cinema.css') return {};
       if (name === './api.js') return {
-        useSession() {}, saveSession() {}, photoUrl: (id) => `/test-photo/${id}`,
+        useSession() {}, saveSession: (key, token) => sessions.push({ key, token }), photoUrl: (id) => `/test-photo/${id}`,
         api: async (url, options) => {
-          if (!options) return data;
+          if (!options) return typeof data === 'function' ? data() : data;
           requests.push({ url, method: options.method, body: JSON.parse(options.body) });
           return post(requests.at(-1));
         },
@@ -75,8 +78,15 @@ function createPage({ slug = 'metal-7', storage = new Map(), data = gallery, pos
   });
   new vm.Script(compiled).runInContext(context);
   function render() {
-    dirty = false; cursor = 0;
+    dirty = false; cursor = 0; slots = pageSlots;
     tree = module.exports.GaleriePage();
+    // LockScreen is the only stateful child needed for entry-flow tests. Give
+    // it its own hook slots and remount when React would change its key.
+    if (tree.type?.name === 'LockScreen') {
+      if (!child || child.key !== tree.key) child = { key: tree.key, slots: [] };
+      cursor = 0; slots = child.slots;
+      tree = tree.type(tree.props);
+    } else child = undefined;
     const pending = effects; effects = [];
     pending.forEach((effect) => effect());
   }
@@ -96,6 +106,7 @@ function createPage({ slug = 'metal-7', storage = new Map(), data = gallery, pos
   const find = (predicate) => nodes(tree).find(predicate);
   const byClass = (name) => find((node) => node.props?.className?.split(' ').includes(name));
   const nameInput = () => find((node) => node.props?.name === 'employeeName');
+  const passwordInput = () => find((node) => node.props?.type === 'password');
   const thanks = () => find((node) => node.props?.id === 'cinema-merci-title');
   function text(value) {
     if (Array.isArray(value)) return value.map(text).join('');
@@ -103,10 +114,15 @@ function createPage({ slug = 'metal-7', storage = new Map(), data = gallery, pos
     return value == null || typeof value === 'boolean' ? '' : String(value);
   }
   return {
-    flush, requests, storage, nameInput, thanks, text,
+    flush, requests, sessions, storage, nameInput, passwordInput, thanks, text,
     send: () => byClass('cinema-send'), pick: () => byClass('cinema-pick'),
     saved: () => byClass('cinema-selection__saved'), error: () => byClass('cinema-error'),
+    switchEmployee: () => find((node) => node.type === 'button' && text(node) === 'Changer d’employé'),
     async name(value) { nameInput().props.onChange({ target: { value } }); await flush(); },
+    async password(value) { passwordInput().props.onChange({ target: { value } }); await flush(); },
+    async open() { await byClass('cinema-access').props.onSubmit({ preventDefault() {} }); await flush(); },
+    async identify(name) { await this.name(name); await this.open(); },
+    async changeEmployee() { this.switchEmployee().props.onClick(); await flush(); },
     async choose() { byClass('cinema-pick').props.onClick(); await flush(); },
     async submit() { await byClass('cinema-send').props.onClick(); await flush(); },
   };
@@ -117,28 +133,91 @@ test('a new Metal 7 visitor ignores the shared submission and leaves legacy stor
   const page = createPage({ storage });
   await page.flush();
   assert.equal(page.nameInput().props.value, '');
+  assert.equal(page.passwordInput(), undefined);
+  assert.equal(page.pick(), undefined);
+  assert.equal(page.send().props.disabled, true);
+  assert.equal(page.text(page.send()), 'Ouvrir ma galerie ');
+  assert.equal(storage.has(employeeKey), false);
+  await page.identify('Marie Tremblay');
+  assert.equal(page.nameInput(), undefined);
   assert.equal(page.pick().props['aria-pressed'], false);
-  assert.equal(page.pick().props.disabled, true);
+  assert.equal(page.pick().props.disabled, false);
   assert.equal(page.send().props.disabled, true);
   assert.equal(page.text(page.send()), 'Confirmer ma sélection ');
   assert.equal(page.saved(), undefined);
   assert.equal(storage.get(legacyKey), '["photo-2"]');
-  assert.deepEqual(JSON.parse(storage.get(employeeKey)), { name: '', ids: [], submitted: false });
+  assert.deepEqual(JSON.parse(storage.get(employeeKey)), { name: 'Marie Tremblay', ids: [], submitted: false });
+  assert.equal(page.requests.length, 0);
 });
 
-test('empty and whitespace names cannot select or submit photos', async () => {
+test('empty and whitespace names cannot open the gallery or select photos', async () => {
   const page = createPage();
   await page.flush();
   for (const name of ['', ' \n\t ']) {
     await page.name(name);
     assert.equal(page.nameInput().props.required, true);
-    assert.equal(page.pick().props.disabled, true);
-    await page.choose(); // Check the handler guard as well as disabled controls.
-    await page.submit();
-    assert.equal(page.pick().props['aria-pressed'], false);
+    await page.open(); // Check the handler guard as well as disabled controls.
+    assert.equal(page.pick(), undefined);
     assert.equal(page.send().props.disabled, true);
+    assert.equal(page.text(page.error()), 'Veuillez saisir votre prénom et votre nom.');
     assert.equal(page.requests.length, 0);
+    assert.equal(page.storage.has(employeeKey), false);
   }
+});
+
+test('locked Metal 7 requires both name and password and sends the normalized name on login', async () => {
+  let locked = true;
+  const page = createPage({
+    data: () => locked ? { ...gallery, locked: true, photos: [] } : gallery,
+    post: async () => { locked = false; return { token: 'named-session' }; },
+  });
+  await page.flush();
+  assert.equal(page.pick(), undefined);
+  await page.password('gallery-password');
+  await page.open();
+  assert.equal(page.requests.length, 0);
+  await page.name('  Marie   Tremblay  ');
+  await page.password(''); await page.open();
+  assert.equal(page.requests.length, 0);
+  assert.equal(page.send().props.disabled, true);
+  await page.password('gallery-password'); await page.open();
+  assert.deepEqual(page.requests, [{ url: '/galerie/metal-7/session', method: 'POST', body: {
+    password: 'gallery-password', employeeName: 'Marie Tremblay',
+  } }]);
+  assert.deepEqual(page.sessions, [{ key: 'g:metal-7', token: 'named-session' }]);
+  assert.equal(page.nameInput(), undefined);
+  assert.equal(page.pick().props['aria-pressed'], false);
+  assert.deepEqual(JSON.parse(page.storage.get(employeeKey)), { name: 'Marie Tremblay', ids: [], submitted: false });
+});
+
+test('wrong password retains the typed name and leaves the saved employee draft intact', async () => {
+  const draft = JSON.stringify({ name: 'Marie Tremblay', ids: ['photo-1'], submitted: true });
+  const storage = new Map([[employeeKey, draft], [legacyKey, '["photo-2"]']]);
+  const page = createPage({ storage, data: { ...gallery, locked: true, photos: [] },
+    post: async () => { throw new Error('Mot de passe incorrect.'); },
+  });
+  await page.flush();
+  assert.equal(page.nameInput().props.value, 'Marie Tremblay');
+  await page.name('Jean Gagnon'); await page.password('incorrect'); await page.open();
+  assert.equal(page.nameInput().props.value, 'Jean Gagnon');
+  assert.equal(page.text(page.error()), 'Mot de passe incorrect.');
+  assert.equal(page.pick(), undefined);
+  assert.equal(storage.get(employeeKey), draft);
+  assert.equal(storage.get(legacyKey), '["photo-2"]');
+  assert.equal(page.sessions.length, 0);
+});
+
+test('login and submission retain the employee name when local storage is unavailable', async () => {
+  let locked = true;
+  const page = createPage({ storageUnavailable: true,
+    data: () => locked ? { ...gallery, locked: true, photos: [] } : gallery,
+    post: async () => { locked = false; return { token: 'named-session' }; },
+  });
+  await page.flush(); await page.name('Jean Gagnon'); await page.password('gallery-password'); await page.open();
+  assert.equal(page.pick().props.disabled, false);
+  await page.choose(); await page.submit();
+  assert.equal(page.requests[1].body.note, 'Nom et prénom : Jean Gagnon');
+  assert.equal(page.text(page.thanks()), 'Merci, Jean Gagnon!');
 });
 
 test('submission carries the normalized name and waits for the API before confirming success', async () => {
@@ -146,7 +225,7 @@ test('submission carries the normalized name and waits for the API before confir
   const pending = new Promise((resolve) => { complete = resolve; });
   const page = createPage({ post: () => pending });
   await page.flush();
-  await page.name('  Marie   Tremblay  ');
+  await page.identify('  Marie   Tremblay  ');
   await page.choose();
   const sending = page.send().props.onClick();
   await page.flush();
@@ -155,7 +234,10 @@ test('submission carries the normalized name and waits for the API before confir
   } }]);
   assert.equal(page.thanks(), undefined);
   assert.equal(page.send().props.disabled, true);
-  assert.equal(page.nameInput().props.disabled, true);
+  assert.equal(page.switchEmployee().props.disabled, true);
+  await page.changeEmployee(); // A stale click handler cannot change identity mid-send.
+  assert.equal(page.nameInput(), undefined);
+  assert.equal(page.pick().props.disabled, true);
   assert.equal(JSON.parse(page.storage.get(employeeKey)).submitted, false);
   complete({ ok: true });
   await sending; await page.flush();
@@ -166,7 +248,7 @@ test('submission carries the normalized name and waits for the API before confir
 
 test('failed submission retains the employee draft and never displays success', async () => {
   const page = createPage({ post: async () => { throw new Error('Connexion interrompue'); } });
-  await page.flush(); await page.name('Jean Gagnon'); await page.choose(); await page.submit();
+  await page.flush(); await page.identify('Jean Gagnon'); await page.choose(); await page.submit();
   assert.equal(page.text(page.error()), 'Connexion interrompue');
   assert.equal(page.thanks(), undefined);
   assert.equal(page.send().props.disabled, false);
@@ -177,7 +259,7 @@ test('reload restores only the local employee and a revision appends a clearly n
   const storage = new Map([[employeeKey, JSON.stringify({ name: 'Marie Tremblay', ids: ['photo-1', 'removed-photo'], submitted: true })]]);
   const page = createPage({ storage });
   await page.flush();
-  assert.equal(page.nameInput().props.value, 'Marie Tremblay');
+  assert.equal(page.nameInput(), undefined);
   assert.equal(page.pick().props['aria-pressed'], true);
   assert.equal(page.text(page.send()), 'Envoyer ma sélection modifiée ');
   assert.equal(page.thanks(), undefined);
@@ -188,16 +270,51 @@ test('reload restores only the local employee and a revision appends a clearly n
   assert.equal(page.requests[0].method, 'POST');
 });
 
-test('changing the employee name resets the displayed picks and sent state', async () => {
+test('re-entering the same normalized employee name restores their picks and sent state', async () => {
   const storage = new Map([[employeeKey, JSON.stringify({ name: 'Marie Tremblay', ids: ['photo-1'], submitted: true })]]);
   const page = createPage({ storage });
-  await page.flush(); await page.name('Jean Gagnon');
+  await page.flush(); await page.changeEmployee();
+  assert.equal(page.nameInput().props.value, '');
+  assert.equal(page.pick(), undefined);
+  await page.identify('  Marie   Tremblay  ');
+  assert.equal(page.pick().props['aria-pressed'], true);
+  assert.equal(page.text(page.send()), 'Envoyer ma sélection modifiée ');
+  assert.ok(page.saved());
+  assert.deepEqual(JSON.parse(storage.get(employeeKey)), { name: 'Marie Tremblay', ids: ['photo-1'], submitted: true });
+  assert.equal(page.requests.length, 0);
+});
+
+test('changing the employee at entry resets the displayed picks and sent state', async () => {
+  const storage = new Map([[employeeKey, JSON.stringify({ name: 'Marie Tremblay', ids: ['photo-1'], submitted: true })]]);
+  const page = createPage({ storage });
+  await page.flush(); await page.changeEmployee(); await page.identify('Jean Gagnon');
   assert.equal(page.pick().props['aria-pressed'], false);
   assert.equal(page.send().props.disabled, true);
   assert.equal(page.text(page.send()), 'Confirmer ma sélection ');
   assert.equal(page.saved(), undefined);
   await page.choose(); await page.submit();
   assert.equal(page.requests[0].body.note, 'Nom et prénom : Jean Gagnon');
+});
+
+test('an expired session returns to name and password entry while preserving the unsent draft', async () => {
+  let expired = true;
+  const page = createPage({ post: async ({ url }) => {
+    if (url.endsWith('/session')) { expired = false; return { token: 'renewed-session' }; }
+    if (expired) throw Object.assign(new Error('Accès refusé.'), { status: 403 });
+    return { ok: true };
+  } });
+  await page.flush(); await page.identify('Marie Tremblay'); await page.choose(); await page.submit();
+  assert.equal(page.nameInput().props.value, 'Marie Tremblay');
+  assert.ok(page.passwordInput());
+  assert.equal(page.pick(), undefined);
+  assert.equal(page.thanks(), undefined);
+  assert.deepEqual(JSON.parse(page.storage.get(employeeKey)), { name: 'Marie Tremblay', ids: ['photo-1'], submitted: false });
+  await page.password('gallery-password'); await page.open();
+  assert.equal(page.pick().props['aria-pressed'], true);
+  assert.equal(page.text(page.send()), 'Confirmer ma sélection ');
+  await page.submit();
+  assert.equal(page.text(page.thanks()), 'Merci, Marie Tremblay!');
+  assert.equal(page.requests.at(-1).body.note, 'Nom et prénom : Marie Tremblay');
 });
 
 test('an unrelated gallery keeps its server selection, wording and original submission shape', async () => {
@@ -211,4 +328,23 @@ test('an unrelated gallery keeps its server selection, wording and original subm
   assert.deepEqual(page.requests[0], { url: '/galerie/other-gallery/selection', method: 'POST', body: { photoIds: ['photo-2'] } });
   assert.equal(page.text(page.thanks()), 'Merci! C’est noté.');
   assert.equal(storage.has(employeeKey), false);
+});
+
+test('unrelated locked galleries retain password-only login and the existing session payload', async () => {
+  let locked = true;
+  const data = { ...gallery, slug: 'other-gallery' };
+  const page = createPage({ slug: 'other-gallery',
+    data: () => locked ? { ...data, locked: true, photos: [] } : data,
+    post: async () => { locked = false; return { token: 'original-session' }; },
+  });
+  await page.flush();
+  assert.equal(page.nameInput(), undefined);
+  assert.ok(page.passwordInput());
+  await page.password('gallery-password'); await page.open();
+  assert.deepEqual(page.requests, [{ url: '/galerie/other-gallery/session', method: 'POST', body: { password: 'gallery-password' } }]);
+  assert.deepEqual(page.sessions, [{ key: 'g:other-gallery', token: 'original-session' }]);
+  assert.equal(page.nameInput(), undefined);
+  assert.equal(page.switchEmployee(), undefined);
+  assert.equal(page.text(page.send()), 'Renvoyer ma sélection ');
+  assert.equal(page.storage.has(employeeKey), false);
 });

@@ -81,15 +81,25 @@ function CinemaDialog({ children, onClose, onMove, labelledBy, label, className 
   </div>;
 }
 
-function LockScreen({ gallery, onOpen }) {
+function LockScreen({ gallery, onOpen, collectName = false, requirePassword = true, initialName = '' }) {
   const [password, setPassword] = useState('');
+  const [name, setName] = useState(initialName);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const submit = async (event) => {
-    event.preventDefault(); setBusy(true); setError('');
+    event.preventDefault();
+    const employeeName = name.trim().replace(/\s+/g, ' ');
+    if (busy || (requirePassword && !password)) return;
+    if (collectName && !employeeName) { setError('Veuillez saisir votre prénom et votre nom.'); return; }
+    setBusy(true); setError('');
     try {
-      const data = await api(`/galerie/${gallery.slug}/session`, { method: 'POST', body: JSON.stringify({ password }) });
-      saveSession(`g:${gallery.slug}`, data.token); await onOpen();
+      if (requirePassword) {
+        const data = await api(`/galerie/${gallery.slug}/session`, { method: 'POST', body: JSON.stringify({
+          password, ...(collectName ? { employeeName } : {}),
+        }) });
+        saveSession(`g:${gallery.slug}`, data.token);
+      }
+      await onOpen(collectName ? employeeName : undefined);
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   };
@@ -104,15 +114,21 @@ function LockScreen({ gallery, onOpen }) {
       <form className="cinema-access" onSubmit={submit}>
         <Lock size={28} weight="light" aria-hidden="true" />
         <h2>Bienvenue dans votre galerie.</h2>
-        <p>Entrez le mot de passe reçu par courriel pour découvrir vos photos et composer votre sélection.</p>
-        <label className="cinema-field"><span>Mot de passe</span>
-          <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required autoFocus />
-        </label>
+        <p>{collectName
+          ? `Indiquez votre prénom et votre nom${requirePassword ? ', ainsi que le mot de passe reçu par courriel' : ''}, pour accéder aux photos et identifier votre sélection.`
+          : 'Entrez le mot de passe reçu par courriel pour découvrir vos photos et composer votre sélection.'}</p>
+        {collectName && <label className="cinema-field"><span>Nom et prénom</span>
+          <input type="text" name="employeeName" autoComplete="name" maxLength={120} required autoFocus
+            value={name} disabled={busy} onChange={(event) => setName(event.target.value)} />
+        </label>}
+        {requirePassword && <label className="cinema-field"><span>Mot de passe</span>
+          <input type="password" value={password} disabled={busy} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required autoFocus={!collectName} />
+        </label>}
         {error && <p className="cinema-error" role="alert">{error}</p>}
-        <button className="cinema-send" type="submit" disabled={busy || !password}>
+        <button className="cinema-send" type="submit" disabled={busy || (requirePassword && !password) || (collectName && !name.trim())}>
           {busy ? 'Vérification…' : <>Ouvrir ma galerie <ArrowRight size={22} weight="light" /></>}
         </button>
-        <p className="cinema-access__help">Mot de passe égaré? <a href={GALLERY_CONTACT_URL}>Écrivez-nous</a> · <a href={BRAND.phoneHref}>{BRAND.phone}</a></p>
+        {requirePassword && <p className="cinema-access__help">Mot de passe égaré? <a href={GALLERY_CONTACT_URL}>Écrivez-nous</a> · <a href={BRAND.phoneHref}>{BRAND.phone}</a></p>}
       </form>
     </main>
   </div>;
@@ -136,21 +152,27 @@ export function GaleriePage() {
   // Metal 7's old draft and server submission belong to the shared gallery,
   // not to this employee. Keep them intact and start a separate local draft.
   const storeKey = employeeGallery ? `bjp-employee-selection-v1-${slug}` : `bjp-picks-${slug}`;
-  const load = useCallback(async () => {
+  const load = useCallback(async (name) => {
     if (!slug) { setState('absente'); return; }
     try {
       const data = await api(`/galerie/${slug}`);
       setGallery(data);
+      let employee = employeeGallery ? readEmployeeSelection(storeKey) : null;
+      if (employee && typeof name === 'string') {
+        const normalized = name.trim().replace(/\s+/g, ' ');
+        employee = normalized === employee.name.trim().replace(/\s+/g, ' ')
+          ? { ...employee, name: normalized }
+          : { name: normalized, ids: [], submitted: false };
+      }
+      setEmployeeName(employee?.name || '');
       if (data.locked) { setState('verrouillée'); return; }
       const validIds = new Set((data.photos || []).map((photo) => photo.id));
-      const employee = employeeGallery ? readEmployeeSelection(storeKey) : null;
       const initial = employee ? employee.ids : Array.isArray(data.submitted?.ids) ? data.submitted.ids : readPicks(storeKey);
       setPicks(new Set(initial.filter((id) => validIds.has(id))));
-      setEmployeeName(employee?.name || '');
       setSent((employee ? employee.submitted === true : data.submitted) ? 'déjà' : false);
       const coverIndex = (data.photos || []).findIndex((photo) => photo.id === data.cover);
       setActive(coverIndex >= 0 ? coverIndex : 0);
-      setState('prête');
+      setState(employeeGallery && !employee.name.trim() ? 'identification' : 'prête');
     } catch (err) {
       if (err.status === 404 && err.data?.locked) { setGallery(err.data); setState('verrouillée'); return; }
       setState('absente');
@@ -201,7 +223,10 @@ export function GaleriePage() {
       }) });
       if (employeeGallery) setEmployeeName(name);
       setSent(true);
-    } catch (err) { setSendError(err.message); }
+    } catch (err) {
+      if (employeeGallery && err.status === 403) setState('verrouillée');
+      else setSendError(err.message);
+    }
     finally { setSending(false); }
   };
 
@@ -214,7 +239,8 @@ export function GaleriePage() {
       <p><a href={BRAND.phoneHref}>{BRAND.phone}</a> · <a href={GALLERY_CONTACT_URL}>{BRAND.email}</a></p>
     </main>
   </div>;
-  if (state === 'verrouillée') return <LockScreen gallery={gallery} onOpen={load} />;
+  if (state === 'verrouillée' || state === 'identification') return <LockScreen key={state} gallery={gallery} onOpen={load}
+    collectName={employeeGallery} requirePassword={state === 'verrouillée'} initialName={employeeName} />;
 
   const dateLabel = formatDate(gallery.date);
   const selected = current ? picks.has(current.id) : false;
@@ -228,14 +254,11 @@ export function GaleriePage() {
           <h1 id="cinema-client">{displayName(gallery.client)}</h1>
           <p className="cinema-tagline">Chaque détail compte</p>
           {employeeGallery && <>
-            <label className="cinema-field"><span>Nom et prénom</span>
-              <input type="text" name="employeeName" autoComplete="name" maxLength={120} required
-                value={employeeName} disabled={sending} aria-describedby="employee-selection-help"
-                onChange={(event) => {
-                  setEmployeeName(event.target.value); setPicks(new Set()); setSent(false); setSendError('');
-                }} />
-            </label>
-            <p id="employee-selection-help">Entrez votre prénom et votre nom, puis choisissez vos photos. Changer de nom réinitialise uniquement les choix affichés sur cet appareil.</p>
+            <p>Sélection de <strong>{employeeName}</strong></p>
+            <button className="cinema-thanks__later" type="button" disabled={sending} onClick={() => {
+              if (sending) return;
+              setEmployeeName(''); setExpanded(false); setSendError(''); setState('identification');
+            }}>Changer d’employé</button>
           </>}
           <div className="cinema-package">
             <p>{maxPicks ? `${maxPicks} photo${maxPicks > 1 ? 's incluses' : ' incluse'}` : 'Vos photos, votre sélection'}</p>

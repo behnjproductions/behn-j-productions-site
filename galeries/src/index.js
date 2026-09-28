@@ -132,12 +132,14 @@ function tokenFrom(request, cookieName) {
 const isAdmin = (request, env) => readToken(env.SESSION_SECRET, 'admin', tokenFrom(request, 'bjp_admin'));
 
 const galleryCookieName = (collectionId) => `bjp_g_${collectionId.slice(0, 12)}`;
+// Retire only Metal 7 sessions created before name collection at entry.
+const gallerySessionScope = (collection) => `g:${collection.id}${collection.slug === 'metal-7' ? ':named-v1' : ''}`;
 
 async function canSee(request, env, collection) {
   if (await isAdmin(request, env)) return true; // aperçu du photographe
   if (collection.status !== 'publié') return false;
   if (!collection.password_hash) return true;
-  return readToken(env.SESSION_SECRET, `g:${collection.id}`, tokenFrom(request, galleryCookieName(collection.id)));
+  return readToken(env.SESSION_SECRET, gallerySessionScope(collection), tokenFrom(request, galleryCookieName(collection.id)));
 }
 
 const getCollection = (env, slug) => env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
@@ -282,18 +284,23 @@ async function route(request, env, url, path, ip) {
         return json({ error: 'Trop d’essais. Réessayez dans quinze minutes.' }, 429);
       }
       const body = await request.json().catch(() => ({}));
+      if (collection.slug === 'metal-7' && (typeof body.employeeName !== 'string' || !body.employeeName.trim() || body.employeeName.length > 120)) {
+        return json({ error: 'Veuillez actualiser la page et saisir votre prénom et votre nom.' }, 400);
+      }
       if (!(await checkPassword(String(body.password || ''), collection.password_hash))) {
         await noteFail(env, scope, ip);
         await new Promise((r) => setTimeout(r, 400));
         return json({ error: 'Mot de passe incorrect.' }, 401);
       }
-      const token = await makeToken(env.SESSION_SECRET, scope, SESSION_HOURS);
+      const token = await makeToken(env.SESSION_SECRET, gallerySessionScope(collection), SESSION_HOURS);
       return json({ ok: true, token }, 200, { 'set-cookie': setCookie(galleryCookieName(collection.id), token, SESSION_HOURS) });
     }
 
     // Envoi de la sélection
     if (rest[1] === 'selection' && method === 'POST') {
-      if (!(await canSee(request, env, collection))) return json({ error: 'Accès refusé' }, 403);
+      if (!(await canSee(request, env, collection))) return json({ error: collection.slug === 'metal-7'
+        ? 'Votre session a expiré. Rechargez la page pour entrer votre nom et votre mot de passe.'
+        : 'Accès refusé' }, 403);
       const body = await request.json().catch(() => ({}));
       const wanted = Array.isArray(body.photoIds) ? body.photoIds.slice(0, 500).map(String) : [];
       if (!wanted.length) return json({ error: 'Aucune photo choisie.' }, 400);

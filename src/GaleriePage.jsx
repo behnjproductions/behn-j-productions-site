@@ -17,6 +17,13 @@ function readPicks(key) {
   try { const value = JSON.parse(readStore(key) || '[]'); return Array.isArray(value) ? value : []; }
   catch { return []; }
 }
+function readEmployeeSelection(key) {
+  try {
+    const value = JSON.parse(readStore(key) || 'null');
+    if (typeof value?.name === 'string' && value.name.trim() && Array.isArray(value.ids)) return value;
+  } catch { /* brouillon indisponible */ }
+  return { name: '', ids: [], submitted: false };
+}
 function formatDate(value) {
   if (!value) return '';
   const date = new Date(`${value.slice(0, 10)}T12:00:00`);
@@ -113,6 +120,7 @@ function LockScreen({ gallery, onOpen }) {
 
 export function GaleriePage() {
   const slug = (window.location.pathname.split('/')[2] || '').trim();
+  const employeeGallery = slug === 'metal-7';
   useSession(`g:${slug}`);
   const [gallery, setGallery] = useState(null);
   const [state, setState] = useState('chargement');
@@ -122,9 +130,12 @@ export function GaleriePage() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
+  const [employeeName, setEmployeeName] = useState('');
   const thumbRefs = useRef([]);
   const filmstripRef = useRef(null);
-  const storeKey = `bjp-picks-${slug}`;
+  // Metal 7's old draft and server submission belong to the shared gallery,
+  // not to this employee. Keep them intact and start a separate local draft.
+  const storeKey = employeeGallery ? `bjp-employee-selection-v1-${slug}` : `bjp-picks-${slug}`;
   const load = useCallback(async () => {
     if (!slug) { setState('absente'); return; }
     try {
@@ -132,9 +143,11 @@ export function GaleriePage() {
       setGallery(data);
       if (data.locked) { setState('verrouillée'); return; }
       const validIds = new Set((data.photos || []).map((photo) => photo.id));
-      const initial = Array.isArray(data.submitted?.ids) ? data.submitted.ids : readPicks(storeKey);
+      const employee = employeeGallery ? readEmployeeSelection(storeKey) : null;
+      const initial = employee ? employee.ids : Array.isArray(data.submitted?.ids) ? data.submitted.ids : readPicks(storeKey);
       setPicks(new Set(initial.filter((id) => validIds.has(id))));
-      setSent(data.submitted ? 'déjà' : false);
+      setEmployeeName(employee?.name || '');
+      setSent((employee ? employee.submitted === true : data.submitted) ? 'déjà' : false);
       const coverIndex = (data.photos || []).findIndex((photo) => photo.id === data.cover);
       setActive(coverIndex >= 0 ? coverIndex : 0);
       setState('prête');
@@ -142,9 +155,13 @@ export function GaleriePage() {
       if (err.status === 404 && err.data?.locked) { setGallery(err.data); setState('verrouillée'); return; }
       setState('absente');
     }
-  }, [slug, storeKey]);
+  }, [slug, storeKey, employeeGallery]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { if (state === 'prête') writeStore(storeKey, JSON.stringify([...picks])); }, [picks, state, storeKey]);
+  useEffect(() => {
+    if (state === 'prête') writeStore(storeKey, JSON.stringify(employeeGallery
+      ? { name: employeeName, ids: [...picks], submitted: Boolean(sent) }
+      : [...picks]));
+  }, [picks, state, storeKey, employeeGallery, employeeName, sent]);
   const photos = gallery?.photos || [];
   const current = photos[active];
   const maxPicks = gallery?.maxPicks;
@@ -165,16 +182,24 @@ export function GaleriePage() {
     }
   }, [active, state]);
   const toggle = (photoId) => {
-    if (sending || !photos.some((photo) => photo.id === photoId)) return;
+    if (sending || (employeeGallery && !employeeName.trim()) || !photos.some((photo) => photo.id === photoId)) return;
     setPicks((previous) => { const next = new Set(previous); if (next.has(photoId)) next.delete(photoId); else next.add(photoId); return next; });
   };
   const closeReview = useCallback(() => setSent('fermé'), []);
   const closeExpanded = useCallback(() => setExpanded(false), []);
   const send = async () => {
     if (sending || !picks.size) return;
+    const name = employeeName.trim().replace(/\s+/g, ' ');
+    if (employeeGallery && !name) { setSendError('Veuillez saisir votre prénom et votre nom.'); return; }
     setSending(true); setSendError('');
     try {
-      await api(`/galerie/${slug}/selection`, { method: 'POST', body: JSON.stringify({ photoIds: [...picks] }) });
+      // The existing endpoint appends a record. A name is metadata, never
+      // authority to overwrite an employee's earlier submission.
+      await api(`/galerie/${slug}/selection`, { method: 'POST', body: JSON.stringify({
+        photoIds: [...picks],
+        ...(employeeGallery ? { note: `Nom et prénom : ${name}${sent ? '\nNouvel envoi de ma sélection modifiée.' : ''}` } : {}),
+      }) });
+      if (employeeGallery) setEmployeeName(name);
       setSent(true);
     } catch (err) { setSendError(err.message); }
     finally { setSending(false); }
@@ -202,6 +227,16 @@ export function GaleriePage() {
           <p className="cinema-eyebrow">{[gallery.title, dateLabel].filter(Boolean).join(' · ') || 'Votre galerie privée'}</p>
           <h1 id="cinema-client">{displayName(gallery.client)}</h1>
           <p className="cinema-tagline">Chaque détail compte</p>
+          {employeeGallery && <>
+            <label className="cinema-field"><span>Nom et prénom</span>
+              <input type="text" name="employeeName" autoComplete="name" maxLength={120} required
+                value={employeeName} disabled={sending} aria-describedby="employee-selection-help"
+                onChange={(event) => {
+                  setEmployeeName(event.target.value); setPicks(new Set()); setSent(false); setSendError('');
+                }} />
+            </label>
+            <p id="employee-selection-help">Entrez votre prénom et votre nom, puis choisissez vos photos. Changer de nom réinitialise uniquement les choix affichés sur cet appareil.</p>
+          </>}
           <div className="cinema-package">
             <p>{maxPicks ? `${maxPicks} photo${maxPicks > 1 ? 's incluses' : ' incluse'}` : 'Vos photos, votre sélection'}</p>
             <span>{maxPicks ? `${extraPrice} $ CAD par photo supplémentaire` : 'Choisissez toutes les photos que vous aimez.'}</span>
@@ -221,7 +256,7 @@ export function GaleriePage() {
                 <button className="cinema-circle" type="button" onClick={() => move(-1)} disabled={photos.length < 2} aria-label="Photo précédente"><CaretLeft size={24} weight="light" /></button>
                 <button className="cinema-circle" type="button" onClick={() => move(1)} disabled={photos.length < 2} aria-label="Photo suivante"><CaretRight size={24} weight="light" /></button>
               </div>
-              <button type="button" className={`cinema-pick ${selected ? 'is-selected' : ''}`} onClick={() => toggle(current.id)} disabled={sending} aria-pressed={selected}>
+              <button type="button" className={`cinema-pick ${selected ? 'is-selected' : ''}`} onClick={() => toggle(current.id)} disabled={sending || (employeeGallery && !employeeName.trim())} aria-pressed={selected}>
                 <Heart size={33} weight={selected ? 'fill' : 'light'} /><span>{selected ? 'Photo sélectionnée' : 'Choisir cette photo'}</span>
               </button>
             </div>
@@ -259,8 +294,8 @@ export function GaleriePage() {
       </div>
       <div className="cinema-selection__action">
         {sendError && <p className="cinema-error" role="alert">{sendError}</p>}
-        <button className="cinema-send" type="button" disabled={!picks.size || sending} onClick={send}>
-          {sending ? 'Envoi…' : <>{sent ? 'Renvoyer ma sélection' : 'Envoyer ma sélection'} <ArrowRight size={25} weight="light" /></>}
+        <button className="cinema-send" type="button" disabled={!picks.size || sending || (employeeGallery && !employeeName.trim())} onClick={send}>
+          {sending ? 'Envoi…' : <>{employeeGallery ? (sent ? 'Envoyer ma sélection modifiée' : 'Confirmer ma sélection') : (sent ? 'Renvoyer ma sélection' : 'Envoyer ma sélection')} <ArrowRight size={25} weight="light" /></>}
         </button>
       </div>
       <span className="cinema-selection__signature">Behn J. Productions</span>
@@ -272,7 +307,7 @@ export function GaleriePage() {
         <button className="cinema-circle" type="button" onClick={() => move(-1)} disabled={photos.length < 2} aria-label="Photo précédente"><CaretLeft size={24} weight="light" /></button>
         <span className="cinema-expanded__count" aria-live="polite">{number(active + 1)} / {number(photos.length)}</span>
         <button className="cinema-circle" type="button" onClick={() => move(1)} disabled={photos.length < 2} aria-label="Photo suivante"><CaretRight size={24} weight="light" /></button>
-        <button className={`cinema-pick ${selected ? 'is-selected' : ''}`} type="button" onClick={() => toggle(current.id)} disabled={sending} aria-pressed={selected}>
+        <button className={`cinema-pick ${selected ? 'is-selected' : ''}`} type="button" onClick={() => toggle(current.id)} disabled={sending || (employeeGallery && !employeeName.trim())} aria-pressed={selected}>
           <Heart size={26} weight={selected ? 'fill' : 'light'} /><span>{selected ? 'Photo sélectionnée' : 'Choisir cette photo'}</span>
         </button>
       </div>
@@ -280,8 +315,8 @@ export function GaleriePage() {
     {sent === true && <CinemaDialog onClose={closeReview} labelledBy="cinema-merci-title" className="cinema-overlay--thanks">
       <button className="cinema-close" type="button" onClick={closeReview} aria-label="Fermer"><X size={24} weight="light" /></button>
       <div className="cinema-thanks__check" aria-hidden="true"><Check size={26} weight="light" /></div>
-      <p className="cinema-eyebrow">Sélection reçue</p><h2 id="cinema-merci-title">Merci! C’est noté.</h2>
-      <p className="cinema-thanks__lead">{picks.size === 1 ? 'Votre photo est' : `Vos ${picks.size} photos sont`} entre mes mains. Je vous reviens avec les images finales sous peu.</p>
+      <p className="cinema-eyebrow">Sélection reçue</p><h2 id="cinema-merci-title">{employeeGallery ? `Merci, ${employeeName}!` : 'Merci! C’est noté.'}</h2>
+      <p className="cinema-thanks__lead">{employeeGallery ? 'Votre sélection a bien été enregistrée.' : <>{picks.size === 1 ? 'Votre photo est' : `Vos ${picks.size} photos sont`} entre mes mains. Je vous reviens avec les images finales sous peu.</>}</p>
       {extras > 0 && <p className="cinema-thanks__extra">Dont {extras} au-delà de votre forfait : {extras * extraPrice} $ CAD s’ajouteront à votre facture.</p>}
       <div className="cinema-thanks__review">
         <div className="cinema-thanks__stars" aria-hidden="true">{[0, 1, 2, 3, 4].map((index) => <Star key={index} size={17} weight="fill" />)}</div>

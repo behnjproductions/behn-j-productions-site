@@ -458,6 +458,7 @@ function MailState({ status }) {
 function Selection({ selection, collection, copied, copy }) {
   const client = collection.client;
   const names = selection.photos.map((p) => p.filename).join('\n');
+  const lightroomNames = selection.photos.map((p) => (p.filename || '').replace(/\.jpe?g$/i, '')).join('\n');
   const included = collection.maxPicks || 0;
   const price = collection.extraPrice ?? 25;
   const extras = included ? Math.max(0, selection.photos.length - included) : 0;
@@ -477,8 +478,8 @@ function Selection({ selection, collection, copied, copy }) {
       <header>
         <div className="adm-selection__title"><p className="adm-eyebrow"><Check size={14} /> Sélection reçue</p><h2>Le choix du client <small>{selection.photos.length} photos</small></h2></div>
         <div>
-          <button className="adm-ghost" type="button" onClick={() => copy(names, 'sel')}>
-            {copied === 'sel' ? <><Check size={16} weight="bold" /> Copié</> : <><Copy size={16} /> Copier la liste</>}
+          <button className="adm-ghost" type="button" onClick={() => copy(lightroomNames, 'sel')}>
+            {copied === 'sel' ? <><Check size={16} weight="bold" /> Copié</> : <><Copy size={16} /> Copier pour Lightroom</>}
           </button>
           <button className="adm-ghost" type="button" onClick={download}><DownloadSimple size={16} /> Télécharger</button>
         </div>

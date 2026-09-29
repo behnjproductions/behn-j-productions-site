@@ -171,9 +171,9 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
         <strong>{gallery.client || gallery.title}</strong><span>Behn J. Productions</span>
       </a>
       <nav className="light-toolbar__actions" aria-label="Outils de la galerie">
-        <a className="light-store-link" href="/boutique#murs" target="bjp-boutique">Boutique d’impression</a>
+        <a className="light-store-link" href={`/boutique?galerie=${encodeURIComponent(gallery.slug)}#murs`} target="bjp-boutique">Boutique d’impression</a>
         <span className="light-toolbar__divider" aria-hidden="true" />
-        <a className="light-icon" href="/boutique#boutique-top" target="bjp-boutique" aria-label="Ouvrir le panier dans la boutique" title="Boutique et panier"><ShoppingCart size={24} weight="thin" /></a>
+        <a className="light-icon" href={`/boutique?galerie=${encodeURIComponent(gallery.slug)}#boutique-top`} target="bjp-boutique" aria-label="Ouvrir le panier dans la boutique" title="Boutique et panier"><ShoppingCart size={24} weight="thin" /></a>
         {!downloadMode && <button className={`light-icon${favoritesOnly ? ' is-active' : ''}`} type="button" aria-label={`Afficher mes favoris, ${countLabel(picks.size)}`} aria-pressed={favoritesOnly} title="Mes favoris"
           onClick={() => { setFavoritesOnly((value) => !value); scrollToPhotos(); }}><Heart size={24} weight={favoritesOnly ? 'fill' : 'thin'} />{picks.size > 0 && <span className="light-icon__count">{picks.size}</span>}</button>}
         {canDownload && <button className="light-icon" type="button" onClick={() => openDownload('all')} disabled={!photos.length} aria-label="Télécharger toutes les photos" title="Tout télécharger"><DownloadSimple size={24} weight="thin" /></button>}

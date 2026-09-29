@@ -209,6 +209,12 @@
   border: 1px solid var(--bq-line); border-radius: var(--bq-radius); background: var(--bq-paper); color: var(--bq-ink);
 }
 .boutique-page .bq-pickhint { font-size: 12.5px; color: var(--bq-muted); margin: 12px 0 0; max-width: 46ch; }
+.boutique-page .bq-gal-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; margin: 0 0 16px; max-width: 420px; }
+.boutique-page .bq-gal-thumb { position: relative; aspect-ratio: 4 / 5; padding: 0; border: 2px solid transparent; border-radius: 3px; overflow: hidden; cursor: pointer; background: var(--bq-sand); }
+.boutique-page .bq-gal-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.boutique-page .bq-gal-thumb:hover { border-color: var(--bq-muted-dark); }
+.boutique-page .bq-gal-thumb.is-selected { border-color: var(--bq-garnet); }
+.boutique-page .bq-gal-thumb.is-selected::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 2px var(--bq-paper); }
 
 /* résumé */
 .boutique-page .bq-summary { border-top: 1px solid var(--bq-line); padding-top: 18px; }

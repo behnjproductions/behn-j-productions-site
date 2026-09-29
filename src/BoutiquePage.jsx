@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowRight, FacebookLogo, InstagramLogo } from '@phosphor-icons/react';
 import { BRAND } from './brand.js';
+import { api, photoUrl, useSession } from './api.js';
+
+// Si le client arrive depuis sa galerie privée (lien « Boutique d'impression »
+// avec ?galerie=<slug>), on retrouve la session déjà ouverte dans ce même
+// navigateur pour lui proposer directement ses propres photos, au lieu de lui
+// demander de taper un numéro ou de retéléverser un fichier.
+const GALLERY_SLUG = new URLSearchParams(window.location.search).get('galerie') || '';
 
 const A = '/assets/boutique/';
 
@@ -110,6 +117,7 @@ function ProductCard({ row, onPick }) {
 }
 
 export function BoutiquePage() {
+  if (GALLERY_SLUG) useSession(`g:${GALLERY_SLUG}`);
   const [family, setFamily] = useState('cadre');
   const [size, setSize] = useState(CADRES[1]);
   const [colour, setColour] = useState(FRAMES[0]);
@@ -117,6 +125,11 @@ export function BoutiquePage() {
   const [photo, setPhoto] = useState({ url: null, name: null });
   const [demoIndex, setDemoIndex] = useState(0);
   const [galRef, setGalRef] = useState('');
+  // Photos de la galerie du client (chargées seulement si le lien porte
+  // ?galerie=<slug> et que sa session est encore valide dans ce navigateur).
+  const [galleryPhotos, setGalleryPhotos] = useState(null);
+  const [galleryClient, setGalleryClient] = useState('');
+  const [pickedPhotoId, setPickedPhotoId] = useState(null);
   const [cart, setCart] = useState([]);
   const [pending, setPending] = useState(null);
   const [pendingQty, setPendingQty] = useState(1);
@@ -176,6 +189,7 @@ export function BoutiquePage() {
   const onFile = (event) => {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
+    setPickedPhotoId(null);
     const reader = new FileReader();
     reader.onload = () => setPhoto({ url: reader.result, name: file.name });
     reader.readAsDataURL(file);
@@ -213,6 +227,31 @@ export function BoutiquePage() {
   };
 
   const openPending = (p) => { setPending(p); setPendingQty(1); setPendingRef(''); };
+
+  useEffect(() => {
+    if (!GALLERY_SLUG) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await api(`/galerie/${GALLERY_SLUG}`);
+        if (cancelled || !Array.isArray(data.photos) || !data.photos.length) return;
+        setGalleryPhotos(data.photos);
+        setGalleryClient(data.client || data.title || '');
+      } catch {
+        // Session absente ou expirée dans ce navigateur : on garde simplement
+        // le choix manuel (téléversement / numéro), sans déranger le client.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const pickGalleryPhoto = (item) => {
+    const name = item.downloadFilename || item.filename || `Photo ${galleryPhotos.indexOf(item) + 1}`;
+    setPickedPhotoId(item.id);
+    setPhoto({ url: photoUrl(item.id, 'web'), name });
+    setGalRef('');
+    if (fileRef.current) fileRef.current.value = '';
+  };
 
   return (
     <div className="site-shell boutique-page">
@@ -372,17 +411,33 @@ export function BoutiquePage() {
 
                 <div className="bq-group">
                   <p className="bq-lbl">Votre photo</p>
+                  {galleryPhotos && (
+                    <>
+                      <p className="bq-gal-lbl" style={{ marginTop: 0 }}>Vos photos{galleryClient ? ` — ${galleryClient}` : ''}</p>
+                      <div className="bq-gal-picker">
+                        {galleryPhotos.map((item) => (
+                          <button key={item.id} type="button" className={`bq-gal-thumb${pickedPhotoId === item.id ? ' is-selected' : ''}`}
+                            onClick={() => pickGalleryPhoto(item)} aria-pressed={pickedPhotoId === item.id}
+                            aria-label={`Choisir ${item.downloadFilename || item.filename || 'cette photo'}`}>
+                            <img src={photoUrl(item.id, 'thumb')} alt="" loading="lazy" decoding="async" />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
                   <div className="bq-photo-pick">
                     <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
-                    <button type="button" className="bq-pickbtn" onClick={() => fileRef.current?.click()}>Choisir une image</button>
+                    <button type="button" className="bq-pickbtn" onClick={() => fileRef.current?.click()}>{galleryPhotos ? 'Ou téléverser une autre image' : 'Choisir une image'}</button>
                     <span className="bq-pickname">{photo.name || 'Aucune image choisie'}</span>
                     {photo.url && (
-                      <button type="button" className="bq-pickclear" onClick={() => { setPhoto({ url: null, name: null }); if (fileRef.current) fileRef.current.value = ''; }}>Retirer</button>
+                      <button type="button" className="bq-pickclear" onClick={() => { setPhoto({ url: null, name: null }); setPickedPhotoId(null); if (fileRef.current) fileRef.current.value = ''; }}>Retirer</button>
                     )}
                   </div>
-                  <label className="bq-gal-lbl" htmlFor="bq-galref">ou le numéro de la photo dans votre galerie</label>
-                  <input id="bq-galref" className="bq-galinput" type="text" placeholder="Ex. : IMG-0428" autoComplete="off" value={galRef} onChange={(e) => setGalRef(e.target.value)} />
-                  <p className="bq-pickhint">Les photos affichées sont des exemples. L’aperçu est indicatif : je recadre et calibre chaque image avant l’impression, et vous approuvez une épreuve.</p>
+                  {!galleryPhotos && <>
+                    <label className="bq-gal-lbl" htmlFor="bq-galref">ou le numéro de la photo dans votre galerie</label>
+                    <input id="bq-galref" className="bq-galinput" type="text" placeholder="Ex. : IMG-0428" autoComplete="off" value={galRef} onChange={(e) => setGalRef(e.target.value)} />
+                  </>}
+                  <p className="bq-pickhint">{galleryPhotos ? 'Sélectionnez une de vos photos ci-dessus, ou téléversez-en une autre. L’aperçu est indicatif : je recadre et calibre chaque image avant l’impression, et vous approuvez une épreuve.' : 'Les photos affichées sont des exemples. L’aperçu est indicatif : je recadre et calibre chaque image avant l’impression, et vous approuvez une épreuve.'}</p>
                 </div>
 
                 <div className="bq-group">

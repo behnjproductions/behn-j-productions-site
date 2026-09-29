@@ -332,7 +332,7 @@ function Editor({ slug, onBack, onChanged }) {
   const preview = new URLSearchParams(window.location.search).get('apercu') === 'clair' ? '?apercu=clair' : '';
   const downloadMode = c.mode === 'download';
   const webPhotoCount = data.photos.filter((p) => p.downloadQuality !== 'original').length;
-  const selection = data.selections[0];
+  const selectionEntries = combineSelections(data.selections);
 
   return (
     <div className="adm-editor">
@@ -377,7 +377,7 @@ function Editor({ slug, onBack, onChanged }) {
 
         {downloadMode && !settings && <WebCopiesNotice count={webPhotoCount} />}
 
-        {selection && <Selection selection={selection} collection={c} copied={copied} copy={copy} />}
+        {selectionEntries.length > 0 && <Selection entries={selectionEntries} collection={c} copied={copied} copy={copy} />}
 
         <div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(data.photos.length).padStart(2, '0')}</small></h2></div><p><Star size={14} /> L’étoile définit la photo de couverture.</p></div>
 
@@ -514,13 +514,49 @@ function MailState({ status }) {
   );
 }
 
-function Selection({ selection, collection, copied, copy }) {
+// Une galerie a un seul client : ses envois se corrigent l'un l'autre, seul le
+// plus récent compte. Une galerie à plusieurs personnes (Metal 7) est
+// différente : chaque personne nommée garde son propre choix, et un nouvel
+// envoi ne remplace que le sien, jamais celui de quelqu'un d'autre. Les envois
+// reçus avant l'obligation du nom restent inclus, non identifiés.
+function extractEmployeeName(note) {
+  const m = /Nom et pr[ée]nom\s*:\s*([^\n]+)/i.exec(note || '');
+  return m ? m[1].trim() : null;
+}
+
+function combineSelections(selections) {
+  const seen = new Set();
+  const entries = [];
+  for (const s of selections) { // déjà du plus récent au plus ancien
+    const name = extractEmployeeName(s.note);
+    if (name) {
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue; // envoi plus ancien du même nom : ignoré
+      seen.add(key);
+    }
+    entries.push({ ...s, name });
+  }
+  return entries;
+}
+
+function Selection({ entries, collection, copied, copy }) {
   const client = collection.client;
-  const names = selection.photos.map((p) => p.filename).join('\n');
-  const lightroomNames = selection.photos.map((p) => (p.filename || '').replace(/\.jpe?g$/i, '')).join('\n');
+  const byPhoto = new Map();
+  for (const entry of entries) {
+    for (const p of entry.photos) {
+      if (!byPhoto.has(p.id)) byPhoto.set(p.id, { ...p, names: [] });
+      if (entry.name) byPhoto.get(p.id).names.push(entry.name);
+    }
+  }
+  const photos = [...byPhoto.values()];
+  const names = photos.map((p) => p.filename).join('\n');
+  const lightroomNames = photos.map((p) => (p.filename || '').replace(/\.jpe?g$/i, '')).join('\n');
   const included = collection.maxPicks || 0;
   const price = collection.extraPrice ?? 25;
-  const extras = included ? Math.max(0, selection.photos.length - included) : 0;
+  const extras = included ? Math.max(0, photos.length - included) : 0;
+  const contributors = entries.filter((e) => e.name).length;
+  const anonymous = entries.length - contributors;
+  const failedMail = entries.filter((e) => e.emailStatus && e.emailStatus !== 'envoyé').length;
 
   const download = () => {
     const blob = new Blob([names], { type: 'text/plain;charset=utf-8' });
@@ -535,7 +571,17 @@ function Selection({ selection, collection, copied, copy }) {
   return (
     <section className="adm-selection">
       <header>
-        <div className="adm-selection__title"><p className="adm-eyebrow"><Check size={14} /> Sélection reçue</p><h2>Le choix du client <small>{selection.photos.length} photos</small></h2></div>
+        <div className="adm-selection__title">
+          <p className="adm-eyebrow"><Check size={14} /> Sélection reçue</p>
+          <h2>Le choix du client <small>{photos.length} photos</small></h2>
+          {entries.length > 1 && (
+            <p className="adm-selection__count">
+              {contributors > 0 && `${contributors} personne${contributors > 1 ? 's' : ''} identifiée${contributors > 1 ? 's' : ''}`}
+              {contributors > 0 && anonymous > 0 ? ' + ' : ''}
+              {anonymous > 0 && `${anonymous} envoi${anonymous > 1 ? 's' : ''} sans nom (avant l'identification obligatoire)`}
+            </p>
+          )}
+        </div>
         <div>
           <button className="adm-ghost" type="button" onClick={() => copy(lightroomNames, 'sel')}>
             {copied === 'sel' ? <><Check size={16} weight="bold" /> Copié</> : <><Copy size={16} /> Copier pour Lightroom</>}
@@ -543,16 +589,29 @@ function Selection({ selection, collection, copied, copy }) {
           <button className="adm-ghost" type="button" onClick={download}><DownloadSimple size={16} /> Télécharger</button>
         </div>
       </header>
-      <MailState status={selection.emailStatus} />
+      {entries.length === 1 ? (
+        <>
+          <MailState status={entries[0].emailStatus} />
+          {entries[0].note && <p className="adm-selection__note">« {entries[0].note} »</p>}
+        </>
+      ) : failedMail > 0 && (
+        <p className="adm-selection__mail adm-selection__mail--warn">
+          <Warning size={15} weight="bold" /> <strong>{failedMail} avis courriel n'est (ou ne sont) pas parti(s).</strong> Vérifiez les envois un par un si besoin.
+        </p>
+      )}
       {extras > 0 && (
         <p className="adm-selection__extra">
           {extras} photo{extras > 1 ? 's' : ''} au-delà du forfait de {included} —
           {' '}{extras} × {price} $ = <strong>{extras * price} $ CAD à facturer</strong>
         </p>
       )}
-      {selection.note && <p className="adm-selection__note">« {selection.note} »</p>}
       <ul className="adm-selection__list">
-        {selection.photos.map((p) => <li key={p.id}><img src={photoUrl(p.id)} alt="" loading="lazy" /><span>{p.filename}</span></li>)}
+        {photos.map((p) => (
+          <li key={p.id}>
+            <img src={photoUrl(p.id)} alt="" loading="lazy" />
+            <span>{p.filename}{p.names.length ? ` — ${p.names.join(', ')}` : ''}</span>
+          </li>
+        ))}
       </ul>
     </section>
   );

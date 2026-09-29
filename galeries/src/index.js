@@ -477,7 +477,7 @@ async function route(request, env, url, path, ip) {
     if (!action && method === 'GET') {
       const { results: photos } = await listPhotos(env, collection.id);
       const { results: selections } = await env.DB
-        .prepare('SELECT * FROM selections WHERE collection_id = ? ORDER BY id DESC LIMIT 20')
+        .prepare('SELECT * FROM selections WHERE collection_id = ? ORDER BY id DESC LIMIT 500')
         .bind(collection.id).all();
       const byId = new Map(photos.map((p) => [p.id, p]));
       return json({

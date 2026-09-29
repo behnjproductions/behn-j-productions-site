@@ -332,7 +332,7 @@ function Editor({ slug, onBack, onChanged }) {
   const preview = new URLSearchParams(window.location.search).get('apercu') === 'clair' ? '?apercu=clair' : '';
   const downloadMode = c.mode === 'download';
   const webPhotoCount = data.photos.filter((p) => p.downloadQuality !== 'original').length;
-  const selectionEntries = combineSelections(data.selections);
+  const selectionEntries = combineSelections(data.selections, c.slug === 'metal-7');
 
   return (
     <div className="adm-editor">
@@ -524,7 +524,13 @@ function extractEmployeeName(note) {
   return m ? m[1].trim() : null;
 }
 
-function combineSelections(selections) {
+function combineSelections(selections, multiPerson) {
+  // Une seule cliente ou un seul client : ses envois se corrigent l'un
+  // l'autre, seul le plus récent compte, exactement comme avant. Seule une
+  // galerie à plusieurs personnes nommées (Metal 7) fusionne tous les envois.
+  if (!multiPerson) {
+    return selections.slice(0, 1).map((s) => ({ ...s, name: extractEmployeeName(s.note) }));
+  }
   const seen = new Set();
   const entries = [];
   for (const s of selections) { // déjà du plus récent au plus ancien

@@ -8,7 +8,7 @@ import './admin-cinema.css';
 
 const WEB_SIDE = 2000;   // côté le plus long de la version web
 const THUMB_SIDE = 700;  // côté le plus long de la vignette
-const ORIGINAL_MAX_BYTES = 40 * 1024 * 1024;
+const ORIGINAL_MAX_BYTES = 75 * 1024 * 1024;
 const DOWNLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 // Certains navigateurs (et certains exports macOS/Windows) ne remplissent pas
 // file.type pour un JPEG ou un PNG pourtant valide : on retombe sur
@@ -18,7 +18,7 @@ function downloadFileIssue(file) {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const type = DOWNLOAD_TYPES.has(file.type) ? file.type : DOWNLOAD_EXT_TYPES[ext];
   if (!type) return `n'est pas reconnu comme JPEG, PNG ou WebP (format détecté : ${file.type || 'inconnu, à partir de .' + (ext || '?')})`;
-  if (file.size > ORIGINAL_MAX_BYTES) return `pèse ${(file.size / (1024 * 1024)).toFixed(1)} Mo, la limite est de 40 Mo`;
+  if (file.size > ORIGINAL_MAX_BYTES) return `pèse ${(file.size / (1024 * 1024)).toFixed(1)} Mo, la limite est de 75 Mo`;
   return null;
 }
 
@@ -399,7 +399,7 @@ function Editor({ slug, onBack, onChanged }) {
           onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}>
           <div className="adm-drop__icon"><UploadSimple size={26} weight="light" /></div>
           <div className="adm-drop__copy"><p><strong>Ajoutez les images de cette histoire.</strong></p>
-          <p className="adm-hint">{downloadMode ? 'Ajoutez les fichiers finaux. Le client pourra télécharger les originaux envoyés. JPEG, PNG ou WebP · 40 Mo maximum par photo.' : 'Glissez vos photos ici. Les originaux restent sur votre ordinateur.'}</p></div>
+          <p className="adm-hint">{downloadMode ? 'Ajoutez les fichiers finaux. Le client pourra télécharger les originaux envoyés. JPEG, PNG ou WebP · 75 Mo maximum par photo.' : 'Glissez vos photos ici. Les originaux restent sur votre ordinateur.'}</p></div>
           <button className="adm-ghost" type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(upload) || saving}>
             <Plus size={17} /> Ajouter des photos
           </button>

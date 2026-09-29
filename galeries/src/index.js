@@ -10,7 +10,7 @@
 const SESSION_HOURS = 24 * 30; // Un client garde son accès un mois.
 const ADMIN_HOURS = 12;
 const MAX_FAILS = 10; // Essais de mot de passe ratés tolérés par 15 minutes.
-const MAX_ORIGINAL_BYTES = 40 * 1024 * 1024;
+const MAX_ORIGINAL_BYTES = 75 * 1024 * 1024;
 const ORIGINAL_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
 // Un Worker du forfait gratuit ne dispose que de 10 ms de calcul par requête :
@@ -554,7 +554,7 @@ async function route(request, env, url, path, ip) {
         if (!(original instanceof File) || !Object.hasOwn(ORIGINAL_TYPES, original.type)) {
           return json({ error: 'L’original doit être une image JPEG, PNG ou WebP.' }, 400);
         }
-        if (!original.size || original.size > MAX_ORIGINAL_BYTES) return json({ error: 'L’original doit contenir une image de 40 Mo ou moins.' }, 413);
+        if (!original.size || original.size > MAX_ORIGINAL_BYTES) return json({ error: 'L’original doit contenir une image de 75 Mo ou moins.' }, 413);
       }
 
       const photoId = id();

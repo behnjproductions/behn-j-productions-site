@@ -261,7 +261,7 @@ test('download original upload rejects unsupported, empty, oversized and non-fil
     [new File(['svg'], 'Portrait.svg', { type: 'image/svg+xml' }), 400],
     [new File([], 'Empty.jpg', { type: 'image/jpeg' }), 413],
     ['not-a-file', 400],
-    [new File([new Uint8Array(40 * 1024 * 1024 + 1)], 'Large.jpg', { type: 'image/jpeg' }), 413],
+    [new File([new Uint8Array(75 * 1024 * 1024 + 1)], 'Large.jpg', { type: 'image/jpeg' }), 413],
   ]) {
     const response = await f.admin('/collections/metal-7/photos', 'POST', upload(original));
     assert.equal(response.status, status, await response.text());

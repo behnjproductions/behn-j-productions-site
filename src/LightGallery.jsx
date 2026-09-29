@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, CaretDown, CaretLeft, CaretRight, Check, Copy, DownloadSimple, Heart, ImageSquare, Pause, Play, ShareFat, ShoppingCart, X } from '@phosphor-icons/react';
+import { ArrowDown, ArrowRight, CaretDown, CaretLeft, CaretRight, Check, Copy, DownloadSimple, Heart, ImageSquare, Pause, Play, ShareFat, ShoppingCart, Star, X } from '@phosphor-icons/react';
 import { archiveFilename, prepareGalleryDownload, preparePhotoDownload } from './gallery-downloads.js';
 import './light-gallery.css';
 
 const countLabel = (count) => `${count} photo${count > 1 ? 's' : ''}`;
+const GOOGLE_REVIEW_URL = 'https://g.page/r/CQkeWPsjYGSdEBM/review';
 const photoName = (photo, index) => photo?.downloadFilename || photo?.filename || `Photo ${index + 1}`;
 
 export function LightGallery({ gallery, photos, picks, active, onActive, onToggle, sending, sent, onSend, sendError,
@@ -264,6 +265,12 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
           <button className="light-button" type="button" onClick={downloadPhotos} disabled={downloadBusy}><ArrowDown size={18} weight="light" />{downloadBusy ? 'Préparation…' : downloadScope === 'all' ? 'Télécharger toutes les photos (.zip)' : 'Télécharger cette photo'}</button>
           {downloadBusy && <button className="light-download-cancel light-text-button" type="button" onClick={cancelDownload}>Annuler</button>}
           <p className={downloadState === 'failed' ? 'light-error' : 'light-status'} role="status">{downloadState === 'failed' ? downloadError || 'Le téléchargement a échoué. Aucun fichier n’a été téléchargé. Réessayez ou écrivez-nous.' : downloadState === 'saved' ? 'Votre fichier ZIP a été enregistré.' : downloadState === 'done' ? 'Le téléchargement a été lancé.' : downloadState === 'cancelled' ? 'Préparation annulée. Aucun fichier n’a été téléchargé.' : ''}</p>
+          {downloadScope === 'all' && (downloadState === 'done' || downloadState === 'saved') && <div className="light-download-review">
+            <div className="light-download-review__stars" aria-hidden="true">{[0, 1, 2, 3, 4].map((index) => <Star key={index} size={16} weight="fill" />)}</div>
+            <h3>Un petit mot avant de partir?</h3>
+            <p>Votre avis Google nous aiderait beaucoup. Ça prend une minute et ça fait une vraie différence pour une entreprise d’ici.</p>
+            <a className="light-button" href={GOOGLE_REVIEW_URL} target="_blank" rel="noreferrer">Laisser un avis Google <ArrowRight size={18} weight="light" /></a>
+          </div>}
           {downloadScope === 'single' && <div className="light-download-nav"><button className="light-text-button" type="button" disabled={downloadBusy || photos.length < 2} onClick={() => moveDownloadPhoto(-1)}><CaretLeft size={18} /> Précédente</button><span>{active + 1} / {photos.length}</span><button className="light-text-button" type="button" disabled={downloadBusy || photos.length < 2} onClick={() => moveDownloadPhoto(1)}>Suivante <CaretRight size={18} /></button></div>}
         </> : <><p>Vos photos finales seront disponibles après la confirmation de votre sélection et leur préparation.</p><p>En attendant, choisissez vos coups de cœur dans la galerie.</p><a className="light-button" href={contactUrl}>Une question? Écrivez-nous <ArrowRight size={18} weight="light" /></a></>}
       </>}

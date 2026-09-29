@@ -10,6 +10,17 @@ const WEB_SIDE = 2000;   // côté le plus long de la version web
 const THUMB_SIDE = 700;  // côté le plus long de la vignette
 const ORIGINAL_MAX_BYTES = 40 * 1024 * 1024;
 const DOWNLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+// Certains navigateurs (et certains exports macOS/Windows) ne remplissent pas
+// file.type pour un JPEG ou un PNG pourtant valide : on retombe sur
+// l'extension du nom de fichier avant de refuser l'envoi.
+const DOWNLOAD_EXT_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+function downloadFileIssue(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const type = DOWNLOAD_TYPES.has(file.type) ? file.type : DOWNLOAD_EXT_TYPES[ext];
+  if (!type) return `n'est pas reconnu comme JPEG, PNG ou WebP (format détecté : ${file.type || 'inconnu, à partir de .' + (ext || '?')})`;
+  if (file.size > ORIGINAL_MAX_BYTES) return `pèse ${(file.size / (1024 * 1024)).toFixed(1)} Mo, la limite est de 40 Mo`;
+  return null;
+}
 
 const modeLabel = (mode) => mode === 'download' ? 'Pour télécharger' : 'Pour sélectionner';
 
@@ -274,11 +285,12 @@ function Editor({ slug, onBack, onChanged }) {
     if (!images.length) return;
     const downloadMode = data.collection.mode === 'download';
     if (downloadMode) {
-      const invalid = images.find((file) => !DOWNLOAD_TYPES.has(file.type) || file.size > ORIGINAL_MAX_BYTES);
-      if (invalid) {
-        setError(`${invalid.name} : choisissez un fichier JPEG, PNG ou WebP de 40 Mo maximum pour le téléchargement.`);
-        return;
+      let invalidMessage = null;
+      for (const file of images) {
+        const issue = downloadFileIssue(file);
+        if (issue) { invalidMessage = `${file.name} : ${issue}.`; break; }
       }
+      if (invalidMessage) { setError(invalidMessage); return; }
     }
     uploadRef.current = true;
     setError('');

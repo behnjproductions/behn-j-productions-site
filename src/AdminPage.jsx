@@ -14,9 +14,14 @@ const DOWNLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 // file.type pour un JPEG ou un PNG pourtant valide : on retombe sur
 // l'extension du nom de fichier avant de refuser l'envoi.
 const DOWNLOAD_EXT_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+function resolvedDownloadType(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  return DOWNLOAD_TYPES.has(file.type) ? file.type : DOWNLOAD_EXT_TYPES[ext] || null;
+}
+
 function downloadFileIssue(file) {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const type = DOWNLOAD_TYPES.has(file.type) ? file.type : DOWNLOAD_EXT_TYPES[ext];
+  const type = resolvedDownloadType(file);
   if (!type) return `n'est pas reconnu comme JPEG, PNG ou WebP (format détecté : ${file.type || 'inconnu, à partir de .' + (ext || '?')})`;
   if (file.size > ORIGINAL_MAX_BYTES) return `pèse ${(file.size / (1024 * 1024)).toFixed(1)} Mo, la limite est de 75 Mo`;
   return null;
@@ -307,7 +312,17 @@ function Editor({ slug, onBack, onChanged }) {
         form.append('height', String(web.height));
         form.append('web', web.blob, 'web.jpg');
         form.append('thumb', thumb.blob, 'thumb.jpg');
-        if (downloadMode) form.append('original', file, file.name);
+        if (downloadMode) {
+          // Le navigateur ne rapporte pas toujours le bon type MIME (file.type)
+          // même pour un JPEG/PNG/WebP valide : on renvoie le fichier avec le type
+          // déduit de son extension, sinon le serveur le refuse malgré l'aperçu
+          // qui, lui, se fie à l'extension.
+          const correctedType = resolvedDownloadType(file);
+          const original = correctedType && correctedType !== file.type
+            ? new File([file], file.name, { type: correctedType })
+            : file;
+          form.append('original', original, file.name);
+        }
         await api(`/admin/collections/${slug}/photos`, { method: 'POST', body: form });
       } catch (err) {
         setError(`${file.name} : ${err.message}`);

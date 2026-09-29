@@ -12,6 +12,15 @@ const ADMIN_HOURS = 12;
 const MAX_FAILS = 10; // Essais de mot de passe ratés tolérés par 15 minutes.
 const MAX_ORIGINAL_BYTES = 75 * 1024 * 1024;
 const ORIGINAL_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+// Certains navigateurs n'envoient pas de type MIME utilisable pour un JPEG/PNG/WebP
+// pourtant valide (Content-Type vide ou générique) : on retombe sur l'extension du
+// nom de fichier, comme le fait déjà le panneau d'administration avant l'envoi.
+const ORIGINAL_EXT_TYPES = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+function resolveOriginalType(file) {
+  if (Object.hasOwn(ORIGINAL_TYPES, file.type)) return file.type;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  return ORIGINAL_EXT_TYPES[ext] || null;
+}
 
 // Un Worker du forfait gratuit ne dispose que de 10 ms de calcul par requête :
 // un PBKDF2 à 120 000 tours le dépasse et la requête est coupée. 4 000 tours
@@ -551,7 +560,7 @@ async function route(request, env, url, path, ip) {
       if (!(web instanceof File)) return json({ error: 'Fichier manquant.' }, 400);
       if (original !== null) {
         if (galleryMode(collection) !== 'download') return json({ error: 'Les originaux sont réservés aux galeries de téléchargement.' }, 400);
-        if (!(original instanceof File) || !Object.hasOwn(ORIGINAL_TYPES, original.type)) {
+        if (!(original instanceof File) || !resolveOriginalType(original)) {
           return json({ error: 'L’original doit être une image JPEG, PNG ou WebP.' }, 400);
         }
         if (!original.size || original.size > MAX_ORIGINAL_BYTES) return json({ error: 'L’original doit contenir une image de 75 Mo ou moins.' }, 413);
@@ -560,12 +569,12 @@ async function route(request, env, url, path, ip) {
       const photoId = id();
       const webKey = `collections/${collection.id}/${photoId}-web.jpg`;
       const thumbKey = `collections/${collection.id}/${photoId}-thumb.jpg`;
-      const originalKey = original instanceof File ? `collections/${collection.id}/${photoId}-original.${ORIGINAL_TYPES[original.type]}` : null;
+      const originalKey = original instanceof File ? `collections/${collection.id}/${photoId}-original.${ORIGINAL_TYPES[resolveOriginalType(original)]}` : null;
       await env.BUCKET.put(webKey, web.stream(), { httpMetadata: { contentType: 'image/jpeg' } });
       if (thumb instanceof File) {
         await env.BUCKET.put(thumbKey, thumb.stream(), { httpMetadata: { contentType: 'image/jpeg' } });
       }
-      if (originalKey) await env.BUCKET.put(originalKey, original.stream(), { httpMetadata: { contentType: original.type } });
+      if (originalKey) await env.BUCKET.put(originalKey, original.stream(), { httpMetadata: { contentType: resolveOriginalType(original) } });
 
       const next = await env.DB.prepare('SELECT COALESCE(MAX(position), 0) + 1 AS n FROM photos WHERE collection_id = ?')
         .bind(collection.id).first();

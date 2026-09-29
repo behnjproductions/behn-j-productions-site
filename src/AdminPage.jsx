@@ -301,8 +301,14 @@ function Editor({ slug, onBack, onChanged }) {
     setError('');
     setUpload({ done: 0, total: images.length });
 
-    for (let i = 0; i < images.length; i += 1) {
-      const file = images[i];
+    // Envoyer les photos en parallèle (par lots) plutôt qu'une à la fois : la
+    // majorité du temps est passée à attendre le réseau, alors traiter plusieurs
+    // fichiers en même temps utilise beaucoup mieux la connexion et accélère
+    // nettement l'envoi de grandes séries de photos.
+    const UPLOAD_CONCURRENCY = 3;
+    let doneCount = 0;
+    let nextIndex = 0;
+    const uploadOne = async (file) => {
       try {
         const web = await prepareImage(file, WEB_SIDE, 0.82);
         const thumb = await prepareImage(file, THUMB_SIDE, 0.75);
@@ -327,8 +333,17 @@ function Editor({ slug, onBack, onChanged }) {
       } catch (err) {
         setError(`${file.name} : ${err.message}`);
       }
-      setUpload({ done: i + 1, total: images.length });
-    }
+      doneCount += 1;
+      setUpload({ done: doneCount, total: images.length });
+    };
+    const worker = async () => {
+      while (nextIndex < images.length) {
+        const file = images[nextIndex];
+        nextIndex += 1;
+        await uploadOne(file);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(UPLOAD_CONCURRENCY, images.length) }, worker));
 
     uploadRef.current = false;
     setUpload(null);

@@ -169,8 +169,8 @@
 .admin-cinema .adm-selection__extra { padding:13px 16px; border-left:2px solid #b9a064; background:rgba(213,188,133,.055); color:#ddcda9; font:400 14px/1.7 var(--studio-ui); }
 .admin-cinema .adm-selection__extra strong { color:#f3e4c0; }
 .admin-cinema .adm-selection__note { margin:19px 0; color:var(--studio-text); font:italic 23px/1.4 var(--studio-serif); }
-.admin-cinema .adm-selection__list { display:grid; grid-template-columns:repeat(auto-fill,minmax(118px,1fr)); gap:14px; padding:0; margin:18px 0 0; list-style:none; }
-.admin-cinema .adm-selection__list li { min-width:0; }
+.admin-cinema .adm-selection__list { display:flex; flex-wrap:nowrap; overflow-x:auto; gap:14px; padding:0 0 6px; margin:18px 0 0; list-style:none; scrollbar-width:thin; }
+.admin-cinema .adm-selection__list li { flex:0 0 118px; width:118px; }
 .admin-cinema .adm-selection__list img { width:100%; aspect-ratio:4/3; object-fit:cover; object-position:50% 35%; }
 .admin-cinema .adm-selection__list li>span { display:block; margin-top:9px; overflow-wrap:anywhere; font:400 12px/1.5 var(--studio-ui); color:var(--studio-muted); }
 .admin-cinema .adm-error { margin:0 0 24px; padding:15px 18px; border:1px solid rgba(230,110,89,.35); border-radius:0; background:#301a15; color:#ffbeb0; font:400 14px/1.7 var(--studio-ui); }
@@ -299,7 +299,7 @@
   .admin-cinema .adm-selection header h2 small { display:block; margin:9px 0 0; font-size:12px; }
   .admin-cinema .adm-selection header>div:last-child { display:grid; grid-template-columns:1fr 1fr; width:100%; }
   .admin-cinema .adm-selection header .adm-ghost { font-size:14px; padding:10px; gap:7px; }
-  .admin-cinema .adm-selection__list { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .admin-cinema .adm-selection__list li { flex-basis:98px; width:98px; }
   .admin-cinema .adm-login__masthead { align-items:flex-start; flex-direction:column; gap:10px; padding-top:22px; padding-bottom:21px; }
   .admin-cinema .adm-login__masthead .adm-studio-label { font-size:12px; }
   .admin-cinema .adm-login__layout { gap:35px; padding-top:39px; padding-bottom:47px; }

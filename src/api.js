@@ -60,8 +60,8 @@ export function photoUrl(photoId, size = 'thumb') {
 
 /**
  * Réduit une photo dans le navigateur avant l'envoi : le fichier d'origine
- * (souvent 10 Mo) ne quitte jamais l'ordinateur. On téléverse une version web
- * et une vignette — les galeries restent légères sur cellulaire.
+ * reste inchangé. On prépare une version web et une vignette pour garder
+ * l'affichage léger; le mode téléchargement peut aussi envoyer l'original.
  */
 export async function prepareImage(file, maxSide, quality) {
   const bitmap = await createImageBitmap(file);

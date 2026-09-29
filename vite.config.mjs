@@ -1,6 +1,23 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+// En local (npm run dev), Vite ne connaît pas les règles de public/_redirects.
+// Ce petit plugin reproduit /galerie/* -> galerie.html et /admin -> galerie.html
+// uniquement pour le serveur de développement, comme le fait Netlify en ligne.
+function galerieDevRewrite() {
+  return {
+    name: "galerie-dev-rewrite",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && (req.url.startsWith("/galerie/") || req.url === "/admin" || req.url.startsWith("/admin?"))) {
+          req.url = "/galerie.html";
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   build: {
     outDir: "dist/client",
@@ -27,5 +44,5 @@ export default defineConfig({
       clientFiles: ["./src/main.jsx"],
     },
   },
-  plugins: [react()],
+  plugins: [react(), galerieDevRewrite()],
 });

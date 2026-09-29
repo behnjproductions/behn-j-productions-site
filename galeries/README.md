@@ -12,7 +12,8 @@ client, tout se passe sur `behnjproductions.ca` : il ne voit jamais Cloudflare.
 
 ## Ce qui est déjà créé dans Cloudflare
 
-- Bucket R2 **bjp-galeries** — les photos (version web + vignette, en JPEG)
+- Bucket R2 **bjp-galeries** — les photos (version web + vignette en JPEG;
+  fichiers originaux pour les nouveaux téléversements en mode téléchargement)
 - Base D1 **bjp-galeries-db** — tables `collections`, `photos`, `selections`,
   `login_attempts` (voir `schema.sql`)
 
@@ -57,13 +58,48 @@ ignoré par git). La première fois :
 npx wrangler@4 d1 execute bjp-galeries-db --local --file galeries/schema.sql -c galeries/wrangler.jsonc
 ```
 
+## Mise à jour d’une base existante : modes de galerie
+
+Appliquer **une seule fois** `migrations/0001_gallery_modes.sql` avant de
+déployer le nouveau Worker. `schema.sql` sert à créer une base neuve; ses
+`CREATE TABLE IF NOT EXISTS` ne mettent pas à jour les tables existantes.
+La migration ajoute `collections.mode` (par défaut `selection`) et
+`photos.original_key`; elle ne modifie aucune sélection enregistrée.
+
+Ordre de mise en ligne : vérifier une sauvegarde D1, appliquer la migration,
+déployer le Worker en conservant ses variables, puis publier le site.
+Netlify publie le site automatiquement après un envoi sur `main`; la migration
+D1 et le déploiement du Worker sont distincts et ne sont pas automatiques.
+En cas de retour à l’ancienne version du Worker, conserver les colonnes ajoutées.
+Ne pas supprimer de données pour revenir en arrière.
+
+Le mode se règle par collection et s’applique dès l’enregistrement.
+`selection` conserve le flux de choix existant et refuse le téléchargement
+officiel. `download` refuse les nouvelles sélections et autorise le
+téléchargement de chaque fichier par `/api/photo/:id/download`, avec les mêmes
+contrôles d’accès que les photos. Les images affichées dans un navigateur
+restent enregistrables par ce navigateur; le mode sélection n’est pas un DRM.
+Les anciennes sélections restent visibles dans l’administration.
+
+Un fichier original est conservé seulement lorsqu’il est ajouté en mode
+téléchargement (JPEG, PNG ou WebP, 40 Mio maximum). Un changement de mode ne
+reconstitue pas les originaux des photos existantes : leur version web reste
+téléchargeable et est identifiée comme telle dans l’interface.
+
+La nouvelle présentation claire reste un aperçu explicite `?apercu=clair`
+pour les galeries de sélection. Le mode téléchargement utilise cette
+présentation directement. Cette modification est préparée localement;
+sa présence dans le dépôt ne signifie pas qu’elle est publiée.
+
 ## Le flux, du côté du photographe
 
-1. `/admin` → **Nouvelle collection** : nom du client, date, mot de passe,
+1. `/admin` → **Nouvelle collection** : nom du client, date, mode **Pour
+   sélectionner** ou **Pour télécharger**, mot de passe et, pour la sélection,
    nombre de photos incluses. L'adresse `\<client\>` est proposée automatiquement.
 2. Glisser les photos. Elles sont réduites **sur l'ordinateur** (2000 px pour la
-   vue web, 700 px pour la vignette) avant d'être envoyées : les originaux ne
-   quittent jamais la machine et R2 reste léger.
+   vue web, 700 px pour la vignette) avant d'être envoyées. En mode sélection,
+   les originaux restent sur l’ordinateur. En mode téléchargement, le fichier
+   original est aussi envoyé, sans transformation, pour sa livraison au client.
 3. Choisir la photo de couverture (l'étoile), puis **Publier**.
 4. Copier le lien et l'envoyer au client avec son mot de passe.
 5. Quand le client envoie sa sélection : un courriel arrive à

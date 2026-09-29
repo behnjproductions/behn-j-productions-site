@@ -10,6 +10,8 @@
 const SESSION_HOURS = 24 * 30; // Un client garde son accès un mois.
 const ADMIN_HOURS = 12;
 const MAX_FAILS = 10; // Essais de mot de passe ratés tolérés par 15 minutes.
+const MAX_ORIGINAL_BYTES = 40 * 1024 * 1024;
+const ORIGINAL_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
 
 // Un Worker du forfait gratuit ne dispose que de 10 ms de calcul par requête :
 // un PBKDF2 à 120 000 tours le dépasse et la requête est coupée. 4 000 tours
@@ -98,6 +100,27 @@ const id = () => crypto.randomUUID().replace(/-/g, '').slice(0, 16);
 const slugify = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 
+const galleryMode = (collection) => collection.mode === 'download' ? 'download' : 'selection';
+const validMode = (mode) => mode === 'selection' || mode === 'download';
+
+function downloadFilename(photo) {
+  let filename = String(photo.filename || `photo-${photo.id}.jpg`).split(/[\\/]/).pop()
+    .replace(/[\u0000-\u001f\u007f]/g, '').trim() || `photo-${photo.id}.jpg`;
+  // Match the stored file format, including older web copies (always JPEG).
+  const extension = photo.original_key ? photo.original_key.match(/\.(jpg|png|webp)$/)?.[1] : 'jpg';
+  if (extension && !new RegExp(`\\.${extension === 'jpg' ? 'jpe?g' : extension}$`, 'i').test(filename)) {
+    filename = `${filename.replace(/\.[^.]+$/, '') || `photo-${photo.id}`}.${extension}`;
+  }
+  return filename;
+}
+
+function downloadDisposition(photo) {
+  const filename = downloadFilename(photo);
+  const ascii = filename.normalize('NFKD').replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_');
+  const encoded = encodeURIComponent(filename).replace(/['()*]/g, (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`;
+}
+
 /* --------------------------------------------------------- limite d'essais */
 
 async function tooManyFails(env, scope, ip) {
@@ -145,7 +168,7 @@ async function canSee(request, env, collection) {
 const getCollection = (env, slug) => env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
 
 const listPhotos = (env, collectionId) => env.DB
-  .prepare('SELECT id, filename, width, height, position FROM photos WHERE collection_id = ? ORDER BY position, created_at')
+  .prepare('SELECT id, filename, width, height, position, original_key FROM photos WHERE collection_id = ? ORDER BY position, created_at')
   .bind(collectionId).all();
 
 /* ------------------------------------------------------------------ courriel */
@@ -256,18 +279,36 @@ async function route(request, env, url, path, ip) {
 
   /* ---------- photos ---------- */
   if (section === 'photo' && method === 'GET') {
+    if (rest.length > 2 || (rest[1] && rest[1] !== 'download')) return json({ error: 'Introuvable' }, 404);
     const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[0]).first();
     if (!photo) return new Response('Introuvable', { status: 404 });
     const collection = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(photo.collection_id).first();
     if (!collection || !(await canSee(request, env, collection))) return new Response('Accès refusé', { status: 403 });
 
-    const key = url.searchParams.get('s') === 'web' ? photo.r2_key : (photo.thumb_key || photo.r2_key);
+    const download = rest[1] === 'download';
+    if (download && galleryMode(collection) !== 'download') {
+      return json({ error: 'Le téléchargement n’est pas activé pour cette galerie.' }, 403);
+    }
+    const quality = download ? url.searchParams.get('quality') : null;
+    if (quality !== null && quality !== 'original' && quality !== 'social') {
+      return json({ error: 'Choisissez la qualité originale ou la version pour les réseaux sociaux.' }, 400);
+    }
+    if (quality === 'original' && !photo.original_key) {
+      return json({ error: 'Le fichier original n’est pas disponible pour cette photo. Choisissez la version pour les réseaux sociaux.' }, 409);
+    }
+    const downloadOriginal = quality !== 'social' && Boolean(photo.original_key);
+    const key = download ? (downloadOriginal ? photo.original_key : photo.r2_key)
+      : url.searchParams.get('s') === 'web' ? photo.r2_key : (photo.thumb_key || photo.r2_key);
     const object = await env.BUCKET.get(key);
     if (!object) return new Response('Introuvable', { status: 404 });
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set('etag', object.httpEtag);
-    headers.set('cache-control', 'private, max-age=31536000, immutable');
+    headers.set('cache-control', download ? 'private, no-store' : 'private, max-age=31536000, immutable');
+    if (download) {
+      headers.set('content-disposition', downloadDisposition(downloadOriginal ? photo : { ...photo, original_key: null }));
+      headers.set('x-content-type-options', 'nosniff');
+    }
     return new Response(object.body, { headers });
   }
 
@@ -301,6 +342,9 @@ async function route(request, env, url, path, ip) {
       if (!(await canSee(request, env, collection))) return json({ error: collection.slug === 'metal-7'
         ? 'Votre session a expiré. Rechargez la page pour entrer votre nom et votre mot de passe.'
         : 'Accès refusé' }, 403);
+      if (galleryMode(collection) === 'download') {
+        return json({ error: 'Cette galerie est destinée au téléchargement. Aucune sélection n’est à confirmer.' }, 409);
+      }
       const body = await request.json().catch(() => ({}));
       const wanted = Array.isArray(body.photoIds) ? body.photoIds.slice(0, 500).map(String) : [];
       if (!wanted.length) return json({ error: 'Aucune photo choisie.' }, 400);
@@ -333,6 +377,8 @@ async function route(request, env, url, path, ip) {
         client: collection.client,
         title: collection.title,
         date: collection.event_date,
+        mode: galleryMode(collection),
+        downloadsEnabled: galleryMode(collection) === 'download',
         maxPicks: collection.max_picks,
         extraPrice: collection.extra_price ?? 25,
       };
@@ -349,8 +395,10 @@ async function route(request, env, url, path, ip) {
         locked: false,
         draft: collection.status !== 'publié',
         cover: collection.cover_key || photos[0]?.id || null,
-        photos: photos.map((p) => ({ id: p.id, w: p.width, h: p.height })),
-        submitted: last ? { at: last.submitted_at, ids: JSON.parse(last.photo_ids) } : null,
+        photos: photos.map((p) => ({ id: p.id, w: p.width, h: p.height,
+          ...(galleryMode(collection) === 'download' ? { filename: p.filename, downloadFilename: downloadFilename(p), downloadQuality: p.original_key ? 'original' : 'web' } : {}),
+        })),
+        submitted: galleryMode(collection) === 'selection' && last ? { at: last.submitted_at, ids: JSON.parse(last.photo_ids) } : null,
       });
     }
 
@@ -393,6 +441,7 @@ async function route(request, env, url, path, ip) {
 
     if (method === 'POST') {
       const body = await request.json().catch(() => ({}));
+      if (body.mode !== undefined && !validMode(body.mode)) return json({ error: 'Choisissez « Sélection » ou « Téléchargement ».' }, 400);
       const client = String(body.client || '').trim();
       if (!client) return json({ error: 'Le nom du client est obligatoire.' }, 400);
 
@@ -407,13 +456,14 @@ async function route(request, env, url, path, ip) {
         client,
         title: String(body.title || '').trim() || null,
         event_date: body.eventDate || null,
+        mode: body.mode ?? 'selection',
         max_picks: Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null,
         extra_price: Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25,
         password_hash: password ? await hashPassword(password) : null,
       };
-      await env.DB.prepare(`INSERT INTO collections (id, slug, client, title, event_date, status, max_picks, extra_price, password_hash)
-        VALUES (?, ?, ?, ?, ?, 'brouillon', ?, ?, ?)`)
-        .bind(row.id, row.slug, row.client, row.title, row.event_date, row.max_picks, row.extra_price, row.password_hash).run();
+      await env.DB.prepare(`INSERT INTO collections (id, slug, client, title, event_date, status, max_picks, extra_price, password_hash, mode)
+        VALUES (?, ?, ?, ?, ?, 'brouillon', ?, ?, ?, ?)`)
+        .bind(row.id, row.slug, row.client, row.title, row.event_date, row.max_picks, row.extra_price, row.password_hash, row.mode).run();
       return json({ collection: publicShape({ ...row, status: 'brouillon', photo_count: 0, selection_count: 0 }) }, 201);
     }
   }
@@ -432,7 +482,7 @@ async function route(request, env, url, path, ip) {
       const byId = new Map(photos.map((p) => [p.id, p]));
       return json({
         collection: publicShape(collection),
-        photos: photos.map((p) => ({ id: p.id, filename: p.filename, w: p.width, h: p.height })),
+        photos: photos.map((p) => ({ id: p.id, filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
         selections: selections.map((s) => {
           const ids = JSON.parse(s.photo_ids);
           return {
@@ -447,6 +497,7 @@ async function route(request, env, url, path, ip) {
 
     if (!action && method === 'PATCH') {
       const body = await request.json().catch(() => ({}));
+      if (body.mode !== undefined && !validMode(body.mode)) return json({ error: 'Choisissez « Sélection » ou « Téléchargement ».' }, 400);
       const sets = [];
       const values = [];
       const put = (column, value) => { sets.push(`${column} = ?`); values.push(value); };
@@ -454,6 +505,7 @@ async function route(request, env, url, path, ip) {
       if (body.client !== undefined) put('client', String(body.client).trim());
       if (body.title !== undefined) put('title', String(body.title).trim() || null);
       if (body.eventDate !== undefined) put('event_date', body.eventDate || null);
+      if (body.mode !== undefined) put('mode', body.mode);
       if (body.maxPicks !== undefined) put('max_picks', Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null);
       if (body.extraPrice !== undefined) put('extra_price', Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25);
       if (body.status !== undefined) put('status', body.status === 'publié' ? 'publié' : 'brouillon');
@@ -478,9 +530,9 @@ async function route(request, env, url, path, ip) {
     }
 
     if (!action && method === 'DELETE') {
-      const { results: photos } = await env.DB.prepare('SELECT r2_key, thumb_key FROM photos WHERE collection_id = ?')
+      const { results: photos } = await env.DB.prepare('SELECT r2_key, thumb_key, original_key FROM photos WHERE collection_id = ?')
         .bind(collection.id).all();
-      const keys = photos.flatMap((p) => [p.r2_key, p.thumb_key]).filter(Boolean);
+      const keys = photos.flatMap((p) => [p.r2_key, p.thumb_key, p.original_key]).filter(Boolean);
       for (let i = 0; i < keys.length; i += 500) await env.BUCKET.delete(keys.slice(i, i + 500));
       await env.DB.batch([
         env.DB.prepare('DELETE FROM selections WHERE collection_id = ?').bind(collection.id),
@@ -495,25 +547,37 @@ async function route(request, env, url, path, ip) {
       const form = await request.formData();
       const web = form.get('web');
       const thumb = form.get('thumb');
+      const original = form.get('original');
       if (!(web instanceof File)) return json({ error: 'Fichier manquant.' }, 400);
+      if (original !== null) {
+        if (galleryMode(collection) !== 'download') return json({ error: 'Les originaux sont réservés aux galeries de téléchargement.' }, 400);
+        if (!(original instanceof File) || !Object.hasOwn(ORIGINAL_TYPES, original.type)) {
+          return json({ error: 'L’original doit être une image JPEG, PNG ou WebP.' }, 400);
+        }
+        if (!original.size || original.size > MAX_ORIGINAL_BYTES) return json({ error: 'L’original doit contenir une image de 40 Mo ou moins.' }, 413);
+      }
 
       const photoId = id();
       const webKey = `collections/${collection.id}/${photoId}-web.jpg`;
       const thumbKey = `collections/${collection.id}/${photoId}-thumb.jpg`;
+      const originalKey = original instanceof File ? `collections/${collection.id}/${photoId}-original.${ORIGINAL_TYPES[original.type]}` : null;
       await env.BUCKET.put(webKey, web.stream(), { httpMetadata: { contentType: 'image/jpeg' } });
       if (thumb instanceof File) {
         await env.BUCKET.put(thumbKey, thumb.stream(), { httpMetadata: { contentType: 'image/jpeg' } });
       }
+      if (originalKey) await env.BUCKET.put(originalKey, original.stream(), { httpMetadata: { contentType: original.type } });
 
       const next = await env.DB.prepare('SELECT COALESCE(MAX(position), 0) + 1 AS n FROM photos WHERE collection_id = ?')
         .bind(collection.id).first();
-      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(photoId, collection.id, webKey, thumb instanceof File ? thumbKey : null,
           String(form.get('filename') || '').slice(0, 200) || null,
-          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n).run();
+          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey).run();
 
-      return json({ photo: { id: photoId, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null } }, 201);
+      return json({ photo: { id: photoId, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
+        downloadFilename: downloadFilename({ id: photoId, filename: form.get('filename'), original_key: originalKey }),
+        downloadQuality: originalKey ? 'original' : 'web' } }, 201);
     }
   }
 
@@ -521,7 +585,7 @@ async function route(request, env, url, path, ip) {
   if (rest[0] === 'photos' && rest[1] && method === 'DELETE') {
     const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[1]).first();
     if (!photo) return json({ error: 'Photo introuvable' }, 404);
-    await env.BUCKET.delete([photo.r2_key, photo.thumb_key].filter(Boolean));
+    await env.BUCKET.delete([photo.r2_key, photo.thumb_key, photo.original_key].filter(Boolean));
     await env.DB.prepare('DELETE FROM photos WHERE id = ?').bind(photo.id).run();
     await env.DB.prepare('UPDATE collections SET cover_key = NULL WHERE cover_key = ?').bind(photo.id).run();
     return json({ ok: true });
@@ -538,6 +602,8 @@ function publicShape(row) {
     title: row.title,
     date: row.event_date,
     status: row.status,
+    mode: galleryMode(row),
+    downloadsEnabled: galleryMode(row) === 'download',
     maxPicks: row.max_picks,
     extraPrice: row.extra_price ?? 25,
     cover: row.cover_key,

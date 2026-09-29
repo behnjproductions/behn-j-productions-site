@@ -8,6 +8,34 @@ import './admin-cinema.css';
 
 const WEB_SIDE = 2000;   // côté le plus long de la version web
 const THUMB_SIDE = 700;  // côté le plus long de la vignette
+const ORIGINAL_MAX_BYTES = 40 * 1024 * 1024;
+const DOWNLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+const modeLabel = (mode) => mode === 'download' ? 'Pour télécharger' : 'Pour sélectionner';
+
+function GalleryMode({ value, onChange, disabled = false }) {
+  return (
+    <fieldset className="adm-mode-choice" disabled={disabled}>
+      <legend>Que doit faire le client?</legend>
+      <div className="adm-mode-choice__options">
+        <label className={value === 'selection' ? 'is-selected' : ''}>
+          <input type="radio" name="mode" value="selection" checked={value === 'selection'} onChange={onChange} />
+          <span><strong>Pour sélectionner</strong><span>Le client choisit ses photos et confirme sa sélection.</span></span>
+        </label>
+        <label className={value === 'download' ? 'is-selected' : ''}>
+          <input type="radio" name="mode" value="download" checked={value === 'download'} onChange={onChange} />
+          <span><strong>Pour télécharger</strong><span>Le client télécharge les photos livrées, sans envoyer de sélection.</span></span>
+        </label>
+      </div>
+      {value === 'download' && <p className="adm-hint">Toutes les photos de cette galerie seront accessibles au téléchargement.</p>}
+    </fieldset>
+  );
+}
+
+function WebCopiesNotice({ count }) {
+  if (!count) return null;
+  return <p className="adm-download-notice"><Warning size={18} /><span>{count} photo{count > 1 ? 's' : ''} {count > 1 ? 'ont seulement une version web' : 'a seulement une version web'} (2 000 px maximum). Cette version sera proposée au téléchargement. Ajoutez les fichiers finaux pour livrer leur pleine résolution.</span></p>;
+}
 
 const slugify = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -130,6 +158,7 @@ function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery 
                 <div className="adm-card__meta"><span>{String(index + 1).padStart(2, '0')}</span><span>{c.photoCount} photo{c.photoCount === 1 ? '' : 's'}</span><span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span></div>
                 <h2><button type="button" onClick={() => onOpen(c.slug)}>{c.client}<ArrowUpRight size={22} weight="light" /></button></h2>
                 <p>{c.title || 'Collection privée'}{c.selectionCount > 0 && <strong className="adm-card__flag"><Check size={13} /> Sélection reçue</strong>}</p>
+                <span className="adm-mode-badge">{modeLabel(c.mode)}</span>
               </div>
             </article>
           ))}
@@ -142,7 +171,7 @@ function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery 
 /* ------------------------------------------------------------- création --- */
 
 function NewCollection({ onCancel, onCreate }) {
-  const [form, setForm] = useState({ client: '', title: '', eventDate: '', password: '', maxPicks: '', extraPrice: '25' });
+  const [form, setForm] = useState({ client: '', title: '', eventDate: '', password: '', mode: 'selection', maxPicks: '', extraPrice: '25' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -185,11 +214,12 @@ function NewCollection({ onCancel, onCreate }) {
           {slug && <p className="adm-hint">Adresse de la galerie : <code>behnjproductions.ca/galerie/{slug}</code></p>}
         </fieldset>
         <fieldset className="adm-form-section">
-          <legend><span>02</span> L’accès &amp; la sélection</legend>
+          <legend><span>02</span> L’expérience client</legend>
+          <GalleryMode value={form.mode} onChange={set('mode')} disabled={busy} />
           <label>Mot de passe de la galerie
             <input value={form.password} onChange={set('password')} placeholder="Laissez vide pour un accès sans mot de passe" />
           </label>
-          <div className="adm-settings__row">
+          {form.mode === 'selection' && <><div className="adm-settings__row">
             <label><span>Nombre de photos incluses <small>facultatif</small></span>
               <input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} placeholder="p. ex. : 15" />
             </label>
@@ -197,7 +227,7 @@ function NewCollection({ onCancel, onCreate }) {
               <input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} placeholder="25" />
             </label>
           </div>
-          <p className="adm-hint">Les photos choisies au-delà du forfait sont calculées à ce prix. Le total apparaît dans le courriel de sélection.</p>
+          <p className="adm-hint">Les photos choisies au-delà du forfait sont calculées à ce prix. Le total apparaît dans le courriel de sélection.</p></>}
         </fieldset>
         {error && <p className="adm-error" role="alert">{error}</p>}
         <div className="adm-form__footer"><button className="adm-ghost" type="button" onClick={onCancel}>Annuler</button><button className="adm-primary" type="submit" disabled={busy}>{busy ? 'Création…' : 'Créer la collection'}<ArrowRight size={19} /></button></div>
@@ -212,10 +242,13 @@ function Editor({ slug, onBack, onChanged }) {
   const [data, setData] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [upload, setUpload] = useState(null); // { done, total }
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [settings, setSettings] = useState(false);
   const [copied, copy] = useCopy();
   const inputRef = useRef(null);
+  const uploadRef = useRef(false);
+  const savingRef = useRef(false);
 
   const reload = useCallback(async () => {
     try { setData(await api(`/admin/collections/${slug}`)); } catch (err) { setError(err.message); }
@@ -223,17 +256,31 @@ function Editor({ slug, onBack, onChanged }) {
   useEffect(() => { reload(); }, [reload]);
 
   const patch = async (body) => {
+    if (uploadRef.current || savingRef.current) return null;
+    savingRef.current = true;
+    setSaving(true);
     try {
       const { collection } = await api(`/admin/collections/${slug}`, { method: 'PATCH', body: JSON.stringify(body) });
       setData((d) => ({ ...d, collection }));
       onChanged(collection);
       return collection;
     } catch (err) { setError(err.message); return null; }
+    finally { savingRef.current = false; setSaving(false); }
   };
 
   const addFiles = useCallback(async (files) => {
+    if (uploadRef.current || savingRef.current || !data) return;
     const images = [...files].filter((f) => f.type.startsWith('image/'));
     if (!images.length) return;
+    const downloadMode = data.collection.mode === 'download';
+    if (downloadMode) {
+      const invalid = images.find((file) => !DOWNLOAD_TYPES.has(file.type) || file.size > ORIGINAL_MAX_BYTES);
+      if (invalid) {
+        setError(`${invalid.name} : choisissez un fichier JPEG, PNG ou WebP de 40 Mo maximum pour le téléchargement.`);
+        return;
+      }
+    }
+    uploadRef.current = true;
     setError('');
     setUpload({ done: 0, total: images.length });
 
@@ -248,6 +295,7 @@ function Editor({ slug, onBack, onChanged }) {
         form.append('height', String(web.height));
         form.append('web', web.blob, 'web.jpg');
         form.append('thumb', thumb.blob, 'thumb.jpg');
+        if (downloadMode) form.append('original', file, file.name);
         await api(`/admin/collections/${slug}/photos`, { method: 'POST', body: form });
       } catch (err) {
         setError(`${file.name} : ${err.message}`);
@@ -255,9 +303,10 @@ function Editor({ slug, onBack, onChanged }) {
       setUpload({ done: i + 1, total: images.length });
     }
 
+    uploadRef.current = false;
     setUpload(null);
     reload();
-  }, [slug, reload]);
+  }, [slug, reload, data]);
 
   const removePhoto = async (photo) => {
     if (!window.confirm(`Retirer ${photo.filename || 'cette photo'} de la galerie?`)) return;
@@ -280,6 +329,9 @@ function Editor({ slug, onBack, onChanged }) {
 
   const c = data.collection;
   const link = `${window.location.origin}/galerie/${c.slug}`;
+  const preview = new URLSearchParams(window.location.search).get('apercu') === 'clair' ? '?apercu=clair' : '';
+  const downloadMode = c.mode === 'download';
+  const webPhotoCount = data.photos.filter((p) => p.downloadQuality !== 'original').length;
   const selection = data.selections[0];
 
   return (
@@ -287,9 +339,9 @@ function Editor({ slug, onBack, onChanged }) {
       <div className="adm-editor__navigation">
         <button className="adm-back" type="button" onClick={() => onBack(false)}><CaretLeft size={18} /> Collections</button>
         <div className="adm-editor__actions">
-          <a className="adm-ghost" href={`/galerie/${c.slug}`} target="_blank" rel="noreferrer">Voir la galerie <ArrowUpRight size={17} /></a>
+          <a className="adm-ghost" href={`/galerie/${c.slug}${preview}`} target="_blank" rel="noreferrer">Voir la galerie <ArrowUpRight size={17} /></a>
           <button className="adm-ghost" type="button" aria-expanded={settings} aria-controls="collection-settings" onClick={() => setSettings((s) => !s)}>Réglages</button>
-          <button className="adm-primary" type="button"
+          <button className="adm-primary" type="button" disabled={Boolean(upload) || saving}
             onClick={() => patch({ status: c.status === 'publié' ? 'brouillon' : 'publié' })}>
             {c.status === 'publié' ? 'Dépublier' : 'Publier la galerie'}
           </button>
@@ -301,7 +353,7 @@ function Editor({ slug, onBack, onChanged }) {
           <h1>{c.client}</h1>
           <span>{[c.title, formatDate(c.date)].filter(Boolean).join(' · ')}</span>
         </div>
-        <span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span>
+        <div className="adm-editor__badges"><span className="adm-mode-badge">{modeLabel(c.mode)}</span><span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span></div>
       </header>
 
       {error && <p className="adm-error" role="alert">{error}</p>}
@@ -321,7 +373,9 @@ function Editor({ slug, onBack, onChanged }) {
           </span>
         </div>
 
-        {settings && <Settings collection={c} onSave={patch} onDelete={removeCollection} />}
+        {settings && <Settings collection={c} onSave={patch} onDelete={removeCollection} disabled={Boolean(upload) || saving} webPhotoCount={webPhotoCount} />}
+
+        {downloadMode && !settings && <WebCopiesNotice count={webPhotoCount} />}
 
         {selection && <Selection selection={selection} collection={c} copied={copied} copy={copy} />}
 
@@ -333,11 +387,11 @@ function Editor({ slug, onBack, onChanged }) {
           onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}>
           <div className="adm-drop__icon"><UploadSimple size={26} weight="light" /></div>
           <div className="adm-drop__copy"><p><strong>Ajoutez les images de cette histoire.</strong></p>
-          <p className="adm-hint">Glissez vos photos ici. Les originaux restent sur votre ordinateur.</p></div>
-          <button className="adm-ghost" type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(upload)}>
+          <p className="adm-hint">{downloadMode ? 'Ajoutez les fichiers finaux. Le client pourra télécharger les originaux envoyés. JPEG, PNG ou WebP · 40 Mo maximum par photo.' : 'Glissez vos photos ici. Les originaux restent sur votre ordinateur.'}</p></div>
+          <button className="adm-ghost" type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(upload) || saving}>
             <Plus size={17} /> Ajouter des photos
           </button>
-          <input ref={inputRef} type="file" accept="image/*" multiple hidden
+          <input ref={inputRef} type="file" accept={downloadMode ? 'image/jpeg,image/png,image/webp' : 'image/*'} multiple hidden disabled={Boolean(upload) || saving}
             onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
           {upload && (
             <div className="adm-progress">
@@ -370,12 +424,13 @@ function Editor({ slug, onBack, onChanged }) {
 
 /* --------------------------------------------------------------- réglages --- */
 
-function Settings({ collection, onSave, onDelete }) {
+function Settings({ collection, onSave, onDelete, disabled = false, webPhotoCount = 0 }) {
   const [form, setForm] = useState({
     client: collection.client,
     title: collection.title || '',
     eventDate: collection.date || '',
     slug: collection.slug,
+    mode: collection.mode || 'selection',
     maxPicks: collection.maxPicks || '',
     extraPrice: collection.extraPrice ?? 25,
     password: '',
@@ -385,9 +440,10 @@ function Settings({ collection, onSave, onDelete }) {
 
   const submit = async (event) => {
     event.preventDefault();
+    if (disabled) return;
     const body = {
       client: form.client, title: form.title, eventDate: form.eventDate,
-      slug: form.slug, maxPicks: form.maxPicks, extraPrice: form.extraPrice,
+      slug: form.slug, mode: form.mode, maxPicks: form.maxPicks, extraPrice: form.extraPrice,
     };
     if (form.password.trim()) body.password = form.password.trim();
     if (await onSave(body)) {
@@ -400,6 +456,9 @@ function Settings({ collection, onSave, onDelete }) {
   return (
     <form id="collection-settings" className="adm-settings" onSubmit={submit}>
       <header className="adm-settings__heading"><p className="adm-eyebrow">Les détails de la collection</p><h2>Réglages</h2></header>
+      <GalleryMode value={form.mode} onChange={set('mode')} disabled={disabled} />
+      {form.mode !== (collection.mode || 'selection') && <p className="adm-hint" role="status">Enregistrez ce choix avant d’ajouter les photos. Il s’appliquera dès l’enregistrement à l’expérience du client.</p>}
+      {form.mode === 'download' && <WebCopiesNotice count={webPhotoCount} />}
       <div className="adm-settings__row">
         <label>Nom du client<input value={form.client} onChange={set('client')} required /></label>
         <label>Titre<input value={form.title} onChange={set('title')} /></label>
@@ -408,10 +467,10 @@ function Settings({ collection, onSave, onDelete }) {
         <label>Date<input type="date" value={form.eventDate} onChange={set('eventDate')} /></label>
         <label>Adresse de la galerie<input value={form.slug} onChange={set('slug')} /></label>
       </div>
-      <div className="adm-settings__row">
+      {form.mode === 'selection' && <div className="adm-settings__row">
         <label>Photos incluses<input type="number" min="1" value={form.maxPicks} onChange={set('maxPicks')} /></label>
         <label>Photo supplémentaire ($ CAD)<input type="number" min="0" value={form.extraPrice} onChange={set('extraPrice')} /></label>
-      </div>
+      </div>}
       <div className="adm-settings__row">
         <label>Nouveau mot de passe
           <input value={form.password} onChange={set('password')}
@@ -419,11 +478,11 @@ function Settings({ collection, onSave, onDelete }) {
         </label>
       </div>
       <div className="adm-settings__foot">
-        <button className="adm-primary" type="submit">{saved ? 'Enregistré' : 'Enregistrer'}</button>
+        <button className="adm-primary" type="submit" disabled={disabled}>{saved ? 'Enregistré' : 'Enregistrer'}</button>
         {collection.hasPassword && (
-          <button className="adm-ghost" type="button" onClick={() => onSave({ password: '' })}>Retirer le mot de passe</button>
+          <button className="adm-ghost" type="button" disabled={disabled} onClick={() => onSave({ password: '' })}>Retirer le mot de passe</button>
         )}
-        <button className="adm-danger" type="button" onClick={onDelete}><Trash size={16} /> Supprimer la galerie</button>
+        <button className="adm-danger" type="button" disabled={disabled} onClick={onDelete}><Trash size={16} /> Supprimer la galerie</button>
       </div>
     </form>
   );

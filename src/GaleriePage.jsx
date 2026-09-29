@@ -3,6 +3,7 @@ import { ArrowRight, ArrowsOut, CaretLeft, CaretRight, Check, Heart, ImageSquare
 import { BRAND } from './brand.js';
 import { api, photoUrl, saveSession, useSession } from './api.js';
 import './galerie-cinema.css';
+import { LightGallery } from './LightGallery.jsx';
 
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CQkeWPsjYGSdEBM/review';
 const GALLERY_CONTACT_URL = '/contact?type=Question%20sur%20ma%20galerie#formulaire';
@@ -81,7 +82,7 @@ function CinemaDialog({ children, onClose, onMove, labelledBy, label, className 
   </div>;
 }
 
-function LockScreen({ gallery, onOpen, collectName = false, requirePassword = true, initialName = '' }) {
+function LockScreen({ gallery, onOpen, collectName = false, requirePassword = true, initialName = '', lightExperience = false }) {
   const [password, setPassword] = useState('');
   const [name, setName] = useState(initialName);
   const [error, setError] = useState('');
@@ -103,7 +104,7 @@ function LockScreen({ gallery, onOpen, collectName = false, requirePassword = tr
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   };
-  return <div className="cinema-gallery cinema-gallery--portal">
+  return <div className={`cinema-gallery cinema-gallery--portal${lightExperience ? ' cinema-gallery--light-portal' : ''}`}>
     <Masthead />
     <main className="cinema-portal">
       <div className="cinema-portal__intro">
@@ -115,8 +116,10 @@ function LockScreen({ gallery, onOpen, collectName = false, requirePassword = tr
         <Lock size={28} weight="light" aria-hidden="true" />
         <h2>Bienvenue dans votre galerie.</h2>
         <p>{collectName
-          ? `Indiquez votre prénom et votre nom${requirePassword ? ', ainsi que le mot de passe reçu par courriel' : ''}, pour accéder aux photos et identifier votre sélection.`
-          : 'Entrez le mot de passe reçu par courriel pour découvrir vos photos et composer votre sélection.'}</p>
+          ? `Indiquez votre prénom et votre nom${requirePassword ? ', ainsi que le mot de passe reçu par courriel' : ''}, pour ${gallery.mode === 'download' ? 'accéder à vos photos' : 'accéder aux photos et identifier votre sélection'}.`
+          : gallery.mode === 'download'
+            ? 'Entrez le mot de passe reçu par courriel pour découvrir et télécharger vos photos.'
+            : 'Entrez le mot de passe reçu par courriel pour découvrir vos photos et composer votre sélection.'}</p>
         {collectName && <label className="cinema-field"><span>Nom et prénom</span>
           <input type="text" name="employeeName" autoComplete="name" maxLength={120} required autoFocus
             value={name} disabled={busy} onChange={(event) => setName(event.target.value)} />
@@ -139,6 +142,8 @@ export function GaleriePage() {
   const employeeGallery = slug === 'metal-7';
   useSession(`g:${slug}`);
   const [gallery, setGallery] = useState(null);
+  const downloadMode = gallery?.mode === 'download';
+  const lightExperience = true;
   const [state, setState] = useState('chargement');
   const [picks, setPicks] = useState(() => new Set());
   const [active, setActive] = useState(0);
@@ -167,12 +172,12 @@ export function GaleriePage() {
       setEmployeeName(employee?.name || '');
       if (data.locked) { setState('verrouillée'); return; }
       const validIds = new Set((data.photos || []).map((photo) => photo.id));
-      const initial = employee ? employee.ids : Array.isArray(data.submitted?.ids) ? data.submitted.ids : readPicks(storeKey);
+      const initial = data.mode === 'download' ? [] : employee ? employee.ids : Array.isArray(data.submitted?.ids) ? data.submitted.ids : readPicks(storeKey);
       setPicks(new Set(initial.filter((id) => validIds.has(id))));
-      setSent((employee ? employee.submitted === true : data.submitted) ? 'déjà' : false);
+      setSent(data.mode === 'download' ? false : (employee ? employee.submitted === true : data.submitted) ? 'déjà' : false);
       const coverIndex = (data.photos || []).findIndex((photo) => photo.id === data.cover);
       setActive(coverIndex >= 0 ? coverIndex : 0);
-      setState(employeeGallery && !employee.name.trim() ? 'identification' : 'prête');
+      setState(data.mode !== 'download' && employeeGallery && !employee.name.trim() ? 'identification' : 'prête');
     } catch (err) {
       if (err.status === 404 && err.data?.locked) { setGallery(err.data); setState('verrouillée'); return; }
       setState('absente');
@@ -180,10 +185,10 @@ export function GaleriePage() {
   }, [slug, storeKey, employeeGallery]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    if (state === 'prête') writeStore(storeKey, JSON.stringify(employeeGallery
+    if (state === 'prête' && !downloadMode) writeStore(storeKey, JSON.stringify(employeeGallery
       ? { name: employeeName, ids: [...picks], submitted: Boolean(sent) }
       : [...picks]));
-  }, [picks, state, storeKey, employeeGallery, employeeName, sent]);
+  }, [picks, state, storeKey, employeeGallery, employeeName, sent, downloadMode]);
   const photos = gallery?.photos || [];
   const current = photos[active];
   const maxPicks = gallery?.maxPicks;
@@ -204,13 +209,13 @@ export function GaleriePage() {
     }
   }, [active, state]);
   const toggle = (photoId) => {
-    if (sending || (employeeGallery && !employeeName.trim()) || !photos.some((photo) => photo.id === photoId)) return;
+    if (downloadMode || sending || (employeeGallery && !employeeName.trim()) || !photos.some((photo) => photo.id === photoId)) return;
     setPicks((previous) => { const next = new Set(previous); if (next.has(photoId)) next.delete(photoId); else next.add(photoId); return next; });
   };
   const closeReview = useCallback(() => setSent('fermé'), []);
   const closeExpanded = useCallback(() => setExpanded(false), []);
   const send = async () => {
-    if (sending || !picks.size) return;
+    if (downloadMode || sending || !picks.size) return;
     const name = employeeName.trim().replace(/\s+/g, ' ');
     if (employeeGallery && !name) { setSendError('Veuillez saisir votre prénom et votre nom.'); return; }
     setSending(true); setSendError('');
@@ -225,22 +230,30 @@ export function GaleriePage() {
       setSent(true);
     } catch (err) {
       if (employeeGallery && err.status === 403) setState('verrouillée');
+      else if (err.status === 409) await load();
       else setSendError(err.message);
     }
     finally { setSending(false); }
   };
 
-  if (state === 'chargement') return <div className="cinema-gallery cinema-gallery--portal"><Masthead />
+  if (state === 'chargement') return <div className={`cinema-gallery cinema-gallery--portal${lightExperience ? ' cinema-gallery--light-portal' : ''}`}><Masthead />
     <main className="cinema-wait" role="status"><p className="cinema-eyebrow">Votre galerie privée</p><h1>Un instant…</h1><p>Ouverture de la galerie</p></main>
   </div>;
-  if (state === 'absente') return <div className="cinema-gallery cinema-gallery--portal"><Masthead />
+  if (state === 'absente') return <div className={`cinema-gallery cinema-gallery--portal${lightExperience ? ' cinema-gallery--light-portal' : ''}`}><Masthead />
     <main className="cinema-wait"><p className="cinema-eyebrow">Behn J. Productions</p><h1>Galerie introuvable</h1>
       <p>Ce lien n’est plus actif ou l’adresse est incomplète. Écrivez-moi et je vous renvoie le bon lien.</p>
       <p><a href={BRAND.phoneHref}>{BRAND.phone}</a> · <a href={GALLERY_CONTACT_URL}>{BRAND.email}</a></p>
     </main>
   </div>;
   if (state === 'verrouillée' || state === 'identification') return <LockScreen key={state} gallery={gallery} onOpen={load}
-    collectName={employeeGallery} requirePassword={state === 'verrouillée'} initialName={employeeName} />;
+    collectName={employeeGallery} requirePassword={state === 'verrouillée'} initialName={employeeName} lightExperience={lightExperience} />;
+
+  if (lightExperience) return <LightGallery gallery={gallery} photos={photos} picks={picks} active={active}
+    onActive={setActive} onToggle={toggle} sending={sending} sent={sent} onSend={send} sendError={sendError}
+    employeeName={employeeName} employeeGallery={employeeGallery} onChangeEmployee={() => {
+      if (sending) return;
+      setEmployeeName(''); setExpanded(false); setSendError(''); setState('identification');
+    }} onCloseReview={closeReview} photoUrl={photoUrl} Dialog={CinemaDialog} contactUrl={GALLERY_CONTACT_URL} brand={BRAND} />;
 
   const dateLabel = formatDate(gallery.date);
   const selected = current ? picks.has(current.id) : false;

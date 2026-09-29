@@ -443,7 +443,8 @@ async function route(request, env, url, path, ip) {
     if (method === 'GET') {
       const { results } = await env.DB.prepare(`
         SELECT c.*, (SELECT COUNT(*) FROM photos p WHERE p.collection_id = c.id) AS photo_count,
-               (SELECT COUNT(*) FROM selections s WHERE s.collection_id = c.id) AS selection_count
+               (SELECT COUNT(*) FROM selections s WHERE s.collection_id = c.id) AS selection_count,
+               (SELECT p.id FROM photos p WHERE p.collection_id = c.id ORDER BY p.position, p.created_at LIMIT 1) AS first_photo_id
         FROM collections c ORDER BY c.created_at DESC`).all();
       return json({ collections: results.map(publicShape) });
     }
@@ -615,7 +616,9 @@ function publicShape(row) {
     downloadsEnabled: galleryMode(row) === 'download',
     maxPicks: row.max_picks,
     extraPrice: row.extra_price ?? 25,
-    cover: row.cover_key,
+    // Tant que personne n'a choisi d'étoile de couverture, la première photo
+    // ajoutée sert de repère visuel dans la liste des collections.
+    cover: row.cover_key || row.first_photo_id || null,
     hasPassword: Boolean(row.password_hash),
     photoCount: row.photo_count ?? undefined,
     selectionCount: row.selection_count ?? undefined,

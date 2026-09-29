@@ -216,7 +216,7 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
         {sent && sent !== true && <span><Check size={12} /> Sélection déjà envoyée · vous pouvez la modifier</span>}
       </div></div>
       <div className="light-selection__action">{sendError && <p className="light-error" role="alert">{sendError}</p>}
-        <button className="light-button" type="button" disabled={selectionDisabled} onClick={onSend}>{sending ? 'Envoi…' : sent ? 'Envoyer ma sélection modifiée' : 'Confirmer ma sélection'}<ArrowRight size={19} weight="light" /></button>
+        <button className="light-button" type="button" disabled={selectionDisabled} onClick={onSend}>{sending ? 'Envoi…' : employeeGallery ? (sent ? 'Envoyer ma sélection modifiée' : 'Confirmer ma sélection') : (sent ? 'Renvoyer ma sélection' : 'Envoyer ma sélection')}<ArrowRight size={19} weight="light" /></button>
       </div>
     </aside>}
 

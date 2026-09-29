@@ -65,6 +65,7 @@ function createPage({ slug = 'metal-7', storage = new Map(), storageUnavailable 
       if (name === '@phosphor-icons/react') return new Proxy({}, { get: (_, key) => key });
       if (name === './brand.js') return { BRAND: {} };
       if (name === './galerie-cinema.css') return {};
+      if (name === './LightGallery.jsx') return { LightGallery: () => null };
       if (name === './api.js') return {
         useSession() {}, saveSession: (key, token) => sessions.push({ key, token }), photoUrl: (id) => `/test-photo/${id}`,
         api: async (url, options) => {

@@ -1,3 +1,4 @@
+import * as categories from '../src/gallery-categories.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -6,7 +7,7 @@ import { transformSync } from 'esbuild';
 
 // Execute the actual component and its handlers with isolated hooks, storage and
 // API responses. No browser, production requests, or additional dependencies.
-const compiled = transformSync(readFileSync(new URL('../src/GaleriePage.jsx', import.meta.url), 'utf8'), {
+const compiled = transformSync(readFileSync(new URL('../src/GaleriePage.jsx', import.meta.url), 'utf8').replace('const lightExperience = true;', 'const lightExperience = false;'), {
   loader: 'jsx', jsx: 'automatic', format: 'cjs',
 }).code;
 const employeeKey = 'bjp-employee-selection-v1-metal-7';
@@ -60,6 +61,7 @@ function createPage({ slug = 'metal-7', storage = new Map(), storageUnavailable 
       setItem: (key, value) => { if (storageUnavailable) throw new Error('Storage unavailable'); storage.set(key, value); },
     } },
     require(name) {
+      if (name === './gallery-categories.js') return categories;
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx, Fragment: 'fragment' };
       if (name === '@phosphor-icons/react') return new Proxy({}, { get: (_, key) => key });

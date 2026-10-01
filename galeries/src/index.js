@@ -177,7 +177,7 @@ async function canSee(request, env, collection) {
 const getCollection = (env, slug) => env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
 
 const listPhotos = (env, collectionId) => env.DB
-  .prepare('SELECT id, filename, width, height, position, original_key FROM photos WHERE collection_id = ? ORDER BY position, created_at')
+  .prepare('SELECT id, filename, width, height, position, original_key, category FROM photos WHERE collection_id = ? ORDER BY position, created_at')
   .bind(collectionId).all();
 
 /* ------------------------------------------------------------------ courriel */
@@ -404,7 +404,7 @@ async function route(request, env, url, path, ip) {
         locked: false,
         draft: collection.status !== 'publié',
         cover: collection.cover_key || photos[0]?.id || null,
-        photos: photos.map((p) => ({ id: p.id, w: p.width, h: p.height,
+        photos: photos.map((p) => ({ id: p.id, category: p.category || 'full', w: p.width, h: p.height,
           ...(galleryMode(collection) === 'download' ? { filename: p.filename, downloadFilename: downloadFilename(p), downloadQuality: p.original_key ? 'original' : 'web' } : {}),
         })),
         submitted: galleryMode(collection) === 'selection' && last ? { at: last.submitted_at, ids: JSON.parse(last.photo_ids) } : null,
@@ -492,7 +492,7 @@ async function route(request, env, url, path, ip) {
       const byId = new Map(photos.map((p) => [p.id, p]));
       return json({
         collection: publicShape(collection),
-        photos: photos.map((p) => ({ id: p.id, filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
+        photos: photos.map((p) => ({ id: p.id, category: p.category || 'full', filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
         selections: selections.map((s) => {
           const ids = JSON.parse(s.photo_ids);
           return {
@@ -555,12 +555,13 @@ async function route(request, env, url, path, ip) {
     /* ---------- téléversement d'une photo ---------- */
     if (action === 'photos' && method === 'POST') {
       const form = await request.formData();
+      const category = form.get('category') || 'full';
+      if (!['full', 'social', 'bw'].includes(category)) return json({ error: 'Catégorie invalide.' }, 400);
       const web = form.get('web');
       const thumb = form.get('thumb');
       const original = form.get('original');
       if (!(web instanceof File)) return json({ error: 'Fichier manquant.' }, 400);
       if (original !== null) {
-        if (galleryMode(collection) !== 'download') return json({ error: 'Les originaux sont réservés aux galeries de téléchargement.' }, 400);
         if (!(original instanceof File) || !resolveOriginalType(original)) {
           return json({ error: 'L’original doit être une image JPEG, PNG ou WebP.' }, 400);
         }
@@ -579,13 +580,13 @@ async function route(request, env, url, path, ip) {
 
       const next = await env.DB.prepare('SELECT COALESCE(MAX(position), 0) + 1 AS n FROM photos WHERE collection_id = ?')
         .bind(collection.id).first();
-      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key, category)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(photoId, collection.id, webKey, thumb instanceof File ? thumbKey : null,
           String(form.get('filename') || '').slice(0, 200) || null,
-          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey).run();
+          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey, category).run();
 
-      return json({ photo: { id: photoId, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
+      return json({ photo: { id: photoId, category, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
         downloadFilename: downloadFilename({ id: photoId, filename: form.get('filename'), original_key: originalKey }),
         downloadQuality: originalKey ? 'original' : 'web' } }, 201);
     }

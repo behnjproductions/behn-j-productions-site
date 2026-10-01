@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS collections (
 CREATE TABLE IF NOT EXISTS photos (
   id TEXT PRIMARY KEY,
   collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  category TEXT NOT NULL DEFAULT 'full' CHECK (category IN ('full', 'social', 'bw')),
   r2_key TEXT NOT NULL,
   thumb_key TEXT,
   original_key TEXT,

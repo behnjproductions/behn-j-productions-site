@@ -1,3 +1,4 @@
+import * as categories from '../src/gallery-categories.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
@@ -42,7 +43,8 @@ function createGallery({ mode, downloadsEnabled, sent = false, photoList = photo
     },
   };
   const props = {
-    gallery: { slug: 'metal-7', client: 'Métal 7', mode, downloadsEnabled, maxPicks: 1, extraPrice: 25 },
+    category: 'full', onCategory: (category) => { props.category = category; props.photos = categories.categoryPhotos(photoList, category); props.active = 0; dirty = true; },
+    gallery: { photos: photoList, slug: 'metal-7', client: 'Métal 7', mode, downloadsEnabled, maxPicks: 1, extraPrice: 25 },
     photos: photoList, picks: new Set(photoList.map((photo) => photo.id)), active: 0,
     onActive: (index) => { props.active = index; dirty = true; },
     onToggle: (id) => toggled.push(id), onSend: () => { submitted += 1; },
@@ -70,6 +72,7 @@ function createGallery({ mode, downloadsEnabled, sent = false, photoList = photo
       createElement: () => ({ click() { downloads.push({ href: this.href, filename: this.download }); }, remove() {} }),
     },
     require(name) {
+      if (name === './gallery-categories.js') return categories;
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx, Fragment: 'fragment' };
       if (name === '@phosphor-icons/react') return new Proxy({}, { get: (_, key) => key });
@@ -141,7 +144,7 @@ test('delivery hides selection controls and prices despite old selections, inclu
   const page = createGallery({ mode: 'download', downloadsEnabled: true, sent: 'déjà' });
   await page.flush();
   assert.doesNotMatch(page.text(), /Confirmer ma sélection|sélection déjà envoyée|supplémentaire|CAD|Changer d’employé/i);
-  assert.equal(page.all((node) => node.props?.['aria-pressed'] !== undefined).length, 0);
+  assert.equal(page.all((node) => node.props?.['aria-pressed'] !== undefined && node.props?.className === 'light-heart').length, 0);
   assert.ok(page.label('Télécharger la photo 1'));
   await page.click(page.label('Agrandir la photo 1'));
   assert.equal(page.label('Retirer cette photo des favoris'), undefined);
@@ -201,7 +204,7 @@ test('both all-photo entry points open the whole-gallery ZIP dialog', async () =
     await page.flush();
     await page.click(entryPoint === 'toolbar' ? page.label('Télécharger toutes les photos') : page.button('Télécharger toutes les photos'));
     assert.equal(page.radio('download-scope', 'all').props.checked, true);
-    assert.match(page.text(), /toute votre galerie dans un seul fichier ZIP/);
+    assert.match(page.text(), /toutes les photos de la catégorie FULL SIZE dans un seul fichier ZIP/);
     assert.ok(page.button('Télécharger toutes les photos (.zip)'));
     assert.equal(page.requests.length, 0, 'opening the chooser does not start a transfer');
   }
@@ -217,7 +220,7 @@ test('a mixed gallery defaults to social quality and explains unavailable origin
   assert.equal(page.requests[0].kind, 'all');
   assert.equal(page.requests[0].quality, 'social');
   assert.deepEqual(page.requests[0].photos.map((photo) => photo.id), ['photo-1', 'photo-2']);
-  assert.deepEqual(page.downloads, [{ href: 'blob:test-download', filename: 'galerie-metal-7-social.zip' }]);
+  assert.deepEqual(page.downloads, [{ href: 'blob:test-download', filename: 'galerie-metal-7-full-social.zip' }]);
 });
 
 test('all-original galleries offer both qualities and pass the chosen quality to the ZIP helper', async () => {
@@ -229,7 +232,7 @@ test('all-original galleries offer both qualities and pass the chosen quality to
     await page.choose('download-quality', quality);
     await page.click(page.button('Télécharger toutes les photos (.zip)'));
     assert.equal(page.requests[0].quality, quality);
-    assert.equal(page.downloads[0].filename, `galerie-metal-7-${quality}.zip`);
+    assert.equal(page.downloads[0].filename, `galerie-metal-7-full-${quality}.zip`);
   }
 });
 
@@ -302,7 +305,7 @@ test('supported browsers stream the original ZIP to the chosen file without a se
   await page.flush(); await page.click(page.label('Télécharger toutes les photos'));
   await page.click(page.button('Télécharger toutes les photos (.zip)'));
   assert.equal(pickerCalls.length, 1);
-  assert.equal(pickerCalls[0].suggestedName, 'galerie-metal-7-original.zip');
+  assert.equal(pickerCalls[0].suggestedName, 'galerie-metal-7-full-original.zip');
   assert.equal(page.requests.length, 1);
   assert.equal(page.requests[0].writable, writable);
   assert.equal(page.requests[0].quality, 'original');
@@ -343,4 +346,23 @@ test('a memory-limited fallback ZIP gives a clear size error and never saves a p
   assert.equal(page.downloads.length, 0);
   assert.match(page.text(), /volumineu|trop (?:grand|lourd)|mémoire/i);
   assert.equal(page.button('Télécharger toutes les photos (.zip)').props.disabled, false);
+});
+
+test('category controls keep the collection cover and download only the selected unequal set', async () => {
+  const list = [
+    { ...photos[0], category: 'full' },
+    { ...photos[0], id: 'social-1', category: 'social' },
+    { ...photos[0], id: 'social-2', category: 'social' },
+    { ...photos[0], id: 'bw-1', category: 'bw' },
+  ];
+  const page = createGallery({ mode: 'download', downloadsEnabled: true, photoList: list });
+  await page.flush();
+  await page.click(page.button('NOIR & BLANC1'));
+  await page.click(page.label('Télécharger toutes les photos'));
+  await page.click(page.button('Télécharger toutes les photos (.zip)'));
+  assert.deepEqual(page.requests[0].photos.map((photo) => photo.id), ['bw-1']);
+  assert.equal(page.requests[0].quality, 'original');
+  assert.match(page.downloads[0].filename, /bw-original.zip$/);
+  const cover = page.all((node) => node.props?.className === 'light-cover__photo')[0];
+  assert.match(cover.props.src, /photo-1/);
 });

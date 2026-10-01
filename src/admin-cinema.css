@@ -316,3 +316,5 @@
 @media (prefers-reduced-motion:reduce) {
   .admin-cinema * { transition:none!important; animation:none!important; scroll-behavior:auto!important; }
 }
+
+.adm-category { margin-top:36px; }

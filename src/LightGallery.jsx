@@ -1,3 +1,4 @@
+import { PHOTO_CATEGORIES, categoryPhotos } from './gallery-categories.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowRight, CaretDown, CaretLeft, CaretRight, Check, Copy, DownloadSimple, Heart, ImageSquare, Pause, Play, ShareFat, ShoppingCart, Star, X } from '@phosphor-icons/react';
 import { archiveFilename, prepareGalleryDownload, preparePhotoDownload } from './gallery-downloads.js';
@@ -7,7 +8,7 @@ const countLabel = (count) => `${count} photo${count > 1 ? 's' : ''}`;
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CQkeWPsjYGSdEBM/review';
 const photoName = (photo, index) => photo?.downloadFilename || photo?.filename || `Photo ${index + 1}`;
 
-export function LightGallery({ gallery, photos, picks, active, onActive, onToggle, sending, sent, onSend, sendError,
+export function LightGallery({ category = 'full', onCategory, gallery, photos, picks, active, onActive, onToggle, sending, sent, onSend, sendError,
   employeeName, employeeGallery, onChangeEmployee, onCloseReview, photoUrl, Dialog, contactUrl, brand }) {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [viewer, setViewer] = useState(null);
@@ -25,7 +26,7 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
   const downloadObject = useRef(null);
   const downloadTimer = useRef(null);
   const current = photos[active] || photos[0];
-  const cover = photos.find((photo) => photo.id === gallery.cover) || photos[0];
+  const cover = (gallery.photos || photos).find((photo) => photo.id === gallery.cover) || (gallery.photos || photos)[0];
   const downloadMode = gallery.mode === 'download';
   const visible = photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => downloadMode || !favoritesOnly || picks.has(photo.id));
   const maxPicks = gallery.maxPicks;
@@ -114,7 +115,7 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
       let blob;
       let filename;
       if (downloadScope === 'all') {
-        filename = archiveFilename(gallery.slug, quality);
+        filename = archiveFilename(`${gallery.slug}-${category}`, quality);
         let writable;
         if (typeof window.showSaveFilePicker === 'function') {
           // Invoke the picker in the click event, before the first await.
@@ -184,8 +185,11 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
 
     <main className="light-main" id="light-photographies" ref={gridRef}>
       {gallery.draft && <p className="light-package">Aperçu privé — cette galerie n’est pas encore publiée.</p>}
+      <nav className="light-categories" aria-label="Catégories de photos">
+        {PHOTO_CATEGORIES.map((item) => <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => onCategory?.(item.id)}>{item.label}<span>{categoryPhotos(gallery.photos || photos, item.id).length}</span></button>)}
+      </nav>
       <div className="light-collection-heading">
-        <div><h2>{downloadMode ? 'Vos photos à télécharger' : favoritesOnly ? 'Mes favoris' : 'Photographies'}</h2><p>{downloadMode ? `${countLabel(photos.length)} · À conserver et à partager` : favoritesOnly ? `${countLabel(picks.size)} dans votre sélection` : `${countLabel(photos.length)} · Vos souvenirs, à votre rythme`}</p></div>
+        <div><h2>{downloadMode ? 'Vos photos à télécharger' : favoritesOnly ? 'Mes favoris' : 'Photographies'}</h2><p>{downloadMode ? `${countLabel(photos.length)} · À conserver et à partager` : favoritesOnly ? `${countLabel(visible.length)} dans cette catégorie` : `${countLabel(photos.length)} · Vos souvenirs, à votre rythme`}</p></div>
         {downloadMode ? canDownload && photos.length > 0 && <button className="light-button light-download-all" type="button" onClick={() => openDownload('all')}><DownloadSimple size={19} weight="thin" /> Télécharger toutes les photos</button>
           : favoritesOnly ? <button className="light-text-button" type="button" onClick={() => setFavoritesOnly(false)}>Toutes les photos <ArrowRight size={17} weight="light" /></button>
             : <span className="light-collection-heading__hint"><Heart size={17} weight="thin" /> Un cœur pour vos coups de cœur</span>}
@@ -244,7 +248,7 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
         <p className={copyState === 'failed' ? 'light-error' : 'light-status'} role="status">{copyState === 'failed' ? 'Copie impossible. Sélectionnez le lien ci-dessus pour le copier.' : copyState === 'copied' ? 'Le lien est prêt à partager.' : ''}</p>
       </> : <>
         <DownloadSimple className="light-panel__symbol" size={31} weight="thin" /><h2 id="light-panel-title">Vos photos, avec vous</h2>
-        {canDownload && current ? <><p>{downloadScope === 'all' ? 'Retrouvez toute votre galerie dans un seul fichier ZIP.' : 'Enregistrez cette photo sur votre appareil pour la garder et la partager.'}</p>
+        {canDownload && current ? <><p>{downloadScope === 'all' ? `Retrouvez toutes les photos de la catégorie ${PHOTO_CATEGORIES.find((item) => item.id === category)?.label || 'FULL SIZE'} dans un seul fichier ZIP.` : 'Enregistrez cette photo sur votre appareil pour la garder et la partager.'}</p>
           <fieldset className="light-download-scope" disabled={downloadBusy}>
             <legend>Photos à enregistrer</legend>
             <label><input type="radio" name="download-scope" value="all" checked={downloadScope === 'all'} onChange={() => setDownloadOptions('all')} /><span>Toutes les photos <small>({photos.length})</small></span></label>
@@ -255,9 +259,9 @@ export function LightGallery({ gallery, photos, picks, active, onActive, onToggl
           <fieldset className="light-download-quality" disabled={downloadBusy}>
             <legend>Choisissez la qualité</legend>
             <label className={originalAvailable ? '' : 'is-unavailable'}><input type="radio" name="download-quality" value="original" checked={quality === 'original'} disabled={!originalAvailable} onChange={() => { setDownloadQuality('original'); setDownloadState(''); }} /><span>Taille originale<small>Fichiers livrés, pleine résolution</small></span></label>
-            <label><input type="radio" name="download-quality" value="social" checked={quality === 'social'} onChange={() => { setDownloadQuality('social'); setDownloadState(''); }} /><span>Réseaux sociaux<small>JPG légers · jusqu’à 2 000 pixels</small></span></label>
+            <label><input type="radio" name="download-quality" value="social" checked={quality === 'social'} onChange={() => { setDownloadQuality('social'); setDownloadState(''); }} /><span>Version web<small>JPG légers · jusqu’à 2 000 pixels</small></span></label>
           </fieldset>
-          {!originalAvailable && <p className="light-download-note">{downloadScope === 'all' ? 'Les fichiers en taille originale ne sont pas encore disponibles pour toutes les photos. Vous pouvez télécharger la version pour les réseaux sociaux.' : 'Le fichier en taille originale n’est pas disponible pour cette photo. La version pour les réseaux sociaux reste accessible.'}</p>}
+          {!originalAvailable && <p className="light-download-note">{downloadScope === 'all' ? 'Les fichiers en taille originale ne sont pas encore disponibles pour toutes les photos. Vous pouvez télécharger la version web.' : 'Le fichier en taille originale n’est pas disponible pour cette photo. La version web reste accessible.'}</p>}
           {downloadBusy && <div className="light-download-progress">
             <progress value={downloadProgress.done} max={downloadProgress.total || 1} aria-label="Préparation des photos" />
             <p role="status">{downloadProgress.done} / {downloadProgress.total} photo{downloadProgress.total > 1 ? 's' : ''} préparée{downloadProgress.total > 1 ? 's' : ''}{downloadScope === 'all' && downloadProgress.done === downloadProgress.total ? ' · Création du ZIP…' : '…'}</p>

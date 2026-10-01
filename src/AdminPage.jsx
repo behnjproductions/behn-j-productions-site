@@ -1,3 +1,4 @@
+import { PHOTO_CATEGORIES, categoryPhotos } from './gallery-categories.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowRight, ArrowUpRight, CaretLeft, Check, Copy, DownloadSimple, EnvelopeSimple, Image as ImageIcon, Lock,
@@ -262,7 +263,7 @@ function Editor({ slug, onBack, onChanged }) {
   const [error, setError] = useState('');
   const [settings, setSettings] = useState(false);
   const [copied, copy] = useCopy();
-  const inputRef = useRef(null);
+  const inputRef = useRef({});
   const uploadRef = useRef(false);
   const savingRef = useRef(false);
 
@@ -284,11 +285,11 @@ function Editor({ slug, onBack, onChanged }) {
     finally { savingRef.current = false; setSaving(false); }
   };
 
-  const addFiles = useCallback(async (files) => {
+  const addFiles = useCallback(async (files, category = 'full') => {
     if (uploadRef.current || savingRef.current || !data) return;
     const images = [...files].filter((f) => f.type.startsWith('image/'));
     if (!images.length) return;
-    const downloadMode = data.collection.mode === 'download';
+    const downloadMode = true; // Preserve supplied final files in every category.
     if (downloadMode) {
       let invalidMessage = null;
       for (const file of images) {
@@ -299,7 +300,7 @@ function Editor({ slug, onBack, onChanged }) {
     }
     uploadRef.current = true;
     setError('');
-    setUpload({ done: 0, total: images.length });
+    setUpload({ done: 0, total: images.length, category });
 
     // Envoyer les photos en parallèle (par lots) plutôt qu'une à la fois : la
     // majorité du temps est passée à attendre le réseau, alors traiter plusieurs
@@ -314,6 +315,7 @@ function Editor({ slug, onBack, onChanged }) {
         const thumb = await prepareImage(file, THUMB_SIDE, 0.75);
         const form = new FormData();
         form.append('filename', file.name);
+        form.append('category', category);
         form.append('width', String(web.width));
         form.append('height', String(web.height));
         form.append('web', web.blob, 'web.jpg');
@@ -334,7 +336,7 @@ function Editor({ slug, onBack, onChanged }) {
         setError(`${file.name} : ${err.message}`);
       }
       doneCount += 1;
-      setUpload({ done: doneCount, total: images.length });
+      setUpload({ done: doneCount, total: images.length, category });
     };
     const worker = async () => {
       while (nextIndex < images.length) {
@@ -423,19 +425,21 @@ function Editor({ slug, onBack, onChanged }) {
 
         <div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(data.photos.length).padStart(2, '0')}</small></h2></div><p><Star size={14} /> L’étoile définit la photo de couverture.</p></div>
 
-        <div className={`adm-drop ${dragging ? 'is-dragging' : ''}`}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        {PHOTO_CATEGORIES.map((category) => <section key={category.id} className="adm-category" aria-label={category.label}>
+          <div className="adm-section-heading"><div><h2>{category.label} <small>{categoryPhotos(data.photos, category.id).length}</small></h2><p>{category.description}</p></div></div>
+        <div className={`adm-drop ${dragging === category.id ? 'is-dragging' : ''}`}
+          onDragOver={(e) => { e.preventDefault(); setDragging(category.id); }}
           onDragLeave={() => setDragging(false)}
-          onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files); }}>
+          onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files, category.id); }}>
           <div className="adm-drop__icon"><UploadSimple size={26} weight="light" /></div>
           <div className="adm-drop__copy"><p><strong>Ajoutez les images de cette histoire.</strong></p>
-          <p className="adm-hint">{downloadMode ? 'Ajoutez les fichiers finaux. Le client pourra télécharger les originaux envoyés. JPEG, PNG ou WebP · 75 Mo maximum par photo.' : 'Glissez vos photos ici. Les originaux restent sur votre ordinateur.'}</p></div>
-          <button className="adm-ghost" type="button" onClick={() => inputRef.current?.click()} disabled={Boolean(upload) || saving}>
+          <p className="adm-hint">Fichiers finaux conservés sans réduction. JPEG, PNG ou WebP · 75 Mo maximum par photo.</p></div>
+          <button className="adm-ghost" type="button" onClick={() => inputRef.current[category.id]?.click()} disabled={Boolean(upload) || saving}>
             <Plus size={17} /> Ajouter des photos
           </button>
-          <input ref={inputRef} type="file" accept={downloadMode ? 'image/jpeg,image/png,image/webp' : 'image/*'} multiple hidden disabled={Boolean(upload) || saving}
-            onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
-          {upload && (
+          <input ref={(node) => { inputRef.current[category.id] = node; }} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden disabled={Boolean(upload) || saving}
+            onChange={(e) => { addFiles(e.target.files, category.id); e.target.value = ''; }} />
+          {upload?.category === category.id && (
             <div className="adm-progress">
               <div className="adm-progress__bar"><i style={{ width: `${(upload.done / upload.total) * 100}%` }} /></div>
               <span>{upload.done} / {upload.total} photos envoyées</span>
@@ -443,9 +447,9 @@ function Editor({ slug, onBack, onChanged }) {
           )}
         </div>
 
-        {data.photos.length > 0 && (
+        {categoryPhotos(data.photos, category.id).length > 0 && (
           <div className="adm-photos">
-            {data.photos.map((p, index) => (
+            {categoryPhotos(data.photos, category.id).map((p, index) => (
               <figure key={p.id} className={c.cover === p.id ? 'is-cover' : ''}>
                 <img src={photoUrl(p.id)} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
                 <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span></figcaption>
@@ -459,6 +463,7 @@ function Editor({ slug, onBack, onChanged }) {
             ))}
           </div>
         )}
+        </section>)}
       </div>
     </div>
   );

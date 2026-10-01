@@ -197,3 +197,9 @@
   .light-gallery .light-overlay--panel h2 { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .light-gallery *, .light-gallery *::before, .light-gallery *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+
+.light-categories { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 30px; }
+.light-categories button { background:transparent; color:#555; border:1px solid #ddd; border-radius:3px; padding:14px 18px; font:inherit; font-size:12px; letter-spacing:.08em; cursor:pointer; }
+.light-categories button[aria-pressed="true"] { background:#9F1204; color:white; border-color:#9F1204; }
+.light-categories span { margin-left:12px; opacity:.7; }
+.light-categories button:focus-visible { outline:2px solid #FFB604; outline-offset:3px; }

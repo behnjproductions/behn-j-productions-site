@@ -243,13 +243,14 @@ test('unsupported download quality is rejected and quality parameters cannot byp
   f.unchanged();
 });
 
-test('original upload is rejected in selection mode before any storage write', async (t) => {
+test('original upload is retained in selection mode without enabling downloads', async (t) => {
   const f = fixture(t);
   const before = f.sqlite.prepare('SELECT COUNT(*) AS n FROM photos').get().n;
   const response = await f.admin('/collections/metal-7/photos', 'POST', upload(new File(['original'], 'Portrait.jpg', { type: 'image/jpeg' })));
-  assert.equal(response.status, 400);
-  assert.deepEqual(f.writes, []);
-  assert.equal(f.sqlite.prepare('SELECT COUNT(*) AS n FROM photos').get().n, before);
+  assert.equal(response.status, 201);
+  assert.equal(f.writes.length, 3);
+  assert.equal(f.sqlite.prepare('SELECT COUNT(*) AS n FROM photos').get().n, before + 1);
+  assert.equal((await f.request('/photo/' + (await response.json()).photo.id + '/download')).status, 403);
   f.unchanged();
 });
 
@@ -347,4 +348,33 @@ test('the additive migration preserves every legacy collection field, photo and 
   for (const photo of photos) delete photo.original_key;
   assert.equal(JSON.stringify(photos), before.photos);
   assert.throws(() => db.exec("UPDATE collections SET mode = 'invalid'"), /CHECK constraint failed/);
+});
+
+test('independent categories upload and round-trip through client/admin without changing legacy selections', async (t) => {
+  const f = fixture(t);
+  f.mode('download');
+  const uploaded = [];
+  for (const category of ['full', 'social', 'social', 'bw']) {
+    const form = upload(new File([`final-${category}`], `${category}.jpg`, { type: 'image/jpeg' }), `${category}.jpg`);
+    form.append('category', category);
+    const response = await f.admin('/collections/metal-7/photos', 'POST', form);
+    assert.equal(response.status, 201);
+    const { photo } = await response.json();
+    assert.equal(photo.category, category);
+    uploaded.push(photo);
+    const download = await f.request(`/photo/${photo.id}/download?quality=original`);
+    assert.equal(await download.text(), `final-${category}`);
+  }
+  const gallery = await f.request('/galerie/metal-7').then((r) => r.json());
+  const admin = await f.admin('/collections/metal-7').then((r) => r.json());
+  for (const payload of [gallery, admin]) {
+    assert.equal(payload.photos.filter((p) => p.category === 'full').length, 4);
+    assert.equal(payload.photos.filter((p) => p.category === 'social').length, 2);
+    assert.equal(payload.photos.filter((p) => p.category === 'bw').length, 1);
+  }
+  const form = upload(); form.append('category', 'unknown');
+  const writes = f.writes.length;
+  assert.equal((await f.admin('/collections/metal-7/photos', 'POST', form)).status, 400);
+  assert.equal(f.writes.length, writes);
+  f.unchanged();
 });

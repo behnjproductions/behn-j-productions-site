@@ -13,7 +13,7 @@ client, tout se passe sur `behnjproductions.ca` : il ne voit jamais Cloudflare.
 ## Ce qui est déjà créé dans Cloudflare
 
 - Bucket R2 **bjp-galeries** — les photos (version web + vignette en JPEG;
-  fichiers originaux pour les nouveaux téléversements en mode téléchargement)
+  fichiers finaux originaux pour les nouveaux téléversements dans les trois catégories)
 - Base D1 **bjp-galeries-db** — tables `collections`, `photos`, `selections`,
   `login_attempts` (voir `schema.sql`)
 
@@ -81,8 +81,8 @@ contrôles d’accès que les photos. Les images affichées dans un navigateur
 restent enregistrables par ce navigateur; le mode sélection n’est pas un DRM.
 Les anciennes sélections restent visibles dans l’administration.
 
-Un fichier original est conservé seulement lorsqu’il est ajouté en mode
-téléchargement (JPEG, PNG ou WebP, 40 Mio maximum). Un changement de mode ne
+Les nouveaux fichiers finaux sont conservés dans les trois catégories, dans
+les deux modes (JPEG, PNG ou WebP, 75 Mo maximum). Un changement de mode ne
 reconstitue pas les originaux des photos existantes : leur version web reste
 téléchargeable et est identifiée comme telle dans l’interface.
 
@@ -97,9 +97,9 @@ sa présence dans le dépôt ne signifie pas qu’elle est publiée.
    sélectionner** ou **Pour télécharger**, mot de passe et, pour la sélection,
    nombre de photos incluses. L'adresse `\<client\>` est proposée automatiquement.
 2. Glisser les photos. Elles sont réduites **sur l'ordinateur** (2000 px pour la
-   vue web, 700 px pour la vignette) avant d'être envoyées. En mode sélection,
-   les originaux restent sur l’ordinateur. En mode téléchargement, le fichier
-   original est aussi envoyé, sans transformation, pour sa livraison au client.
+   vue web, 700 px pour la vignette) avant d'être envoyées. Dans chaque catégorie, le fichier final
+   original est aussi envoyé sans transformation; le téléchargement reste
+   réservé aux collections en mode téléchargement.
 3. Choisir la photo de couverture (l'étoile), puis **Publier**.
 4. Copier le lien et l'envoyer au client avec son mot de passe.
 5. Quand le client envoie sa sélection : un courriel arrive à
@@ -108,3 +108,17 @@ sa présence dans le dépôt ne signifie pas qu’elle est publiée.
 
 Tant qu'une collection est en **brouillon**, elle est invisible pour tout le
 monde sauf pour une session administrateur — l'aperçu est donc sans risque.
+
+## Catégories indépendantes dans une collection
+
+FULL SIZE, RÉSEAUX SOCIAUX et NOIR & BLANC contiennent des photos indépendantes;
+aucun appariement n’est nécessaire. Les identifiants des favoris restent
+communs à la collection et la couverture reste indépendante du filtre.
+Les téléchargements individuels et ZIP utilisent uniquement la catégorie active.
+
+Avant de déployer cette version du Worker, sauvegarder D1 puis appliquer une
+seule fois `migrations/0002_photo_categories.sql`. Cette migration ajoute
+`photos.category` et un index; toutes les anciennes photos deviennent `full`,
+sans modification des fichiers, identifiants ou sélections. Déployer ensuite
+le Worker avec ses variables existantes, puis publier le site depuis `main`.
+Conserver la colonne lors d’un retour à l’ancienne version.

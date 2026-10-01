@@ -1,3 +1,4 @@
+import { categoryPhotos, photoCategory } from './gallery-categories.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight, ArrowsOut, CaretLeft, CaretRight, Check, Heart, ImageSquare, Lock, Star, X } from '@phosphor-icons/react';
 import { BRAND } from './brand.js';
@@ -147,6 +148,7 @@ export function GaleriePage() {
   const [state, setState] = useState('chargement');
   const [picks, setPicks] = useState(() => new Set());
   const [active, setActive] = useState(0);
+  const [category, setCategory] = useState('full');
   const [expanded, setExpanded] = useState(false);
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
@@ -176,7 +178,10 @@ export function GaleriePage() {
       setPicks(new Set(initial.filter((id) => validIds.has(id))));
       setSent(data.mode === 'download' ? false : (employee ? employee.submitted === true : data.submitted) ? 'déjà' : false);
       const coverIndex = (data.photos || []).findIndex((photo) => photo.id === data.cover);
-      setActive(coverIndex >= 0 ? coverIndex : 0);
+      const coverPhoto = data.photos?.[coverIndex];
+      const initialCategory = coverPhoto ? photoCategory(coverPhoto) : 'full';
+      setCategory(initialCategory);
+      setActive(Math.max(0, categoryPhotos(data.photos || [], initialCategory).findIndex((photo) => photo.id === data.cover)));
       setState(data.mode !== 'download' && employeeGallery && !employee.name.trim() ? 'identification' : 'prête');
     } catch (err) {
       if (err.status === 404 && err.data?.locked) { setGallery(err.data); setState('verrouillée'); return; }
@@ -189,7 +194,7 @@ export function GaleriePage() {
       ? { name: employeeName, ids: [...picks], submitted: Boolean(sent) }
       : [...picks]));
   }, [picks, state, storeKey, employeeGallery, employeeName, sent, downloadMode]);
-  const photos = gallery?.photos || [];
+  const photos = categoryPhotos(gallery?.photos || [], category);
   const current = photos[active];
   const maxPicks = gallery?.maxPicks;
   const extraPrice = gallery?.extraPrice ?? 25;
@@ -248,7 +253,7 @@ export function GaleriePage() {
   if (state === 'verrouillée' || state === 'identification') return <LockScreen key={state} gallery={gallery} onOpen={load}
     collectName={employeeGallery} requirePassword={state === 'verrouillée'} initialName={employeeName} lightExperience={lightExperience} />;
 
-  if (lightExperience) return <LightGallery gallery={gallery} photos={photos} picks={picks} active={active}
+  if (lightExperience) return <LightGallery key={category} category={category} onCategory={(value) => { setCategory(value); setActive(0); }} gallery={gallery} photos={photos} picks={picks} active={active}
     onActive={setActive} onToggle={toggle} sending={sending} sent={sent} onSend={send} sendError={sendError}
     employeeName={employeeName} employeeGallery={employeeGallery} onChangeEmployee={() => {
       if (sending) return;

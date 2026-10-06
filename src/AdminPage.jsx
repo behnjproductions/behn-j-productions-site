@@ -7,6 +7,28 @@ import {
 import { api, clearSession, photoUrl, prepareImage, saveSession, useSession } from './api.js';
 import './admin-cinema.css';
 
+const SESSION_TYPES = ['Mariage', 'Corporatif', 'Famille', 'Maternité', 'Nouveau-né', 'Portrait', 'Couple', 'Événement', 'Scolaire', 'Immobilier'];
+
+function SessionTitle({ value, onChange, disabled = false }) {
+  const [custom, setCustom] = useState(() => Boolean(value && !SESSION_TYPES.includes(value)));
+  return <div className="adm-session-title">
+    <label><span>Titre de la séance <small>facultatif</small></span>
+      <select value={custom ? 'custom' : value} disabled={disabled} onChange={(event) => {
+        const next = event.target.value;
+        setCustom(next === 'custom');
+        onChange({ target: { value: next === 'custom' ? '' : next } });
+      }}>
+        <option value="">Choisir un type de séance</option>
+        {SESSION_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+        <option value="custom">Autre — titre personnalisé</option>
+      </select>
+    </label>
+    {custom && <label>Titre personnalisé
+      <input value={value} onChange={onChange} disabled={disabled} placeholder="p. ex. : Mariage au Vieux-Quai" />
+    </label>}
+  </div>;
+}
+
 const WEB_SIDE = 2000;   // côté le plus long de la version web
 const THUMB_SIDE = 700;  // côté le plus long de la vignette
 const ORIGINAL_MAX_BYTES = 75 * 1024 * 1024;
@@ -24,29 +46,35 @@ function downloadFileIssue(file) {
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   const type = resolvedDownloadType(file);
   if (!type) return `n'est pas reconnu comme JPEG, PNG ou WebP (format détecté : ${file.type || 'inconnu, à partir de .' + (ext || '?')})`;
+  if (!file.size) return 'est vide';
   if (file.size > ORIGINAL_MAX_BYTES) return `pèse ${(file.size / (1024 * 1024)).toFixed(1)} Mo, la limite est de 75 Mo`;
   return null;
 }
 
 const modeLabel = (mode) => mode === 'download' ? 'Pour télécharger' : 'Pour sélectionner';
 
-function GalleryMode({ value, onChange, disabled = false }) {
-  return (
-    <fieldset className="adm-mode-choice" disabled={disabled}>
-      <legend>Que doit faire le client?</legend>
-      <div className="adm-mode-choice__options">
-        <label className={value === 'selection' ? 'is-selected' : ''}>
-          <input type="radio" name="mode" value="selection" checked={value === 'selection'} onChange={onChange} />
-          <span><strong>Pour sélectionner</strong><span>Le client choisit ses photos et confirme sa sélection.</span></span>
-        </label>
-        <label className={value === 'download' ? 'is-selected' : ''}>
-          <input type="radio" name="mode" value="download" checked={value === 'download'} onChange={onChange} />
-          <span><strong>Pour télécharger</strong><span>Le client télécharge les photos livrées, sans envoyer de sélection.</span></span>
-        </label>
-      </div>
-      {value === 'download' && <p className="adm-hint">Toutes les photos de cette galerie seront accessibles au téléchargement.</p>}
-    </fieldset>
-  );
+function GalleryMode({ value, onChange, collectionType, onTypeChange, disabled = false }) {
+  const school = collectionType === 'school';
+  const chooseMode = (event) => {
+    onTypeChange({ target: { value: 'standard' } });
+    onChange(event);
+  };
+  const choices = (nested = false) => <div className="adm-mode-choice__options">
+    {['selection', 'download'].map((mode) => <label key={mode} className={(nested || !school) && value === mode ? 'is-selected' : ''}>
+      <input type="radio" name={nested ? 'school-mode' : 'collection-experience'} value={mode} checked={(nested || !school) && value === mode} onChange={nested ? onChange : chooseMode} />
+      <span><strong>{modeLabel(mode)}</strong><span>{mode === 'selection' ? 'Le client choisit ses photos et confirme sa sélection.' : 'Le client télécharge les photos livrées, sans envoyer de sélection.'}</span></span>
+    </label>)}
+    {!nested && <label className={school ? 'is-selected' : ''}>
+      <input type="radio" name="collection-experience" value="school" checked={school} onChange={onTypeChange} />
+      <span><strong>École</strong><span>Une collection scolaire pour sélectionner ou télécharger les photos.</span></span>
+    </label>}
+  </div>;
+  return <fieldset className="adm-mode-choice" disabled={disabled}>
+    <legend>Que doit faire le client?</legend>
+    {choices()}
+    {school && <fieldset className="adm-mode-choice adm-school-choice"><legend>École — choisissez l’expérience</legend>{choices(true)}</fieldset>}
+    {value === 'download' && <p className="adm-hint">Toutes les photos de cette galerie seront accessibles au téléchargement.</p>}
+  </fieldset>;
 }
 
 function WebCopiesNotice({ count }) {
@@ -175,7 +203,7 @@ function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery 
                 <div className="adm-card__meta"><span>{String(index + 1).padStart(2, '0')}</span><span>{c.photoCount} photo{c.photoCount === 1 ? '' : 's'}</span><span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span></div>
                 <h2><button type="button" onClick={() => onOpen(c.slug)}>{c.client}<ArrowUpRight size={22} weight="light" /></button></h2>
                 <p>{c.title || 'Collection privée'}{c.selectionCount > 0 && <strong className="adm-card__flag"><Check size={13} /> Sélection reçue</strong>}</p>
-                <span className="adm-mode-badge">{modeLabel(c.mode)}</span>
+                <span className="adm-mode-badge">{c.collectionType === 'school' ? 'École · ' : ''}{modeLabel(c.mode)}</span>
               </div>
             </article>
           ))}
@@ -188,7 +216,7 @@ function CollectionList({ collections, onOpen, onNew, onDelete, query, setQuery 
 /* ------------------------------------------------------------- création --- */
 
 function NewCollection({ onCancel, onCreate }) {
-  const [form, setForm] = useState({ client: '', title: '', eventDate: '', password: '', mode: 'selection', maxPicks: '', extraPrice: '25' });
+  const [form, setForm] = useState({ client: '', title: '', eventDate: '', password: '', collectionType: 'standard', mode: 'selection', maxPicks: '', extraPrice: '25' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -221,9 +249,7 @@ function NewCollection({ onCancel, onCreate }) {
             <label>Nom du client
               <input value={form.client} onChange={set('client')} placeholder="p. ex. : Jessie et Ryan" required autoFocus />
             </label>
-            <label><span>Titre de la séance <small>facultatif</small></span>
-              <input value={form.title} onChange={set('title')} placeholder="p. ex. : Mariage au Vieux-Quai" />
-            </label>
+            <SessionTitle value={form.title} onChange={set('title')} disabled={busy} />
           </div>
           <label>Date de l’événement
             <input type="date" value={form.eventDate} onChange={set('eventDate')} />
@@ -232,7 +258,7 @@ function NewCollection({ onCancel, onCreate }) {
         </fieldset>
         <fieldset className="adm-form-section">
           <legend><span>02</span> L’expérience client</legend>
-          <GalleryMode value={form.mode} onChange={set('mode')} disabled={busy} />
+          <GalleryMode collectionType={form.collectionType} onTypeChange={set('collectionType')} value={form.mode} onChange={set('mode')} disabled={busy} />
           <label>Mot de passe de la galerie
             <input value={form.password} onChange={set('password')} placeholder="Laissez vide pour un accès sans mot de passe" />
           </label>
@@ -287,7 +313,7 @@ function Editor({ slug, onBack, onChanged }) {
 
   const addFiles = useCallback(async (files, category = 'full') => {
     if (uploadRef.current || savingRef.current || !data) return;
-    const images = [...files].filter((f) => f.type.startsWith('image/'));
+    const images = [...files];
     if (!images.length) return;
     const downloadMode = true; // Preserve supplied final files in every category.
     if (downloadMode) {
@@ -397,7 +423,7 @@ function Editor({ slug, onBack, onChanged }) {
           <h1>{c.client}</h1>
           <span>{[c.title, formatDate(c.date)].filter(Boolean).join(' · ')}</span>
         </div>
-        <div className="adm-editor__badges"><span className="adm-mode-badge">{modeLabel(c.mode)}</span><span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span></div>
+        <div className="adm-editor__badges"><span className="adm-mode-badge">{c.collectionType === 'school' ? 'École · ' : ''}{modeLabel(c.mode)}</span><span className={`adm-tag ${c.status === 'publié' ? 'is-live' : ''}`}>{c.status}</span></div>
       </header>
 
       {error && <p className="adm-error" role="alert">{error}</p>}
@@ -478,6 +504,7 @@ function Settings({ collection, onSave, onDelete, disabled = false, webPhotoCoun
     eventDate: collection.date || '',
     slug: collection.slug,
     mode: collection.mode || 'selection',
+    collectionType: collection.collectionType || 'standard',
     maxPicks: collection.maxPicks || '',
     extraPrice: collection.extraPrice ?? 25,
     password: '',
@@ -490,7 +517,7 @@ function Settings({ collection, onSave, onDelete, disabled = false, webPhotoCoun
     if (disabled) return;
     const body = {
       client: form.client, title: form.title, eventDate: form.eventDate,
-      slug: form.slug, mode: form.mode, maxPicks: form.maxPicks, extraPrice: form.extraPrice,
+      slug: form.slug, collectionType: form.collectionType, mode: form.mode, maxPicks: form.maxPicks, extraPrice: form.extraPrice,
     };
     if (form.password.trim()) body.password = form.password.trim();
     if (await onSave(body)) {
@@ -503,12 +530,12 @@ function Settings({ collection, onSave, onDelete, disabled = false, webPhotoCoun
   return (
     <form id="collection-settings" className="adm-settings" onSubmit={submit}>
       <header className="adm-settings__heading"><p className="adm-eyebrow">Les détails de la collection</p><h2>Réglages</h2></header>
-      <GalleryMode value={form.mode} onChange={set('mode')} disabled={disabled} />
+      <GalleryMode collectionType={form.collectionType} onTypeChange={set('collectionType')} value={form.mode} onChange={set('mode')} disabled={disabled} />
       {form.mode !== (collection.mode || 'selection') && <p className="adm-hint" role="status">Enregistrez ce choix avant d’ajouter les photos. Il s’appliquera dès l’enregistrement à l’expérience du client.</p>}
       {form.mode === 'download' && <WebCopiesNotice count={webPhotoCount} />}
       <div className="adm-settings__row">
         <label>Nom du client<input value={form.client} onChange={set('client')} required /></label>
-        <label>Titre<input value={form.title} onChange={set('title')} /></label>
+        <SessionTitle value={form.title} onChange={set('title')} disabled={disabled} />
       </div>
       <div className="adm-settings__row">
         <label>Date<input type="date" value={form.eventDate} onChange={set('eventDate')} /></label>

@@ -122,3 +122,7 @@ seule fois `migrations/0002_photo_categories.sql`. Cette migration ajoute
 sans modification des fichiers, identifiants ou sélections. Déployer ensuite
 le Worker avec ses variables existantes, puis publier le site depuis `main`.
 Conserver la colonne lors d’un retour à l’ancienne version.
+
+## Collections scolaires
+
+Appliquer une seule fois `migrations/0003_school_collections.sql` avant le déploiement. Le type `school` est indépendant du mode `selection` ou `download`; les collections existantes restent `standard`. Dans la création et les réglages, choisir École affiche les deux modes scolaires.

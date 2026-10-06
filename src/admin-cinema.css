@@ -13,7 +13,7 @@
   color-scheme:dark;
 }
 .admin-cinema.adm { display:flex; flex-direction:column; min-height:100svh; background:var(--studio-bg); color:var(--studio-text); font-family:var(--studio-ui); }
-.admin-cinema :is(button,a,input):focus-visible { outline:2px solid #ffb604; outline-offset:5px; }
+.admin-cinema :is(button,a,input,select):focus-visible { outline:2px solid #ffb604; outline-offset:5px; }
 .admin-cinema button { font-family:var(--studio-ui); }
 .admin-cinema button:disabled { cursor:wait; opacity:.48; }
 .admin-cinema :is(.adm-primary,.adm-ghost,.adm-danger) { display:inline-flex; align-items:center; justify-content:center; gap:11px; min-height:48px; padding:13px 20px; border:1px solid transparent; border-radius:0; font:500 14px/1.4 var(--studio-ui); letter-spacing:.025em; text-decoration:none; cursor:pointer; transition:background .2s,color .2s,border-color .2s; }
@@ -88,9 +88,9 @@
 .admin-cinema .adm-form-section legend span { padding-right:14px; color:#cfb98a; font:400 12px/1.5 var(--studio-ui); }
 .admin-cinema :is(.adm-form,.adm-settings) label { display:grid; gap:10px; align-content:start; min-width:0; color:#d8d3c8; font:400 14px/1.5 var(--studio-ui); }
 .admin-cinema :is(.adm-form,.adm-settings) label small { margin-left:4px; color:var(--studio-muted); font-size:12px; }
-.admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) input { width:100%; min-width:0; min-height:50px; padding:13px 15px; border:1px solid var(--studio-line); border-radius:0; background:rgba(228,214,186,.025); color:var(--studio-text); font:400 14px/1.5 var(--studio-ui); outline:none; }
+.admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) :is(input,select) { width:100%; min-width:0; min-height:50px; padding:13px 15px; border:1px solid var(--studio-line); border-radius:0; background:rgba(228,214,186,.025); color:var(--studio-text); font:400 14px/1.5 var(--studio-ui); outline:none; }
 .admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) input::placeholder { color:#969388; }
-.admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) input:focus { border-color:#c4af83; box-shadow:none; }
+.admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) :is(input,select):focus { border-color:#c4af83; box-shadow:none; }
 .admin-cinema .adm-hint { margin:0; color:var(--studio-muted); font:400 12px/1.7 var(--studio-ui); }
 .admin-cinema .adm-hint code { display:inline; padding:0; background:transparent; color:#d6cfc0; font:inherit; overflow-wrap:anywhere; }
 .admin-cinema .adm-mode-choice { min-width:0; margin:0; padding:0; border:0; }
@@ -263,7 +263,7 @@
   .admin-cinema .adm-card__details { padding-top:16px; }
   .admin-cinema .adm-overview>.adm-primary { width:100%; justify-content:space-between; }
   .admin-cinema .adm-settings__row { grid-template-columns:minmax(0,1fr); gap:22px; }
-  .admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) input { font-size:16px; }
+  .admin-cinema :is(.adm-form,.adm-settings,.adm-login__panel) :is(input,select) { font-size:16px; }
   .admin-cinema .adm-form-heading h1 { font-size:50px; }
   .admin-cinema .adm-form-section { padding:25px 18px; }
   .admin-cinema .adm-form__footer { display:grid; grid-template-columns:1fr 2fr; }
@@ -318,3 +318,9 @@
 }
 
 .adm-category { margin-top:36px; }
+
+.admin-cinema .adm-session-title { display:grid; gap:16px; min-width:0; }
+.admin-cinema .adm-session-title select { color-scheme:dark; }
+.admin-cinema .adm-session-title option { background:#171713; color:#e4dfd2; }
+
+.admin-cinema .adm-school-choice { margin-top:20px; padding:18px; border:1px solid var(--studio-line); }

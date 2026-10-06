@@ -378,3 +378,21 @@ test('independent categories upload and round-trip through client/admin without 
   assert.equal(f.writes.length, writes);
   f.unchanged();
 });
+
+test('school collections retain their type independently of selection and download modes', async (t) => {
+  const f = fixture(t);
+  for (const mode of ['selection', 'download']) {
+    const response = await f.admin('/collections', 'POST', { client: `École ${mode}`, collectionType: 'school', mode });
+    assert.equal(response.status, 201);
+    const { collection } = await response.json();
+    assert.equal(collection.collectionType, 'school');
+    assert.equal(collection.mode, mode);
+    const updated = await f.admin(`/collections/${collection.slug}`, 'PATCH', { mode: mode === 'selection' ? 'download' : 'selection' }).then(r => r.json());
+    assert.equal(updated.collection.collectionType, 'school');
+    const listed = await f.admin('/collections').then(r => r.json());
+    assert.equal(listed.collections.find(c => c.id === collection.id).collectionType, 'school');
+    assert.equal(f.sqlite.prepare('SELECT collection_type FROM collections WHERE id = ?').get(collection.id).collection_type, 'school');
+  }
+  assert.equal((await f.admin('/collections', 'POST', { client: 'Invalid', collectionType: 'unknown' })).status, 400);
+  f.unchanged();
+});

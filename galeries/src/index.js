@@ -451,6 +451,7 @@ async function route(request, env, url, path, ip) {
 
     if (method === 'POST') {
       const body = await request.json().catch(() => ({}));
+      if (body.collectionType !== undefined && !['standard', 'school'].includes(body.collectionType)) return json({ error: 'Type de collection invalide.' }, 400);
       if (body.mode !== undefined && !validMode(body.mode)) return json({ error: 'Choisissez « Sélection » ou « Téléchargement ».' }, 400);
       const client = String(body.client || '').trim();
       if (!client) return json({ error: 'Le nom du client est obligatoire.' }, 400);
@@ -467,13 +468,14 @@ async function route(request, env, url, path, ip) {
         title: String(body.title || '').trim() || null,
         event_date: body.eventDate || null,
         mode: body.mode ?? 'selection',
+        collection_type: body.collectionType ?? 'standard',
         max_picks: Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null,
         extra_price: Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25,
         password_hash: password ? await hashPassword(password) : null,
       };
-      await env.DB.prepare(`INSERT INTO collections (id, slug, client, title, event_date, status, max_picks, extra_price, password_hash, mode)
-        VALUES (?, ?, ?, ?, ?, 'brouillon', ?, ?, ?, ?)`)
-        .bind(row.id, row.slug, row.client, row.title, row.event_date, row.max_picks, row.extra_price, row.password_hash, row.mode).run();
+      await env.DB.prepare(`INSERT INTO collections (id, slug, client, title, event_date, status, max_picks, extra_price, password_hash, mode, collection_type)
+        VALUES (?, ?, ?, ?, ?, 'brouillon', ?, ?, ?, ?, ?)`)
+        .bind(row.id, row.slug, row.client, row.title, row.event_date, row.max_picks, row.extra_price, row.password_hash, row.mode, row.collection_type).run();
       return json({ collection: publicShape({ ...row, status: 'brouillon', photo_count: 0, selection_count: 0 }) }, 201);
     }
   }
@@ -507,6 +509,7 @@ async function route(request, env, url, path, ip) {
 
     if (!action && method === 'PATCH') {
       const body = await request.json().catch(() => ({}));
+      if (body.collectionType !== undefined && !['standard', 'school'].includes(body.collectionType)) return json({ error: 'Type de collection invalide.' }, 400);
       if (body.mode !== undefined && !validMode(body.mode)) return json({ error: 'Choisissez « Sélection » ou « Téléchargement ».' }, 400);
       const sets = [];
       const values = [];
@@ -516,6 +519,7 @@ async function route(request, env, url, path, ip) {
       if (body.title !== undefined) put('title', String(body.title).trim() || null);
       if (body.eventDate !== undefined) put('event_date', body.eventDate || null);
       if (body.mode !== undefined) put('mode', body.mode);
+      if (body.collectionType !== undefined) put('collection_type', body.collectionType);
       if (body.maxPicks !== undefined) put('max_picks', Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null);
       if (body.extraPrice !== undefined) put('extra_price', Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25);
       if (body.status !== undefined) put('status', body.status === 'publié' ? 'publié' : 'brouillon');
@@ -614,6 +618,7 @@ function publicShape(row) {
     date: row.event_date,
     status: row.status,
     mode: galleryMode(row),
+    collectionType: row.collection_type || 'standard',
     downloadsEnabled: galleryMode(row) === 'download',
     maxPicks: row.max_picks,
     extraPrice: row.extra_price ?? 25,

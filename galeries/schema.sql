@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS collections (
   event_date TEXT,
   status TEXT NOT NULL DEFAULT 'brouillon',
   mode TEXT NOT NULL DEFAULT 'selection' CHECK (mode IN ('selection', 'download')),
+  collection_type TEXT NOT NULL DEFAULT 'standard' CHECK (collection_type IN ('standard', 'school')),
   max_picks INTEGER,
   extra_price INTEGER DEFAULT 25,
   cover_key TEXT,

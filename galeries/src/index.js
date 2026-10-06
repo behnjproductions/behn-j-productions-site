@@ -299,6 +299,13 @@ async function route(request, env, url, path, ip) {
   /* ---------- photos ---------- */
   if (section === 'photo' && method === 'GET') {
     if (rest.length > 2 || (rest[1] && rest[1] !== 'download')) return json({ error: 'Introuvable' }, 404);
+    if (/^cover-[a-zA-Z0-9-]+$/.test(rest[0] || '')) {
+      const owner = await env.DB.prepare('SELECT * FROM collections WHERE cover_key = ?').bind(rest[0]).first();
+      if (!owner || rest.length !== 1) return new Response('Introuvable', { status: 404 });
+      if (!(await isAdmin(request, env))) return new Response('Accès refusé', { status: 403 });
+      const object = await env.BUCKET.get(`covers/${rest[0]}.jpg`);
+      return object ? new Response(object.body, { headers: { 'content-type': 'image/jpeg', 'cache-control': 'private, no-store' } }) : new Response('Introuvable', { status: 404 });
+    }
     const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[0]).first();
     if (!photo) return new Response('Introuvable', { status: 404 });
     let collection = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(photo.collection_id).first();
@@ -606,6 +613,17 @@ async function route(request, env, url, path, ip) {
         env.DB.prepare('DELETE FROM collections WHERE id = ?').bind(collection.id),
       ]);
       return json({ ok: true });
+    }
+
+    if (action === 'cover' && method === 'POST') {
+      const form = await request.formData();
+      const image = form.get('image');
+      if (!(image instanceof File) || image.type !== 'image/jpeg' || !image.size || image.size > 10 * 1024 * 1024) return json({ error: 'Choisissez une image JPEG de 10 Mo ou moins.' }, 400);
+      const cover = `cover-${id()}`;
+      await env.BUCKET.put(`covers/${cover}.jpg`, image.stream(), { httpMetadata: { contentType: 'image/jpeg' } });
+      await env.DB.prepare('UPDATE collections SET cover_key = ? WHERE id = ?').bind(cover, collection.id).run();
+      if (collection.cover_key?.startsWith('cover-')) await env.BUCKET.delete(`covers/${collection.cover_key}.jpg`);
+      return json({ collection: publicShape({ ...collection, cover_key: cover }) });
     }
 
     /* ---------- téléversement d'une photo ---------- */

@@ -99,3 +99,18 @@ test('school migration preserves legacy collections, photos and selections', () 
     }
   } finally { db.close(); }
 });
+
+test('uploaded collection cover stays separate from pupil photos and is admin-only', async t => {
+  const f = await school(t);
+  const uploadCover = () => { const body = new FormData(); body.append('image', new File(['cover-image'], 'cover.jpg', { type: 'image/jpeg' })); return f.admin(`/collections/${f.collection.slug}/cover`, 'POST', body); };
+  const first = await uploadCover().then(r => r.json());
+  assert.match(first.collection.cover, /^cover-/);
+  const data = await f.admin(`/collections/${f.collection.slug}`).then(r => r.json());
+  assert.equal(data.photos.length, 0);
+  assert.equal(data.collection.cover, first.collection.cover);
+  assert.equal((await f.request(`/photo/${first.collection.cover}`)).status, 403);
+  const image = await f.request(`/photo/${first.collection.cover}`, { headers: { 'x-bjp-token': f.token } });
+  assert.equal(image.status, 200); assert.equal(await image.text(), 'cover-image');
+  await uploadCover();
+  assert.equal((await f.request(`/photo/${first.collection.cover}`, { headers: { 'x-bjp-token': f.token } })).status, 404);
+});

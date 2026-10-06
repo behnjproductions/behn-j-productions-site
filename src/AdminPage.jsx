@@ -323,6 +323,7 @@ function Editor({ slug, onBack, onChanged }) {
   const [studentId, setStudentId] = useState(null);
   const [copied, copy] = useCopy();
   const inputRef = useRef({});
+  const coverInputRef = useRef(null);
   const uploadRef = useRef(false);
   const savingRef = useRef(false);
 
@@ -413,6 +414,21 @@ function Editor({ slug, onBack, onChanged }) {
     reload();
   }, [slug, reload, data, studentId]);
 
+  const uploadCover = async (file) => {
+    if (!file || uploadRef.current || savingRef.current) return;
+    const issue = downloadFileIssue(file);
+    if (issue) { setError(issue); return; }
+    savingRef.current = true; setSaving(true); setError('');
+    try {
+      const image = await prepareImage(file, THUMB_SIDE, 0.85);
+      const form = new FormData(); form.append('image', image.blob, 'cover.jpg');
+      const { collection } = await api(`/admin/collections/${slug}/cover`, { method: 'POST', body: form });
+      setData((d) => ({ ...d, collection: { ...d.collection, cover: collection.cover } }));
+      onChanged(collection);
+    } catch (err) { setError(err.message); }
+    finally { savingRef.current = false; setSaving(false); }
+  };
+
   const createSchoolEntity = async (kind, name) => {
     if (uploadRef.current || savingRef.current) return false;
     savingRef.current = true;
@@ -494,6 +510,13 @@ function Editor({ slug, onBack, onChanged }) {
             {c.hasPassword ? <><Lock size={14} /> protégée par mot de passe</> : school ? 'À transmettre uniquement à la famille de cet élève' : 'sans mot de passe'}
           </span>
         </div>}
+
+        <div className="adm-link">
+          {c.cover && <img src={photoUrl(c.cover)} alt="Photo de couverture" style={{ width: 96, height: 72, objectFit: 'cover' }} />}
+          <div><span className="adm-link__label">Photo de couverture de la collection</span><p className="adm-hint">Choisissez une image sur votre ordinateur.</p></div>
+          <button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={() => coverInputRef.current?.click()}><UploadSimple size={17} /> {saving ? 'Enregistrement…' : 'Choisir la couverture'}</button>
+          <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { uploadCover(e.target.files?.[0]); e.target.value = ''; }} />
+        </div>
 
         {school && <SchoolNavigator data={data} groupId={groupId} studentId={studentId} onGroup={setGroupId} onStudent={setStudentId} onCreate={createSchoolEntity} busy={Boolean(upload) || saving} />}
         {school && !student && data.photos.some((p) => !p.studentId) && <p className="adm-hint">Des photos anciennes sont conservées dans cette collection sans élève associé.</p>}

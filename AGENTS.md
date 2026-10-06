@@ -37,3 +37,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - October 1 collection categories: independent FULL SIZE, RÉSEAUX SOCIAUX and NOIR & BLANC uploads in one collection; no photo pairing required. Existing photos default to FULL SIZE. Preserve collection cover and favorites across category changes; downloads use the selected category.
 
 - October 6 school collections: École retains selection/download modes and uses collection → group → student → photos. Admin must offer back navigation to create more groups/students. Families receive an individual private student link that exposes only that student’s photos and selections.
+
+- Selection-mode admin shows one upload section, PHOTOS À SÉLECTIONNER, with all existing photos regardless of stored category. Download mode retains its three categories.

@@ -506,14 +506,14 @@ function Editor({ slug, onBack, onChanged }) {
 
         {(!school || student) && <><div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(visiblePhotos.length).padStart(2, '0')}</small></h2></div>{!school && <p><Star size={14} /> L’étoile définit la photo de couverture.</p>}</div>
 
-        {PHOTO_CATEGORIES.map((category) => <section key={category.id} className="adm-category" aria-label={category.label}>
-          <div className="adm-section-heading"><div><h2>{category.label} <small>{categoryPhotos(visiblePhotos, category.id).length}</small></h2><p>{category.description}</p></div></div>
+        {(downloadMode ? PHOTO_CATEGORIES : [{ id: 'full', label: 'PHOTOS À SÉLECTIONNER', description: 'Photos proposées au client pour faire son choix' }]).map((category) => <section key={category.id} className="adm-category" aria-label={category.label}>
+          <div className="adm-section-heading"><div><h2>{category.label} <small>{(downloadMode ? categoryPhotos(visiblePhotos, category.id) : visiblePhotos).length}</small></h2><p>{category.description}</p></div></div>
         <div className={`adm-drop ${dragging === category.id ? 'is-dragging' : ''}`}
           onDragOver={(e) => { e.preventDefault(); setDragging(category.id); }}
           onDragLeave={() => setDragging(false)}
           onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files, category.id); }}>
           <div className="adm-drop__icon"><UploadSimple size={26} weight="light" /></div>
-          <div className="adm-drop__copy"><p><strong>Ajoutez les images de cette histoire.</strong></p>
+          <div className="adm-drop__copy"><p><strong>{downloadMode ? 'Ajoutez les images de cette histoire.' : 'Ajoutez les photos à sélectionner.'}</strong></p>
           <p className="adm-hint">Fichiers finaux conservés sans réduction. JPEG, PNG ou WebP · 75 Mo maximum par photo.</p></div>
           <button className="adm-ghost" type="button" onClick={() => inputRef.current[category.id]?.click()} disabled={Boolean(upload) || saving}>
             <Plus size={17} /> Ajouter des photos
@@ -528,9 +528,9 @@ function Editor({ slug, onBack, onChanged }) {
           )}
         </div>
 
-        {categoryPhotos(visiblePhotos, category.id).length > 0 && (
+        {(downloadMode ? categoryPhotos(visiblePhotos, category.id) : visiblePhotos).length > 0 && (
           <div className="adm-photos">
-            {categoryPhotos(visiblePhotos, category.id).map((p, index) => (
+            {(downloadMode ? categoryPhotos(visiblePhotos, category.id) : visiblePhotos).map((p, index) => (
               <figure key={p.id} className={c.cover === p.id ? 'is-cover' : ''}>
                 <img src={photoUrl(p.id)} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
                 <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span></figcaption>

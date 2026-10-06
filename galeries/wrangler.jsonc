@@ -6,6 +6,7 @@
   "workers_dev": true,
   "observability": { "enabled": true },
   "vars": {
+    "PROOF_REQUIRED": "true",
     "SITE_ORIGIN": "https://behnjproductions.ca",
     "MAIL_TO": "contact@behnjphoto.com",
     "MAIL_FROM": "Galeries Behn J. <galeries@behnjphotos.ca>"

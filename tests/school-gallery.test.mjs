@@ -20,7 +20,13 @@ async function school(t, mode = 'selection') {
   };
   const upload = async (studentId, filename = 'portrait.jpg', target = collection.slug) => {
     const body = new FormData(); body.append('web', new File(['web'], 'web.jpg', { type: 'image/jpeg' })); body.append('original', new File(['original'], filename, { type: 'image/jpeg' })); body.append('filename', filename); if (studentId) body.append('studentId', studentId);
-    return admin(`/collections/${target}/photos`, 'POST', body);
+    const response = await admin(`/collections/${target}/photos`, 'POST', body);
+    if (response.ok && mode === 'selection') {
+      const { photo } = await response.clone().json();
+      const proof = new FormData(); proof.append('proof', new File(['watermarked-preview'], 'proof.jpg', { type: 'image/jpeg' }));
+      assert.equal((await admin(`/collections/${target}/proof/${photo.id}`, 'POST', proof)).status, 200);
+    }
+    return response;
   };
   return { ...f, admin, collection, group, students, upload, token: login.token };
 }
@@ -113,4 +119,18 @@ test('uploaded collection cover stays separate from pupil photos and is admin-on
   assert.equal(image.status, 200); assert.equal(await image.text(), 'cover-image');
   await uploadCover();
   assert.equal((await f.request(`/photo/${first.collection.cover}`, { headers: { 'x-bjp-token': f.token } })).status, 404);
+});
+
+ test('selection visitors receive only proofs, never original or clean web bytes', async t => {
+  const f = await school(t);
+  const { photo } = await f.upload(f.students[0].id).then(r => r.json());
+  await f.admin(`/collections/${f.collection.slug}`, 'PATCH', { status: 'publié' });
+  for (const size of ['web', 'thumb']) {
+    const response = await f.request(`/photo/${photo.id}?s=${size}&eleve=${f.students[0].slug}`);
+    assert.equal(response.status, 200); assert.equal(await response.text(), 'watermarked-preview');
+    assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  }
+  assert.equal((await f.request(`/photo/${photo.id}/download?eleve=${f.students[0].slug}&quality=original`)).status, 403);
+  await f.env.BUCKET.delete(`proofs/${photo.id}.jpg`);
+  assert.equal((await f.request(`/photo/${photo.id}?s=web&eleve=${f.students[0].slug}`)).status, 404);
 });

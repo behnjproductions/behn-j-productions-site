@@ -331,12 +331,13 @@ async function route(request, env, url, path, ip) {
     const downloadOriginal = quality !== 'social' && Boolean(photo.original_key);
     const key = download ? (downloadOriginal ? photo.original_key : photo.r2_key)
       : url.searchParams.get('s') === 'web' ? photo.r2_key : (photo.thumb_key || photo.r2_key);
-    const object = await env.BUCKET.get(key);
+    const protectedSelection = env.PROOF_REQUIRED === 'true' && collection.collection_type === 'school' && galleryMode(collection) !== 'download' && !(await isAdmin(request, env));
+    const object = await env.BUCKET.get(protectedSelection ? `proofs/${photo.id}.jpg` : key);
     if (!object) return new Response('Introuvable', { status: 404 });
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set('etag', object.httpEtag);
-    headers.set('cache-control', download ? 'private, no-store' : 'private, max-age=31536000, immutable');
+    headers.set('cache-control', download || protectedSelection ? 'private, no-store' : 'private, max-age=31536000, immutable');
     if (download) {
       headers.set('content-disposition', downloadDisposition(downloadOriginal ? photo : { ...photo, original_key: null }));
       headers.set('x-content-type-options', 'nosniff');
@@ -612,6 +613,15 @@ async function route(request, env, url, path, ip) {
         ] : []),
         env.DB.prepare('DELETE FROM collections WHERE id = ?').bind(collection.id),
       ]);
+      return json({ ok: true });
+    }
+
+    if (action === 'proof' && rest[3] && method === 'POST') {
+      const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[3]).first();
+      if (!photo || photo.collection_id !== collection.id) return json({ error: 'Photo introuvable.' }, 404);
+      const form = await request.formData(); const proof = form.get('proof');
+      if (!(proof instanceof File) || proof.type !== 'image/jpeg' || !proof.size || proof.size > 3 * 1024 * 1024) return json({ error: 'Aperçu JPEG invalide.' }, 400);
+      await env.BUCKET.put(`proofs/${photo.id}.jpg`, proof.stream(), { httpMetadata: { contentType: 'image/jpeg' } });
       return json({ ok: true });
     }
 

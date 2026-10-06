@@ -317,6 +317,7 @@ function Editor({ slug, onBack, onChanged }) {
   const [dragging, setDragging] = useState(false);
   const [upload, setUpload] = useState(null); // { done, total }
   const [saving, setSaving] = useState(false);
+  const [proofProgress, setProofProgress] = useState('');
   const [error, setError] = useState('');
   const [settings, setSettings] = useState(false);
   const [groupId, setGroupId] = useState(null);
@@ -393,7 +394,12 @@ function Editor({ slug, onBack, onChanged }) {
             : file;
           form.append('original', original, file.name);
         }
-        await api(`/admin/collections/${slug}/photos`, { method: 'POST', body: form });
+        const result = await api(`/admin/collections/${slug}/photos`, { method: 'POST', body: form });
+        if (data.collection.collectionType === 'school' && data.collection.mode !== 'download') {
+          const proof = await prepareImage(file, 1200, 0.78, true);
+          const proofForm = new FormData(); proofForm.append('proof', proof.blob, 'proof.jpg');
+          await api(`/admin/collections/${slug}/proof/${result.photo.id}`, { method: 'POST', body: proofForm });
+        }
       } catch (err) {
         setError(`${file.name} : ${err.message}`);
       }
@@ -413,6 +419,23 @@ function Editor({ slug, onBack, onChanged }) {
     setUpload(null);
     reload();
   }, [slug, reload, data, studentId]);
+
+  const protectPhotos = async () => {
+    if (uploadRef.current || savingRef.current) return;
+    savingRef.current = true; setSaving(true); setError('');
+    try {
+      for (let i = 0; i < data.photos.length; i++) {
+        const photo = data.photos[i]; setProofProgress(`${i + 1} / ${data.photos.length}`);
+        const response = await fetch(photoUrl(photo.id, 'web'), { credentials: 'include' });
+        if (!response.ok) throw new Error('Impossible de lire la photo.');
+        const proof = await prepareImage(await response.blob(), 1200, 0.78, true);
+        const form = new FormData(); form.append('proof', proof.blob, 'proof.jpg');
+        await api(`/admin/collections/${slug}/proof/${photo.id}`, { method: 'POST', body: form });
+      }
+      setProofProgress(`${data.photos.length} photos protégées`);
+    } catch (err) { setError(err.message); }
+    finally { savingRef.current = false; setSaving(false); }
+  };
 
   const uploadCover = async (file) => {
     if (!file || uploadRef.current || savingRef.current) return;
@@ -518,6 +541,7 @@ function Editor({ slug, onBack, onChanged }) {
           <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { uploadCover(e.target.files?.[0]); e.target.value = ''; }} />
         </div>
 
+        {school && !downloadMode && <div className="adm-link"><div><span className="adm-link__label">Protection des photos de sélection</span><p className="adm-hint">Barre rouge et texte incorporés. Les originaux restent conservés.</p><p role="status">{proofProgress}</p></div><button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={protectPhotos}>Protéger toutes les photos</button></div>}
         {school && <SchoolNavigator data={data} groupId={groupId} studentId={studentId} onGroup={setGroupId} onStudent={setStudentId} onCreate={createSchoolEntity} busy={Boolean(upload) || saving} />}
         {school && !student && data.photos.some((p) => !p.studentId) && <p className="adm-hint">Des photos anciennes sont conservées dans cette collection sans élève associé.</p>}
 

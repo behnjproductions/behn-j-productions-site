@@ -28,6 +28,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
   const current = photos[active] || photos[0];
   const cover = (gallery.photos || photos).find((photo) => photo.id === gallery.cover) || (gallery.photos || photos)[0];
   const downloadMode = gallery.mode === 'download';
+  const schoolSelection = gallery.collectionType === 'school' && !downloadMode;
   const visible = photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => downloadMode || !favoritesOnly || picks.has(photo.id));
   const maxPicks = gallery.maxPicks;
   const extraPrice = gallery.extraPrice ?? 25;
@@ -185,9 +186,9 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
 
     <main className="light-main" id="light-photographies" ref={gridRef}>
       {gallery.draft && <p className="light-package">Aperçu privé — cette galerie n’est pas encore publiée.</p>}
-      <nav className="light-categories" aria-label="Catégories de photos">
+      {!schoolSelection && <nav className="light-categories" aria-label="Catégories de photos">
         {PHOTO_CATEGORIES.map((item) => <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => onCategory?.(item.id)}>{item.label}<span>{categoryPhotos(gallery.photos || photos, item.id).length}</span></button>)}
-      </nav>
+      </nav>}
       <div className="light-collection-heading">
         <div><h2>{downloadMode ? 'Vos photos à télécharger' : favoritesOnly ? 'Mes favoris' : 'Photographies'}</h2><p>{downloadMode ? `${countLabel(photos.length)} · À conserver et à partager` : favoritesOnly ? `${countLabel(visible.length)} dans cette catégorie` : `${countLabel(photos.length)} · Vos souvenirs, à votre rythme`}</p></div>
         {downloadMode ? canDownload && photos.length > 0 && <button className="light-button light-download-all" type="button" onClick={() => openDownload('all')}><DownloadSimple size={19} weight="thin" /> Télécharger toutes les photos</button>
@@ -204,6 +205,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
           {downloadMode ? canDownload && <button className="light-photo__heart" type="button" onClick={() => { onActive(index); openDownload('single', photo); }} aria-label={`Télécharger la photo ${index + 1}`}><DownloadSimple size={22} weight="light" /></button>
             : <button className={`light-photo__heart${picks.has(photo.id) ? ' is-selected' : ''}`} type="button" disabled={selectionDisabled} onClick={() => onToggle(photo.id)}
               aria-label={`${picks.has(photo.id) ? 'Retirer' : 'Ajouter'} la photo ${index + 1} ${picks.has(photo.id) ? 'des' : 'aux'} favoris`} aria-pressed={picks.has(photo.id)}><Heart size={22} weight={picks.has(photo.id) ? 'fill' : 'light'} /></button>}
+          {schoolSelection && photo.filename && <span className="light-photo__code">Code : {photo.filename}</span>}
         </article>)}
       </div> : <div className="light-empty">
         {favoritesOnly ? <Heart size={35} weight="thin" /> : <ImageSquare size={35} weight="thin" />}
@@ -225,7 +227,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
     </aside>}
 
     {viewer && current && sent !== true && <Dialog className="light-overlay light-overlay--viewer" label={viewer === 'slideshow' ? 'Diaporama de votre galerie' : 'Photo agrandie'} onClose={closeViewer} onMove={move}>
-      <div className="light-viewer__top"><span>{gallery.client || gallery.title}</span><button className="light-icon" type="button" onClick={closeViewer} aria-label="Fermer la photo"><X size={27} weight="thin" /></button></div>
+      <div className="light-viewer__top"><span>{gallery.client || gallery.title}{schoolSelection && current.filename && <small style={{ display: 'block', marginTop: 4 }}>Code : {current.filename}</small>}</span><button className="light-icon" type="button" onClick={closeViewer} aria-label="Fermer la photo"><X size={27} weight="thin" /></button></div>
       <div className="light-viewer__image"><img src={photoUrl(current.id, 'web')} alt={`Photo ${active + 1} de ${gallery.client || gallery.title}`} /></div>
       <div className="light-viewer__controls">
         <button className="light-icon" type="button" onClick={() => move(-1)} disabled={photos.length < 2} aria-label="Photo précédente"><CaretLeft size={26} weight="thin" /></button>

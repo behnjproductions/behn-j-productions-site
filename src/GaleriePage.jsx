@@ -194,7 +194,7 @@ export function GaleriePage() {
       ? { name: employeeName, ids: [...picks], submitted: Boolean(sent) }
       : [...picks]));
   }, [picks, state, storeKey, employeeGallery, employeeName, sent, downloadMode]);
-  const photos = categoryPhotos(gallery?.photos || [], category);
+  const photos = gallery?.collectionType === 'school' && gallery.mode !== 'download' ? gallery.photos || [] : categoryPhotos(gallery?.photos || [], category);
   const current = photos[active];
   const maxPicks = gallery?.maxPicks;
   const extraPrice = gallery?.extraPrice ?? 25;

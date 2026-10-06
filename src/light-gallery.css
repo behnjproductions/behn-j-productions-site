@@ -203,3 +203,5 @@
 .light-categories button[aria-pressed="true"] { background:#9F1204; color:white; border-color:#9F1204; }
 .light-categories span { margin-left:12px; opacity:.7; }
 .light-categories button:focus-visible { outline:2px solid #FFB604; outline-offset:3px; }
+
+.light-photo__code { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 58px 12px 12px; color: white; background: linear-gradient(transparent,rgba(0,0,0,.8)); font: 600 12px/1.4 Inter,Arial,sans-serif; overflow-wrap: anywhere; pointer-events: none; }

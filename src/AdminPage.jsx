@@ -281,6 +281,37 @@ function NewCollection({ onCancel, onCreate }) {
 
 /* --------------------------------------------------------------- éditeur --- */
 
+function SchoolNavigator({ data, groupId, studentId, onGroup, onStudent, onCreate, busy }) {
+  const [name, setName] = useState('');
+  const group = data.groups?.find((g) => g.id === groupId);
+  const student = data.students?.find((s) => s.id === studentId);
+  const students = (data.students || []).filter((s) => s.groupId === groupId);
+  const create = async (event) => {
+    event.preventDefault();
+    if (await onCreate(group ? 'students' : 'groups', name)) setName('');
+  };
+  return <section className="adm-school" aria-label="Organisation scolaire">
+    <nav className="adm-school__breadcrumbs" aria-label="Navigation scolaire">
+      <button className="adm-back" type="button" disabled={busy} onClick={() => { onGroup(null); onStudent(null); setName(''); }}>Tous les groupes</button>
+      {group && <><span>›</span><button className="adm-back" type="button" disabled={busy} onClick={() => { onStudent(null); setName(''); }}>{group.name}</button></>}
+      {student && <><span>›</span><span>{student.name}</span></>}
+    </nav>
+    <div className="adm-section-heading"><div><p className="adm-eyebrow">École · {student ? 'Les photos de l’élève' : group ? 'Les élèves du groupe' : 'Les groupes de la collection'}</p><h2>{student?.name || group?.name || 'Les groupes'}</h2></div></div>
+    {student ? <button className="adm-ghost" type="button" disabled={busy} onClick={() => onStudent(null)}><CaretLeft size={17} /> Retour au groupe</button> : <>
+      <form className="adm-school__create adm-settings" onSubmit={create}>
+        <label>{group ? 'Nom de l’élève' : 'Nom du groupe'}<input value={name} onChange={(event) => setName(event.target.value)} maxLength={120} required disabled={busy} placeholder={group ? 'p. ex. : Ana Tremblay' : 'p. ex. : Groupe 101'} /></label>
+        <button className="adm-primary" type="submit" disabled={busy || !name.trim()}><Plus size={17} /> {group ? 'Créer un élève' : 'Créer un groupe'}</button>
+      </form>
+      <div className="adm-school__cards">
+        {(group ? students : data.groups || []).map((item) => <button className="adm-school__card" type="button" key={item.id} disabled={busy} onClick={() => { setName(''); group ? onStudent(item.id) : onGroup(item.id); }}>
+          <strong>{item.name}</strong><span>{group ? `${data.photos.filter((p) => p.studentId === item.id).length} photo${data.photos.filter((p) => p.studentId === item.id).length === 1 ? '' : 's'}` : `${(data.students || []).filter((s) => s.groupId === item.id).length} élèves`}</span><span>{group ? 'Ouvrir l’élève →' : 'Ouvrir le groupe →'}</span>
+        </button>)}
+      </div>
+      {(group ? students : data.groups || []).length === 0 && <p className="adm-hint">{group ? 'Créez le premier élève de ce groupe.' : 'Créez votre premier groupe, puis ajoutez ses élèves.'}</p>}
+    </>}
+  </section>;
+}
+
 function Editor({ slug, onBack, onChanged }) {
   const [data, setData] = useState(null);
   const [dragging, setDragging] = useState(false);
@@ -288,6 +319,8 @@ function Editor({ slug, onBack, onChanged }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [settings, setSettings] = useState(false);
+  const [groupId, setGroupId] = useState(null);
+  const [studentId, setStudentId] = useState(null);
   const [copied, copy] = useCopy();
   const inputRef = useRef({});
   const uploadRef = useRef(false);
@@ -313,6 +346,7 @@ function Editor({ slug, onBack, onChanged }) {
 
   const addFiles = useCallback(async (files, category = 'full') => {
     if (uploadRef.current || savingRef.current || !data) return;
+    if (data.collection.collectionType === 'school' && !studentId) { setError('Ouvrez un élève avant d’ajouter des photos.'); return; }
     const images = [...files];
     if (!images.length) return;
     const downloadMode = true; // Preserve supplied final files in every category.
@@ -342,6 +376,7 @@ function Editor({ slug, onBack, onChanged }) {
         const form = new FormData();
         form.append('filename', file.name);
         form.append('category', category);
+        if (data.collection.collectionType === 'school') form.append('studentId', studentId);
         form.append('width', String(web.width));
         form.append('height', String(web.height));
         form.append('web', web.blob, 'web.jpg');
@@ -376,7 +411,21 @@ function Editor({ slug, onBack, onChanged }) {
     uploadRef.current = false;
     setUpload(null);
     reload();
-  }, [slug, reload, data]);
+  }, [slug, reload, data, studentId]);
+
+  const createSchoolEntity = async (kind, name) => {
+    if (uploadRef.current || savingRef.current) return false;
+    savingRef.current = true;
+    setSaving(true); setError('');
+    try {
+      const result = await api(`/admin/collections/${slug}/${kind}`, { method: 'POST', body: JSON.stringify({ name: name.trim(), ...(kind === 'students' ? { groupId } : {}) }) });
+      await reload();
+      if (kind === 'groups') { setGroupId(result.group.id); setStudentId(null); }
+      else setStudentId(result.student.id);
+      return true;
+    } catch (err) { setError(err.message); return false; }
+    finally { savingRef.current = false; setSaving(false); }
+  };
 
   const removePhoto = async (photo) => {
     if (!window.confirm(`Retirer ${photo.filename || 'cette photo'} de la galerie?`)) return;
@@ -398,18 +447,21 @@ function Editor({ slug, onBack, onChanged }) {
   if (!data) return <p className="adm-empty">{error || 'Chargement…'}</p>;
 
   const c = data.collection;
-  const link = `${window.location.origin}/galerie/${c.slug}`;
+  const school = c.collectionType === 'school';
+  const student = data.students?.find((s) => s.id === studentId);
+  const visiblePhotos = school ? data.photos.filter((p) => p.studentId === studentId && studentId) : data.photos;
+  const link = `${window.location.origin}/galerie/${student?.slug || c.slug}`;
   const preview = new URLSearchParams(window.location.search).get('apercu') === 'clair' ? '?apercu=clair' : '';
   const downloadMode = c.mode === 'download';
-  const webPhotoCount = data.photos.filter((p) => p.downloadQuality !== 'original').length;
-  const selectionEntries = combineSelections(data.selections, c.slug === 'metal-7');
+  const webPhotoCount = visiblePhotos.filter((p) => p.downloadQuality !== 'original').length;
+  const selectionEntries = combineSelections(school ? data.selections.filter((s) => s.studentId === studentId && studentId) : data.selections, c.slug === 'metal-7');
 
   return (
     <div className="adm-editor">
       <div className="adm-editor__navigation">
         <button className="adm-back" type="button" onClick={() => onBack(false)}><CaretLeft size={18} /> Collections</button>
         <div className="adm-editor__actions">
-          <a className="adm-ghost" href={`/galerie/${c.slug}${preview}`} target="_blank" rel="noreferrer">Voir la galerie <ArrowUpRight size={17} /></a>
+          {(!school || student) && <a className="adm-ghost" href={`/galerie/${student?.slug || c.slug}${preview}`} target="_blank" rel="noreferrer">Voir la galerie <ArrowUpRight size={17} /></a>}
           <button className="adm-ghost" type="button" aria-expanded={settings} aria-controls="collection-settings" onClick={() => setSettings((s) => !s)}>Réglages</button>
           <button className="adm-primary" type="button" disabled={Boolean(upload) || saving}
             onClick={() => patch({ status: c.status === 'publié' ? 'brouillon' : 'publié' })}>
@@ -430,18 +482,21 @@ function Editor({ slug, onBack, onChanged }) {
 
       <div className="adm-editor__body">
         {/* Lien à envoyer au client */}
-        <div className="adm-link">
+        {(!school || student) && <div className="adm-link">
           <div>
-            <span className="adm-link__label">Lien à envoyer au client</span>
+            <span className="adm-link__label">{school ? 'Lien privé de cet élève' : 'Lien à envoyer au client'}</span>
             <code>{link}</code>
           </div>
           <button className="adm-ghost" type="button" onClick={() => copy(link, 'lien')}>
             {copied === 'lien' ? <><Check size={16} weight="bold" /> Copié</> : <><Copy size={16} /> Copier</>}
           </button>
           <span className="adm-link__lock">
-            {c.hasPassword ? <><Lock size={14} /> protégée par mot de passe</> : 'sans mot de passe'}
+            {c.hasPassword ? <><Lock size={14} /> protégée par mot de passe</> : school ? 'À transmettre uniquement à la famille de cet élève' : 'sans mot de passe'}
           </span>
-        </div>
+        </div>}
+
+        {school && <SchoolNavigator data={data} groupId={groupId} studentId={studentId} onGroup={setGroupId} onStudent={setStudentId} onCreate={createSchoolEntity} busy={Boolean(upload) || saving} />}
+        {school && !student && data.photos.some((p) => !p.studentId) && <p className="adm-hint">Des photos anciennes sont conservées dans cette collection sans élève associé.</p>}
 
         {settings && <Settings collection={c} onSave={patch} onDelete={removeCollection} disabled={Boolean(upload) || saving} webPhotoCount={webPhotoCount} />}
 
@@ -449,10 +504,10 @@ function Editor({ slug, onBack, onChanged }) {
 
         {selectionEntries.length > 0 && <Selection entries={selectionEntries} collection={c} copied={copied} copy={copy} />}
 
-        <div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(data.photos.length).padStart(2, '0')}</small></h2></div><p><Star size={14} /> L’étoile définit la photo de couverture.</p></div>
+        {(!school || student) && <><div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(visiblePhotos.length).padStart(2, '0')}</small></h2></div>{!school && <p><Star size={14} /> L’étoile définit la photo de couverture.</p>}</div>
 
         {PHOTO_CATEGORIES.map((category) => <section key={category.id} className="adm-category" aria-label={category.label}>
-          <div className="adm-section-heading"><div><h2>{category.label} <small>{categoryPhotos(data.photos, category.id).length}</small></h2><p>{category.description}</p></div></div>
+          <div className="adm-section-heading"><div><h2>{category.label} <small>{categoryPhotos(visiblePhotos, category.id).length}</small></h2><p>{category.description}</p></div></div>
         <div className={`adm-drop ${dragging === category.id ? 'is-dragging' : ''}`}
           onDragOver={(e) => { e.preventDefault(); setDragging(category.id); }}
           onDragLeave={() => setDragging(false)}
@@ -473,23 +528,23 @@ function Editor({ slug, onBack, onChanged }) {
           )}
         </div>
 
-        {categoryPhotos(data.photos, category.id).length > 0 && (
+        {categoryPhotos(visiblePhotos, category.id).length > 0 && (
           <div className="adm-photos">
-            {categoryPhotos(data.photos, category.id).map((p, index) => (
+            {categoryPhotos(visiblePhotos, category.id).map((p, index) => (
               <figure key={p.id} className={c.cover === p.id ? 'is-cover' : ''}>
                 <img src={photoUrl(p.id)} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
                 <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span></figcaption>
                 <button type="button" className="adm-photos__del" onClick={() => removePhoto(p)}
                   aria-label={`Retirer ${p.filename || 'la photo'}`}><X size={14} weight="bold" /></button>
-                <button type="button" className="adm-photos__cover" onClick={() => patch({ cover: p.id })}
+                {!school && <button type="button" className="adm-photos__cover" onClick={() => patch({ cover: p.id })}
                   aria-label={`Choisir ${p.filename || 'cette photo'} comme couverture`} aria-pressed={c.cover === p.id} title="Photo de couverture">
                   <Star size={14} weight={c.cover === p.id ? 'fill' : 'regular'} />
-                </button>
+                </button>}
               </figure>
             ))}
           </div>
         )}
-        </section>)}
+        </section>)}</>}
       </div>
     </div>
   );

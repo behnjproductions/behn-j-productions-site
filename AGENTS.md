@@ -35,3 +35,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - The About page includes a “Notre équipe” section after the founder story with Behn J. (directeur de production), Danysa Régis-Labbé (directrice adjointe), and Léon Nyeningabo (assistant photographe), using their supplied portraits.
 
 - October 1 collection categories: independent FULL SIZE, RÉSEAUX SOCIAUX and NOIR & BLANC uploads in one collection; no photo pairing required. Existing photos default to FULL SIZE. Preserve collection cover and favorites across category changes; downloads use the selected category.
+
+- October 6 school collections: École retains selection/download modes and uses collection → group → student → photos. Admin must offer back navigation to create more groups/students. Families receive an individual private student link that exposes only that student’s photos and selections.

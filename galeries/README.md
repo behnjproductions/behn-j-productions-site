@@ -126,3 +126,11 @@ Conserver la colonne lors d’un retour à l’ancienne version.
 ## Collections scolaires
 
 Appliquer une seule fois `migrations/0003_school_collections.sql` avant le déploiement. Le type `school` est indépendant du mode `selection` ou `download`; les collections existantes restent `standard`. Dans la création et les réglages, choisir École affiche les deux modes scolaires.
+
+## Groupes et élèves scolaires
+
+Appliquer `migrations/0004_school_groups_students.sql` une seule fois avant de publier le Worker et le formulaire. Les photos et les sélections existantes sont conservées; leurs nouveaux champs `student_id` restent NULL.
+
+Une collection École contient des groupes, puis des élèves. Les nouveaux téléversements scolaires exigent un élève appartenant à cette collection. Chaque élève dispose d’un lien aléatoire privé `/galerie/eleve-…`, limité à ses propres photos, téléchargements et sélections. Le mode, le forfait, le prix supplémentaire, le mot de passe facultatif et la publication sont hérités de la collection. Le lien général d’une école est réservé au photographe. Les liens individuels doivent être transmis uniquement à la famille concernée; toute personne possédant un lien peut l’utiliser lorsque la collection est publiée et sans mot de passe. Les sessions avec mot de passe sont propres à chaque élève.
+
+Le formulaire permet de créer plusieurs groupes, créer plusieurs élèves, revenir au groupe ou à la liste des groupes et téléverser les trois catégories dans chaque élève. Une école contenant des groupes ne peut pas être convertie en collection standard. Aucun effacement de groupes ou d’élèves n’est ajouté à cette étape.

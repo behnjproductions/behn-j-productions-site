@@ -324,3 +324,13 @@
 .admin-cinema .adm-session-title option { background:#171713; color:#e4dfd2; }
 
 .admin-cinema .adm-school-choice { margin-top:20px; padding:18px; border:1px solid var(--studio-line); }
+
+.admin-cinema .adm-school { display:grid; gap:24px; margin:28px 0; }
+.admin-cinema .adm-school__breadcrumbs { display:flex; align-items:center; flex-wrap:wrap; gap:14px; color:var(--studio-muted); }
+.admin-cinema .adm-school__create { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:16px; padding:22px; border:1px solid var(--studio-line); }
+.admin-cinema .adm-school__cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+.admin-cinema .adm-school__card { display:grid; gap:14px; padding:24px; background:var(--studio-panel); color:var(--studio-text); border:1px solid var(--studio-line); text-align:left; cursor:pointer; }
+.admin-cinema .adm-school__card strong { font:500 25px var(--studio-serif); }
+.admin-cinema .adm-school__card span { color:var(--studio-muted); font-size:13px; }
+.admin-cinema .adm-school__card:hover { border-color:#cfb98a; }
+@media(max-width:600px) { .admin-cinema .adm-school__create { grid-template-columns:1fr; } }

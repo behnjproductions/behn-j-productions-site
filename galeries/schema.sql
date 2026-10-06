@@ -17,9 +17,24 @@ CREATE TABLE IF NOT EXISTS collections (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS school_groups (
+  id TEXT PRIMARY KEY,
+  collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS school_students (
+  id TEXT PRIMARY KEY,
+  group_id TEXT NOT NULL REFERENCES school_groups(id) ON DELETE CASCADE,
+  link_key TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS photos (
   id TEXT PRIMARY KEY,
   collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+  student_id TEXT REFERENCES school_students(id),
   category TEXT NOT NULL DEFAULT 'full' CHECK (category IN ('full', 'social', 'bw')),
   r2_key TEXT NOT NULL,
   thumb_key TEXT,
@@ -32,6 +47,7 @@ CREATE TABLE IF NOT EXISTS photos (
 );
 
 CREATE TABLE IF NOT EXISTS selections (
+  student_id TEXT REFERENCES school_students(id),
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
   photo_ids TEXT NOT NULL,
@@ -52,3 +68,7 @@ CREATE TABLE IF NOT EXISTS login_attempts (
 CREATE INDEX IF NOT EXISTS idx_photos_collection ON photos(collection_id, position);
 CREATE INDEX IF NOT EXISTS idx_selections_collection ON selections(collection_id, submitted_at);
 CREATE INDEX IF NOT EXISTS idx_attempts ON login_attempts(scope, ip, at);
+
+CREATE INDEX IF NOT EXISTS school_groups_collection ON school_groups(collection_id);
+CREATE INDEX IF NOT EXISTS school_students_group ON school_students(group_id);
+CREATE INDEX IF NOT EXISTS photos_student ON photos(student_id);

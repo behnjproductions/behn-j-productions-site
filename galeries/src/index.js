@@ -165,20 +165,30 @@ const isAdmin = (request, env) => readToken(env.SESSION_SECRET, 'admin', tokenFr
 
 const galleryCookieName = (collectionId) => `bjp_g_${collectionId.slice(0, 12)}`;
 // Retire only Metal 7 sessions created before name collection at entry.
-const gallerySessionScope = (collection) => `g:${collection.id}${collection.slug === 'metal-7' ? ':named-v1' : ''}`;
+const gallerySessionScope = (collection) => `g:${collection.id}${collection.student_id ? ':student:' + collection.student_id : ''}${collection.slug === 'metal-7' ? ':named-v1' : ''}`;
 
 async function canSee(request, env, collection) {
   if (await isAdmin(request, env)) return true; // aperçu du photographe
   if (collection.status !== 'publié') return false;
+  if (collection.collection_type === 'school' && !collection.student_id) return false;
   if (!collection.password_hash) return true;
-  return readToken(env.SESSION_SECRET, gallerySessionScope(collection), tokenFrom(request, galleryCookieName(collection.id)));
+  return readToken(env.SESSION_SECRET, gallerySessionScope(collection), tokenFrom(request, galleryCookieName(collection.student_id || collection.id)));
 }
 
-const getCollection = (env, slug) => env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
+async function getCollection(env, slug) {
+  if (slug.startsWith('eleve-')) {
+    const student = await env.DB.prepare('SELECT s.id, s.name, s.link_key, g.name AS group_name, g.collection_id FROM school_students s JOIN school_groups g ON g.id = s.group_id WHERE s.link_key = ?').bind(slug.slice(6)).first();
+    if (!student) return null;
+    const parent = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(student.collection_id).first();
+    if (!parent || parent.collection_type !== 'school') return null;
+    return { ...parent, slug, client: student.name, title: student.group_name, cover_key: null, student_id: student.id };
+  }
+  return env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
+}
 
-const listPhotos = (env, collectionId) => env.DB
-  .prepare('SELECT id, filename, width, height, position, original_key, category FROM photos WHERE collection_id = ? ORDER BY position, created_at')
-  .bind(collectionId).all();
+const listPhotos = (env, collectionId, studentId = null) => env.DB
+  .prepare(`SELECT id, filename, width, height, position, original_key, category, student_id FROM photos WHERE collection_id = ?${studentId ? ' AND student_id = ?' : ''} ORDER BY position, created_at`)
+  .bind(...(studentId ? [collectionId, studentId] : [collectionId])).all();
 
 /* ------------------------------------------------------------------ courriel */
 
@@ -291,7 +301,13 @@ async function route(request, env, url, path, ip) {
     if (rest.length > 2 || (rest[1] && rest[1] !== 'download')) return json({ error: 'Introuvable' }, 404);
     const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[0]).first();
     if (!photo) return new Response('Introuvable', { status: 404 });
-    const collection = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(photo.collection_id).first();
+    let collection = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(photo.collection_id).first();
+    if (collection?.collection_type === 'school' && !(await isAdmin(request, env))) {
+      const studentSlug = url.searchParams.get('eleve') || '';
+      const scoped = studentSlug.startsWith('eleve-') ? await getCollection(env, studentSlug) : null;
+      if (!scoped || scoped.id !== collection.id || scoped.student_id !== photo.student_id) return new Response('Accès refusé', { status: 403 });
+      collection = scoped;
+    }
     if (!collection || !(await canSee(request, env, collection))) return new Response('Accès refusé', { status: 403 });
 
     const download = rest[1] === 'download';
@@ -326,6 +342,7 @@ async function route(request, env, url, path, ip) {
     const slug = rest[0];
     const collection = slug ? await getCollection(env, slug) : null;
     if (!collection) return json({ error: 'Galerie introuvable' }, 404);
+    if (collection.collection_type === 'school' && !collection.student_id && !(await isAdmin(request, env))) return json({ error: 'Utilisez le lien privé de votre élève.' }, 403);
 
     // Entrée par mot de passe
     if (rest[1] === 'session' && method === 'POST') {
@@ -343,7 +360,7 @@ async function route(request, env, url, path, ip) {
         return json({ error: 'Mot de passe incorrect.' }, 401);
       }
       const token = await makeToken(env.SESSION_SECRET, gallerySessionScope(collection), SESSION_HOURS);
-      return json({ ok: true, token }, 200, { 'set-cookie': setCookie(galleryCookieName(collection.id), token, SESSION_HOURS) });
+      return json({ ok: true, token }, 200, { 'set-cookie': setCookie(galleryCookieName(collection.student_id || collection.id), token, SESSION_HOURS) });
     }
 
     // Envoi de la sélection
@@ -358,16 +375,17 @@ async function route(request, env, url, path, ip) {
       const wanted = Array.isArray(body.photoIds) ? body.photoIds.slice(0, 500).map(String) : [];
       if (!wanted.length) return json({ error: 'Aucune photo choisie.' }, 400);
 
-      const { results: photos } = await listPhotos(env, collection.id);
+      const { results: photos } = await listPhotos(env, collection.id, collection.student_id);
       const chosen = photos.filter((p) => wanted.includes(p.id));
       if (!chosen.length) return json({ error: 'Photos introuvables.' }, 400);
+      if (collection.student_id && wanted.some((pid) => !chosen.some((p) => p.id === pid))) return json({ error: 'Ces photos n’appartiennent pas à cet élève.' }, 400);
 
       const note = String(body.note || '').slice(0, 2000);
       // La selection est enregistree d'abord : meme si le courriel echoue, le
       // choix du client n'est jamais perdu.
       const saved = await env.DB
-        .prepare('INSERT INTO selections (collection_id, photo_ids, note) VALUES (?, ?, ?)')
-        .bind(collection.id, JSON.stringify(chosen.map((p) => p.id)), note || null).run();
+        .prepare('INSERT INTO selections (collection_id, photo_ids, note, student_id) VALUES (?, ?, ?, ?)')
+        .bind(collection.id, JSON.stringify(chosen.map((p) => p.id)), note || null, collection.student_id || null).run();
       const emailStatus = await sendSelectionEmail(env, collection, chosen, note)
         .catch((error) => `erreur interne : ${String((error && error.message) || error)}`);
       const selectionId = saved?.meta?.last_row_id;
@@ -395,10 +413,10 @@ async function route(request, env, url, path, ip) {
         const exists = collection.status === 'publié';
         return json({ ...base, locked: true, exists }, exists ? 200 : 404);
       }
-      const { results: photos } = await listPhotos(env, collection.id);
+      const { results: photos } = await listPhotos(env, collection.id, collection.student_id);
       const last = await env.DB
-        .prepare('SELECT photo_ids, submitted_at FROM selections WHERE collection_id = ? ORDER BY id DESC LIMIT 1')
-        .bind(collection.id).first();
+        .prepare(`SELECT photo_ids, submitted_at FROM selections WHERE collection_id = ?${collection.student_id ? ' AND student_id = ?' : ''} ORDER BY id DESC LIMIT 1`)
+        .bind(...(collection.student_id ? [collection.id, collection.student_id] : [collection.id])).first();
       return json({
         ...base,
         locked: false,
@@ -483,22 +501,48 @@ async function route(request, env, url, path, ip) {
   /* ---------- une collection ---------- */
   if (rest[0] === 'collections' && rest[1]) {
     const collection = await getCollection(env, rest[1]);
+    if (collection?.student_id) return json({ error: 'Utilisez la collection scolaire pour administrer cet élève.' }, 400);
     if (!collection) return json({ error: 'Collection introuvable' }, 404);
     const action = rest[2];
 
+    if (action === 'groups' || action === 'students') {
+      if (collection.collection_type !== 'school') return json({ error: 'Cette collection n’est pas scolaire.' }, 400);
+      if (method !== 'POST') return json({ error: 'Méthode non permise.' }, 405);
+      const body = await request.json().catch(() => ({}));
+      const name = String(body.name || '').trim();
+      if (!name || name.length > 120) return json({ error: 'Indiquez un nom de 1 à 120 caractères.' }, 400);
+      const entityId = id();
+      if (action === 'groups') {
+        await env.DB.prepare('INSERT INTO school_groups (id, collection_id, name) VALUES (?, ?, ?)').bind(entityId, collection.id, name).run();
+        return json({ group: { id: entityId, name, collectionId: collection.id } }, 201);
+      }
+      const group = await env.DB.prepare('SELECT id FROM school_groups WHERE id = ? AND collection_id = ?').bind(String(body.groupId || ''), collection.id).first();
+      if (!group) return json({ error: 'Groupe introuvable dans cette collection.' }, 404);
+      const linkKey = crypto.randomUUID().replace(/-/g, '');
+      await env.DB.prepare('INSERT INTO school_students (id, group_id, name, link_key) VALUES (?, ?, ?, ?)').bind(entityId, group.id, name, linkKey).run();
+      return json({ student: { id: entityId, name, groupId: group.id, slug: `eleve-${linkKey}` } }, 201);
+    }
+
     if (!action && method === 'GET') {
-      const { results: photos } = await listPhotos(env, collection.id);
+      let groups = [], students = [];
+      if (collection.collection_type === 'school') {
+        groups = (await env.DB.prepare('SELECT id, name FROM school_groups WHERE collection_id = ? ORDER BY created_at, id').bind(collection.id).all()).results;
+        students = (await env.DB.prepare("SELECT s.id, s.name, 'eleve-' || s.link_key AS slug, s.group_id AS groupId FROM school_students s JOIN school_groups g ON g.id = s.group_id WHERE g.collection_id = ? ORDER BY s.created_at, s.id").bind(collection.id).all()).results;
+      }
+      const { results: photos } = await listPhotos(env, collection.id, collection.student_id);
       const { results: selections } = await env.DB
         .prepare('SELECT * FROM selections WHERE collection_id = ? ORDER BY id DESC LIMIT 500')
         .bind(collection.id).all();
       const byId = new Map(photos.map((p) => [p.id, p]));
       return json({
         collection: publicShape(collection),
-        photos: photos.map((p) => ({ id: p.id, category: p.category || 'full', filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
+        groups, students,
+        photos: photos.map((p) => ({ id: p.id, studentId: p.student_id || null, category: p.category || 'full', filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
         selections: selections.map((s) => {
           const ids = JSON.parse(s.photo_ids);
           return {
             at: s.submitted_at,
+            studentId: s.student_id || null,
             note: s.note,
             emailStatus: s.email_status || null,
             photos: ids.map((pid) => ({ id: pid, filename: byId.get(pid)?.filename || pid })),
@@ -519,6 +563,10 @@ async function route(request, env, url, path, ip) {
       if (body.title !== undefined) put('title', String(body.title).trim() || null);
       if (body.eventDate !== undefined) put('event_date', body.eventDate || null);
       if (body.mode !== undefined) put('mode', body.mode);
+      if (body.collectionType === 'standard' && collection.collection_type === 'school') {
+        const hasGroups = await env.DB.prepare('SELECT id FROM school_groups WHERE collection_id = ? LIMIT 1').bind(collection.id).first();
+        if (hasGroups) return json({ error: 'Cette collection contient des groupes scolaires et doit conserver le type École.' }, 409);
+      }
       if (body.collectionType !== undefined) put('collection_type', body.collectionType);
       if (body.maxPicks !== undefined) put('max_picks', Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null);
       if (body.extraPrice !== undefined) put('extra_price', Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25);
@@ -551,6 +599,10 @@ async function route(request, env, url, path, ip) {
       await env.DB.batch([
         env.DB.prepare('DELETE FROM selections WHERE collection_id = ?').bind(collection.id),
         env.DB.prepare('DELETE FROM photos WHERE collection_id = ?').bind(collection.id),
+        ...(collection.collection_type === 'school' ? [
+          env.DB.prepare('DELETE FROM school_students WHERE group_id IN (SELECT id FROM school_groups WHERE collection_id = ?)').bind(collection.id),
+          env.DB.prepare('DELETE FROM school_groups WHERE collection_id = ?').bind(collection.id),
+        ] : []),
         env.DB.prepare('DELETE FROM collections WHERE id = ?').bind(collection.id),
       ]);
       return json({ ok: true });
@@ -559,6 +611,12 @@ async function route(request, env, url, path, ip) {
     /* ---------- téléversement d'une photo ---------- */
     if (action === 'photos' && method === 'POST') {
       const form = await request.formData();
+      const studentId = form.get('studentId') || null;
+      if (collection.collection_type === 'school' && !studentId) return json({ error: 'Choisissez un élève avant d’ajouter des photos.' }, 400);
+      if (studentId) {
+        const student = await env.DB.prepare('SELECT s.id FROM school_students s JOIN school_groups g ON g.id = s.group_id WHERE s.id = ? AND g.collection_id = ?').bind(String(studentId), collection.id).first();
+        if (collection.collection_type !== 'school' || !student) return json({ error: 'Élève introuvable dans cette collection.' }, 400);
+      }
       const category = form.get('category') || 'full';
       if (!['full', 'social', 'bw'].includes(category)) return json({ error: 'Catégorie invalide.' }, 400);
       const web = form.get('web');
@@ -584,13 +642,13 @@ async function route(request, env, url, path, ip) {
 
       const next = await env.DB.prepare('SELECT COALESCE(MAX(position), 0) + 1 AS n FROM photos WHERE collection_id = ?')
         .bind(collection.id).first();
-      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key, category)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key, category, student_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
         .bind(photoId, collection.id, webKey, thumb instanceof File ? thumbKey : null,
           String(form.get('filename') || '').slice(0, 200) || null,
-          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey, category).run();
+          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey, category, studentId).run();
 
-      return json({ photo: { id: photoId, category, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
+      return json({ photo: { id: photoId, studentId, category, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
         downloadFilename: downloadFilename({ id: photoId, filename: form.get('filename'), original_key: originalKey }),
         downloadQuality: originalKey ? 'original' : 'web' } }, 201);
     }

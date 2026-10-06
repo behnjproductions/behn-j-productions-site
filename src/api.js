@@ -55,7 +55,9 @@ export async function api(path, options = {}) {
 
 export function photoUrl(photoId, size = 'thumb') {
   const token = active.token ? `&t=${encodeURIComponent(active.token)}` : '';
-  return `/api/photo/${photoId}?s=${size}${token}`;
+  const studentSlug = active.key?.startsWith('g:eleve-') ? active.key.slice(2) : '';
+  const student = studentSlug ? `&eleve=${encodeURIComponent(studentSlug)}` : '';
+  return `/api/photo/${photoId}?s=${size}${token}${student}`;
 }
 
 /**

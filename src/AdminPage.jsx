@@ -437,6 +437,16 @@ function Editor({ slug, onBack, onChanged }) {
     finally { savingRef.current = false; setSaving(false); }
   };
 
+  const verifyProofs = async () => {
+    if (uploadRef.current || savingRef.current) return;
+    savingRef.current = true; setSaving(true); setError('');
+    try {
+      const status = await api(`/admin/collections/${slug}/proof-status`);
+      setProofProgress(`${status.protected} / ${status.total} photos protégées · ${status.missing} manquante(s)`);
+    } catch (err) { setError(err.message); }
+    finally { savingRef.current = false; setSaving(false); }
+  };
+
   const uploadCover = async (file) => {
     if (!file || uploadRef.current || savingRef.current) return;
     const issue = downloadFileIssue(file);
@@ -541,7 +551,7 @@ function Editor({ slug, onBack, onChanged }) {
           <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(e) => { uploadCover(e.target.files?.[0]); e.target.value = ''; }} />
         </div>
 
-        {school && !downloadMode && <div className="adm-link"><div><span className="adm-link__label">Protection des photos de sélection</span><p className="adm-hint">Barre rouge et texte incorporés. Les originaux restent conservés.</p><p role="status">{proofProgress}</p></div><button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={protectPhotos}>Protéger toutes les photos</button></div>}
+        {school && !downloadMode && <div className="adm-link"><div><span className="adm-link__label">Protection des photos de sélection</span><p className="adm-hint">Barre rouge et texte incorporés. Les originaux restent conservés.</p><p role="status">{proofProgress}</p></div><button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={protectPhotos}>Protéger toutes les photos</button><button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={verifyProofs}>Vérifier la protection</button></div>}
         {school && <SchoolNavigator data={data} groupId={groupId} studentId={studentId} onGroup={setGroupId} onStudent={setStudentId} onCreate={createSchoolEntity} busy={Boolean(upload) || saving} />}
         {school && !student && data.photos.some((p) => !p.studentId) && <p className="adm-hint">Des photos anciennes sont conservées dans cette collection sans élève associé.</p>}
 
@@ -579,7 +589,7 @@ function Editor({ slug, onBack, onChanged }) {
           <div className="adm-photos">
             {(downloadMode ? categoryPhotos(visiblePhotos, category.id) : visiblePhotos).map((p, index) => (
               <figure key={p.id} className={c.cover === p.id ? 'is-cover' : ''}>
-                <img src={photoUrl(p.id)} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
+                <img src={photoUrl(p.id, school && !downloadMode ? 'proof' : 'thumb')} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
                 <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span></figcaption>
                 <button type="button" className="adm-photos__del" onClick={() => removePhoto(p)}
                   aria-label={`Retirer ${p.filename || 'la photo'}`}><X size={14} weight="bold" /></button>

@@ -253,6 +253,20 @@ async function sendSelectionEmail(env, collection, photos, note) {
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+async function countProtectedPhotos(env, photos) {
+  if (env.BUCKET.list) {
+    const keys = new Set(); let cursor;
+    do {
+      const page = await env.BUCKET.list({ prefix: 'proofs/', limit: 1000, ...(cursor ? { cursor } : {}) });
+      for (const item of page.objects) keys.add(item.key);
+      cursor = page.truncated ? page.cursor : undefined;
+    } while (cursor);
+    return photos.filter((p) => keys.has(`proofs/${p.id}.jpg`)).length;
+  }
+  const checks = await Promise.all(photos.map((p) => env.BUCKET.get(`proofs/${p.id}.jpg`)));
+  return checks.filter(Boolean).length;
+}
+
 /* ------------------------------------------------------------------ routes */
 
 export default {
@@ -332,7 +346,7 @@ async function route(request, env, url, path, ip) {
     const key = download ? (downloadOriginal ? photo.original_key : photo.r2_key)
       : url.searchParams.get('s') === 'web' ? photo.r2_key : (photo.thumb_key || photo.r2_key);
     const protectedSelection = env.PROOF_REQUIRED === 'true' && collection.collection_type === 'school' && galleryMode(collection) !== 'download' && !(await isAdmin(request, env));
-    const object = await env.BUCKET.get(protectedSelection ? `proofs/${photo.id}.jpg` : key);
+    const object = await env.BUCKET.get(protectedSelection || url.searchParams.get('s') === 'proof' ? `proofs/${photo.id}.jpg` : key);
     if (!object) return new Response('Introuvable', { status: 404 });
     const headers = new Headers();
     object.writeHttpMetadata(headers);
@@ -578,6 +592,10 @@ async function route(request, env, url, path, ip) {
       if (body.collectionType !== undefined) put('collection_type', body.collectionType);
       if (body.maxPicks !== undefined) put('max_picks', Number(body.maxPicks) > 0 ? Number(body.maxPicks) : null);
       if (body.extraPrice !== undefined) put('extra_price', Number(body.extraPrice) >= 0 ? Number(body.extraPrice) : 25);
+      if (env.PROOF_REQUIRED === 'true' && collection.collection_type === 'school' && (body.mode || galleryMode(collection)) !== 'download' && body.status === 'publié') {
+        const { results: photos } = await listPhotos(env, collection.id);
+        if (await countProtectedPhotos(env, photos) !== photos.length) return json({ error: 'Protégez toutes les photos avant de publier la galerie de sélection.' }, 409);
+      }
       if (body.status !== undefined) put('status', body.status === 'publié' ? 'publié' : 'brouillon');
       if (body.cover !== undefined) put('cover_key', body.cover || null);
       if (body.password !== undefined) {
@@ -600,9 +618,9 @@ async function route(request, env, url, path, ip) {
     }
 
     if (!action && method === 'DELETE') {
-      const { results: photos } = await env.DB.prepare('SELECT r2_key, thumb_key, original_key FROM photos WHERE collection_id = ?')
+      const { results: photos } = await env.DB.prepare('SELECT id, r2_key, thumb_key, original_key FROM photos WHERE collection_id = ?')
         .bind(collection.id).all();
-      const keys = photos.flatMap((p) => [p.r2_key, p.thumb_key, p.original_key]).filter(Boolean);
+      const keys = photos.flatMap((p) => [p.r2_key, p.thumb_key, p.original_key, `proofs/${p.id}.jpg`]).filter(Boolean);
       for (let i = 0; i < keys.length; i += 500) await env.BUCKET.delete(keys.slice(i, i + 500));
       await env.DB.batch([
         env.DB.prepare('DELETE FROM selections WHERE collection_id = ?').bind(collection.id),
@@ -614,6 +632,12 @@ async function route(request, env, url, path, ip) {
         env.DB.prepare('DELETE FROM collections WHERE id = ?').bind(collection.id),
       ]);
       return json({ ok: true });
+    }
+
+    if (action === 'proof-status' && method === 'GET') {
+      const { results: photos } = await listPhotos(env, collection.id);
+      const protectedCount = await countProtectedPhotos(env, photos);
+      return json({ total: photos.length, protected: protectedCount, missing: photos.length - protectedCount });
     }
 
     if (action === 'proof' && rest[3] && method === 'POST') {
@@ -686,7 +710,7 @@ async function route(request, env, url, path, ip) {
   if (rest[0] === 'photos' && rest[1] && method === 'DELETE') {
     const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[1]).first();
     if (!photo) return json({ error: 'Photo introuvable' }, 404);
-    await env.BUCKET.delete([photo.r2_key, photo.thumb_key, photo.original_key].filter(Boolean));
+    await env.BUCKET.delete([photo.r2_key, photo.thumb_key, photo.original_key, `proofs/${photo.id}.jpg`].filter(Boolean));
     await env.DB.prepare('DELETE FROM photos WHERE id = ?').bind(photo.id).run();
     await env.DB.prepare('UPDATE collections SET cover_key = NULL WHERE cover_key = ?').bind(photo.id).run();
     return json({ ok: true });

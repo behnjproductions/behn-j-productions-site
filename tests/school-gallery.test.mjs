@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { createGalleryFixture } from './helpers/galerie-fixture.mjs';
 
 async function school(t, mode = 'selection') {
-  const f = createGalleryFixture(); t.after(f.close);
+  const f = createGalleryFixture(); f.env.PROOF_REQUIRED = 'true'; t.after(f.close);
   const login = await f.request('/admin/session', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password: f.env.ADMIN_PASSWORD }) }).then(r => r.json());
   const admin = (path, method = 'GET', body) => f.request(`/admin${path}`, { method, headers: { 'x-bjp-token': login.token, ...(body instanceof FormData ? {} : { 'content-type': 'application/json' }) }, ...(body === undefined ? {} : { body: body instanceof FormData ? body : JSON.stringify(body) }) });
   const { collection } = await admin('/collections', 'POST', { client: 'École locale', collectionType: 'school', mode }).then(r => r.json());
@@ -133,4 +133,11 @@ test('uploaded collection cover stays separate from pupil photos and is admin-on
   assert.equal((await f.request(`/photo/${photo.id}/download?eleve=${f.students[0].slug}&quality=original`)).status, 403);
   await f.env.BUCKET.delete(`proofs/${photo.id}.jpg`);
   assert.equal((await f.request(`/photo/${photo.id}?s=web&eleve=${f.students[0].slug}`)).status, 404);
+});
+
+test('school selection cannot publish before its proof images exist', async t => {
+ const f = await school(t);
+ const { photo } = await f.upload(f.students[0].id).then(r => r.json());
+ await f.env.BUCKET.delete(`proofs/${photo.id}.jpg`);
+ assert.equal((await f.admin(`/collections/${f.collection.slug}`, 'PATCH', { status: 'publié' })).status, 409);
 });

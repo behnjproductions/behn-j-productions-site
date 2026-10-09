@@ -110,7 +110,7 @@ function LockScreen({ gallery, onOpen, collectName = false, requirePassword = tr
     <Masthead />
     <main className="cinema-portal">
       <div className="cinema-portal__intro">
-        {lightExperience && <img className="cinema-portal__image" src={/corpor/i.test(gallery.title || '') ? '/assets/photo-corporatif.jpg' : '/assets/photo-mariage.jpg'} alt="" fetchPriority="high" />}
+        {lightExperience && gallery.entranceCover && <img className="cinema-portal__image" src={gallery.entranceCover} alt="" fetchPriority="high" />}
         <div className="cinema-portal__caption">
         <p className="cinema-eyebrow">Un espace, juste pour vous</p>
         <h1>{displayName(gallery.client)}</h1>

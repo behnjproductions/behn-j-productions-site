@@ -408,3 +408,18 @@ test('uploaded standard cover follows publication and gallery authentication', a
   assert.equal((await f.request(`/photo/cover-custom?t=${session}`)).status,200);
   assert.equal((await f.request(`/photo/cover-custom?t=${token(f.env.SESSION_SECRET,'g:other')}`)).status,403);
 });
+
+test('entrance exposes only the chosen published standard cover before login', async t => {
+  const f=fixture(t);
+  f.sqlite.prepare("UPDATE collections SET cover_key='cover-picked', password_hash='locked' WHERE id='metal7'").run();
+  f.files.set('covers/cover-picked.jpg',{bytes:new TextEncoder().encode('cover-only'),type:'image/jpeg'});
+  const locked=await (await f.request('/galerie/metal-7')).json();
+  assert.equal(locked.locked,true);
+  assert.equal(locked.entranceCover,'/api/galerie/metal-7/cover');
+  assert.equal(locked.photos,undefined);
+  assert.equal(await (await f.request('/galerie/metal-7/cover')).text(),'cover-only');
+  assert.equal((await f.request('/photo/photo-1')).status,403);
+  assert.equal((await f.request('/galerie/metal-7/cover/download')).status,404);
+  f.sqlite.prepare("UPDATE collections SET status='brouillon' WHERE id='metal7'").run();
+  assert.equal((await f.request('/galerie/metal-7/cover')).status,404);
+});

@@ -369,6 +369,21 @@ async function route(request, env, url, path, ip) {
     if (!collection) return json({ error: 'Galerie introuvable' }, 404);
     if (collection.collection_type === 'school' && !collection.student_id && !(await isAdmin(request, env))) return json({ error: 'Utilisez le lien privé de votre élève.' }, 403);
 
+    // Only the deliberately chosen cover is visible before authentication.
+    if (rest[1] === 'cover' && rest.length === 2 && method === 'GET') {
+      if (collection.status !== 'publié' || collection.collection_type === 'school' || !collection.cover_key) return new Response('Introuvable', {status:404});
+      let key;
+      if (collection.cover_key.startsWith('cover-')) key = `covers/${collection.cover_key}.jpg`;
+      else {
+        const photo = await env.DB.prepare('SELECT r2_key FROM photos WHERE id = ? AND collection_id = ?').bind(collection.cover_key, collection.id).first();
+        key = photo?.r2_key;
+      }
+      if (!key) return new Response('Introuvable', {status:404});
+      const object = await env.BUCKET.get(key);
+      if (!object) return new Response('Introuvable', {status:404});
+      return new Response(object.body, {headers:{'content-type':object.httpMetadata?.contentType || 'image/jpeg','cache-control':'no-store'}});
+    }
+
     // Entrée par mot de passe
     if (rest[1] === 'session' && method === 'POST') {
       const scope = `g:${collection.id}`;
@@ -431,6 +446,7 @@ async function route(request, env, url, path, ip) {
         date: collection.event_date,
         collectionType: collection.collection_type || 'standard',
         mode: galleryMode(collection),
+        entranceCover: collection.status === 'publié' && collection.collection_type !== 'school' && collection.cover_key ? `/api/galerie/${encodeURIComponent(collection.slug)}/cover` : null,
         downloadsEnabled: galleryMode(collection) === 'download',
         maxPicks: collection.max_picks,
         extraPrice: collection.extra_price ?? 25,

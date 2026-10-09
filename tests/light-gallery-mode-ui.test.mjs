@@ -204,7 +204,7 @@ test('both all-photo entry points open the whole-gallery ZIP dialog', async () =
     await page.flush();
     await page.click(entryPoint === 'toolbar' ? page.label('Télécharger toutes les photos') : page.button('Télécharger toutes les photos'));
     assert.equal(page.radio('download-scope', 'all').props.checked, true);
-    assert.match(page.text(), /toutes les photos de la catégorie FULL SIZE dans un seul fichier ZIP/);
+    assert.match(page.text(), /toutes les photos de la catégorie FULL SIZE — RETOUCHE DE BASE dans un seul fichier ZIP/);
     assert.ok(page.button('Télécharger toutes les photos (.zip)'));
     assert.equal(page.requests.length, 0, 'opening the chooser does not start a transfer');
   }

@@ -674,7 +674,7 @@ async function route(request, env, url, path, ip) {
         if (collection.collection_type !== 'school' || !student) return json({ error: 'Élève introuvable dans cette collection.' }, 400);
       }
       const category = form.get('category') || 'full';
-      if (!['full', 'social', 'bw'].includes(category)) return json({ error: 'Catégorie invalide.' }, 400);
+      if (!['full', 'advanced', 'social', 'bw'].includes(category)) return json({ error: 'Catégorie invalide.' }, 400);
       const web = form.get('web');
       const thumb = form.get('thumb');
       const original = form.get('original');

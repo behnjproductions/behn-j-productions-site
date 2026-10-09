@@ -574,6 +574,7 @@ function Editor({ slug, onBack, onChanged }) {
 
         {selectionEntries.length > 0 && <Selection entries={selectionEntries} collection={c} copied={copied} copy={copy} />}
 
+        {data.downloads?.length > 0 && <section className="adm-category"><h2>Demandes de téléchargement</h2><p className="adm-hint">Ces demandes ne confirment pas l’enregistrement final sur l’appareil. Les courriels ne constituent pas une inscription promotionnelle.</p><div style={{overflowX:'auto'}}><table><thead><tr><th>Date</th><th>Courriel</th><th>Catégorie</th><th>Photos</th><th>Notification</th></tr></thead><tbody>{data.downloads.map(d=><tr key={d.id}><td>{d.created_at} UTC</td><td>{d.email}</td><td>{PHOTO_CATEGORIES.find(c=>c.id===d.category)?.label || d.category}</td><td>{JSON.parse(d.photo_ids).length}</td><td>{d.notification_status === 'accepted' ? 'Acceptée par le service de courriel' : 'Non envoyée'}</td></tr>)}</tbody></table></div></section>}
         {uploadResult && <p role="status">{uploadResult}</p>}
         {uploadFailures.length > 0 && <div className="adm-error" role="alert">
           {uploadFailures.map((failure, index) => <p key={index}>{failure.file.name} : {failure.message}{!failure.retryable && ' — Photo enregistrée. Utilisez Protéger toutes les photos pour réessayer la protection.'}</p>)}

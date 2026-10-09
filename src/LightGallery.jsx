@@ -2,6 +2,7 @@ import { PHOTO_CATEGORIES, categoryPhotos } from './gallery-categories.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowRight, CaretDown, CaretLeft, CaretRight, Check, Copy, DownloadSimple, Heart, ImageSquare, Pause, Play, ShareFat, ShoppingCart, Star, X } from '@phosphor-icons/react';
 import { archiveFilename, prepareGalleryDownload, preparePhotoDownload } from './gallery-downloads.js';
+import { api } from './api.js';
 import './light-gallery.css';
 
 const countLabel = (count) => `${count} photo${count > 1 ? 's' : ''}`;
@@ -20,6 +21,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
   const [downloadQuality, setDownloadQuality] = useState('social');
   const [downloadProgress, setDownloadProgress] = useState({ done: 0, total: 0 });
   const [downloadError, setDownloadError] = useState('');
+  const [downloadEmail, setDownloadEmail] = useState('');
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false);
   const gridRef = useRef(null);
   const downloadRequest = useRef(null);
@@ -108,6 +110,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
   };
   const downloadPhotos = async () => {
     if (!canDownload || !current || downloadRequest.current || downloadBusy) return;
+    if (gallery.downloadEmailRequired && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(downloadEmail.trim()))) { setDownloadState('failed'); setDownloadError('Indiquez un courriel valide.'); return; }
     const controller = new AbortController();
     downloadRequest.current = controller;
     const total = downloadScope === 'all' ? photos.length : 1;
@@ -116,6 +119,12 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
     try {
       let blob;
       let filename;
+      let downloadPhotoUrl = photoUrl;
+      const register = async () => {
+        if (!gallery.downloadEmailRequired) return;
+        const result = await api(`/galerie/${gallery.slug}/download-request`, {method:'POST',signal:controller.signal,body:JSON.stringify({email:downloadEmail,category,quality,photoIds:(downloadScope === 'all' ? photos : [current]).map(p=>p.id)})});
+        downloadPhotoUrl = (...args) => { const url=photoUrl(...args); return `${url}${url.includes('?') ? '&' : '?'}d=${encodeURIComponent(result.downloadId)}&dt=${encodeURIComponent(result.token)}`; };
+      };
       if (downloadScope === 'all') {
         filename = archiveFilename(`${gallery.slug}-${category}`, quality);
         let writable;
@@ -128,12 +137,14 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
           writable = await handle.createWritable();
           if (!isCurrentRequest()) { await writable.abort().catch(() => {}); return; }
         }
+        try { await register(); } catch (error) { if (writable) await writable.abort().catch(() => {}); throw error; }
         // Once passed in, the helper owns the destination's commit or abort.
-        blob = await prepareGalleryDownload({ photos, quality, photoUrl, signal: controller.signal, writable,
+        blob = await prepareGalleryDownload({ photos, quality, photoUrl: downloadPhotoUrl, signal: controller.signal, writable,
           onProgress: (progress) => { if (isCurrentRequest()) setDownloadProgress(progress); },
         });
       } else {
-        ({ blob, filename } = await preparePhotoDownload({ photo: current, quality, photoUrl, signal: controller.signal }));
+        await register();
+        ({ blob, filename } = await preparePhotoDownload({ photo: current, quality, photoUrl: downloadPhotoUrl, signal: controller.signal }));
       }
       if (!isCurrentRequest()) return;
       if (blob !== null) {
@@ -252,6 +263,10 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
       </> : <>
         <DownloadSimple className="light-panel__symbol" size={31} weight="thin" /><h2 id="light-panel-title">Vos photos, avec vous</h2>
         {canDownload && current ? <><p>{downloadScope === 'all' ? `Retrouvez toutes les photos de la catégorie ${PHOTO_CATEGORIES.find((item) => item.id === category)?.label || 'FULL SIZE'} dans un seul fichier ZIP.` : 'Enregistrez cette photo sur votre appareil pour la garder et la partager.'}</p>
+          {gallery.downloadEmailRequired && <div className="light-download-contact">
+            <label>Courriel<input type="email" autoComplete="email" maxLength={254} value={downloadEmail} disabled={downloadBusy} onChange={e=>setDownloadEmail(e.target.value)} required /></label>
+            <p>Votre courriel est transmis à Behn J. Productions pour enregistrer votre demande de téléchargement. Il ne vous inscrit pas à des communications promotionnelles.</p>
+          </div>}
           <fieldset className="light-download-scope" disabled={downloadBusy}>
             <legend>Photos à enregistrer</legend>
             <label><input type="radio" name="download-scope" value="all" checked={downloadScope === 'all'} onChange={() => setDownloadOptions('all')} /><span>Toutes les photos <small>({photos.length})</small></span></label>

@@ -73,3 +73,16 @@ CREATE INDEX IF NOT EXISTS idx_attempts ON login_attempts(scope, ip, at);
 CREATE INDEX IF NOT EXISTS school_groups_collection ON school_groups(collection_id);
 CREATE INDEX IF NOT EXISTS school_students_group ON school_students(group_id);
 CREATE INDEX IF NOT EXISTS photos_student ON photos(student_id);
+
+CREATE TABLE IF NOT EXISTS download_requests (
+ id TEXT PRIMARY KEY,
+ collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+ student_id TEXT,
+ email TEXT NOT NULL,
+ photo_ids TEXT NOT NULL,
+ category TEXT NOT NULL,
+ quality TEXT NOT NULL,
+ notification_status TEXT NOT NULL DEFAULT 'pending',
+ created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_download_requests_collection ON download_requests(collection_id, created_at);

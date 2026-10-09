@@ -423,3 +423,37 @@ test('entrance exposes only the chosen published standard cover before login', a
   f.sqlite.prepare("UPDATE collections SET status='brouillon' WHERE id='metal7'").run();
   assert.equal((await f.request('/galerie/metal-7/cover')).status,404);
 });
+
+test('download contact registration gates bytes and validates the selected photos', async t => {
+ const f=fixture(t); f.mode('download'); f.env.DOWNLOAD_EMAIL_REQUIRED='true';
+ assert.equal((await f.request('/photo/photo-1/download?quality=social')).status,403);
+ const request = body => f.request('/galerie/metal-7/download-request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+ const body={name:'Lorie',email:'lorie@example.com',category:'full',quality:'social',photoIds:['photo-1']};
+ assert.equal((await request({...body,email:'invalid'})).status,400);
+ assert.equal((await request({...body,photoIds:['foreign-photo']})).status,400);
+ const response=await request(body); assert.equal(response.status,201); const grant=await response.json();
+ assert.equal(f.sqlite.prepare('SELECT email FROM download_requests').get().email,'lorie@example.com');
+ assert.equal(grant.notificationStatus,'not_configured');
+ const query=`quality=social&d=${grant.downloadId}&dt=${encodeURIComponent(grant.token)}`;
+ assert.equal((await f.request(`/photo/photo-1/download?${query}`)).status,200);
+ assert.equal((await f.request(`/photo/photo-2/download?${query}`)).status,403);
+ assert.equal((await f.request(`/photo/photo-1/download?${query.replace('quality=social','quality=original')}`)).status,403);
+});
+
+test('download notification goes to the configured address and records provider acceptance', async t => {
+ const f=fixture(t); f.mode('download');
+ f.env.RESEND_API_KEY='test-only'; f.env.MAIL_FROM='Galeries <galeries@example.com>'; f.env.MAIL_TO='contact@behnjphoto.com';
+ const previous=globalThis.fetch; t.after(()=>{globalThis.fetch=previous;});
+ globalThis.fetch=async (url,options)=>{
+  assert.equal(url,'https://api.resend.com/emails');
+  const message=JSON.parse(options.body);
+  assert.deepEqual(message.to,['contact@behnjphoto.com']);
+  assert.match(message.text,/lorie@example.com/);
+  assert.match(message.text,/pas l’enregistrement final/);
+  return Response.json({id:'test-mail'});
+ };
+ const r=await f.request('/galerie/metal-7/download-request',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:'Lorie',email:'lorie@example.com',category:'full',quality:'social',photoIds:['photo-1']})});
+ assert.equal(r.status,201);
+ assert.equal((await r.json()).notificationStatus,'accepted');
+ assert.equal(f.sqlite.prepare('SELECT notification_status FROM download_requests').get().notification_status,'accepted');
+});

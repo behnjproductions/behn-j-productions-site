@@ -339,6 +339,13 @@ async function route(request, env, url, path, ip) {
       return json({ error: 'Le téléchargement n’est pas activé pour cette galerie.' }, 403);
     }
     const quality = download ? url.searchParams.get('quality') : null;
+    if (download && env.DOWNLOAD_EMAIL_REQUIRED === 'true' && !(await isAdmin(request, env))) {
+      const downloadId = url.searchParams.get('d') || '';
+      const record = downloadId ? await env.DB.prepare('SELECT * FROM download_requests WHERE id = ? AND collection_id = ?').bind(downloadId, collection.id).first() : null;
+      const signed = url.searchParams.get('dt') || '';
+      if (!record || !(await readToken(env.SESSION_SECRET, `download:${downloadId}`, signed)) || record.student_id !== (collection.student_id || null) || !JSON.parse(record.photo_ids).includes(photo.id) || record.quality !== (quality || 'original')) return json({error:'Indiquez votre nom et votre courriel avant de télécharger.'},403);
+    }
+
     if (quality !== null && quality !== 'original' && quality !== 'social') {
       return json({ error: 'Choisissez la qualité originale ou la version pour les réseaux sociaux.' }, 400);
     }
@@ -382,6 +389,30 @@ async function route(request, env, url, path, ip) {
       const object = await env.BUCKET.get(key);
       if (!object) return new Response('Introuvable', {status:404});
       return new Response(object.body, {headers:{'content-type':object.httpMetadata?.contentType || 'image/jpeg','cache-control':'no-store'}});
+    }
+
+    if (rest[1] === 'download-request' && rest.length === 2 && method === 'POST') {
+      if (!(await canSee(request, env, collection)) || galleryMode(collection) !== 'download') return json({error:'Accès refusé'},403);
+      const body = await request.json().catch(() => null);
+      const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({error:'Indiquez un courriel valide.'},400);
+      if (!['full','advanced','social','bw'].includes(body.category) || !['original','social'].includes(body.quality) || !Array.isArray(body.photoIds) || !body.photoIds.length || body.photoIds.length > 5000) return json({error:'Choisissez les photos à télécharger.'},400);
+      const {results: all} = await listPhotos(env,collection.id,collection.student_id);
+      const wanted = new Set(body.photoIds);
+      const chosen = all.filter(p => wanted.has(p.id) && (p.category || 'full') === body.category);
+      if (chosen.length !== wanted.size || (body.quality === 'original' && chosen.some(p => !p.original_key))) return json({error:'Photos indisponibles.'},400);
+      const downloadId = id();
+      await env.DB.prepare('INSERT INTO download_requests(id,collection_id,student_id,email,photo_ids,category,quality) VALUES (?,?,?,?,?,?,?)').bind(downloadId,collection.id,collection.student_id || null,email,JSON.stringify(chosen.map(p=>p.id)),body.category,body.quality).run();
+      let status = 'not_configured';
+      if (env.RESEND_API_KEY && env.MAIL_FROM && env.MAIL_TO) {
+        try {
+          const text = `Demande de téléchargement\nGalerie : ${collection.client} (${collection.slug})\nCourriel : ${email}\nCatégorie : ${body.category}\nQualité : ${body.quality}\nPhotos : ${chosen.map(p=>p.filename || p.id).join(', ')}\nCette notification confirme la demande, pas l’enregistrement final sur l’appareil.`;
+          const response = await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${env.RESEND_API_KEY}`,'content-type':'application/json','Idempotency-Key':`download-${downloadId}`},body:JSON.stringify({from:env.MAIL_FROM,to:[env.MAIL_TO],subject:`Téléchargement demandé — ${collection.client} (${chosen.length} photos)`,text})});
+          status = response.ok ? 'accepted' : 'failed';
+        } catch { status = 'failed'; }
+      }
+      await env.DB.prepare('UPDATE download_requests SET notification_status = ? WHERE id = ?').bind(status,downloadId).run();
+      return json({downloadId,token:await makeToken(env.SESSION_SECRET,`download:${downloadId}`,2),notificationStatus:status},201);
     }
 
     // Entrée par mot de passe
@@ -447,6 +478,7 @@ async function route(request, env, url, path, ip) {
         collectionType: collection.collection_type || 'standard',
         mode: galleryMode(collection),
         entranceCover: collection.status === 'publié' && collection.collection_type !== 'school' && collection.cover_key ? `/api/galerie/${encodeURIComponent(collection.slug)}/cover` : null,
+        downloadEmailRequired: env.DOWNLOAD_EMAIL_REQUIRED === 'true',
         downloadsEnabled: galleryMode(collection) === 'download',
         maxPicks: collection.max_picks,
         extraPrice: collection.extra_price ?? 25,
@@ -576,10 +608,11 @@ async function route(request, env, url, path, ip) {
       const { results: selections } = await env.DB
         .prepare('SELECT * FROM selections WHERE collection_id = ? ORDER BY id DESC LIMIT 500')
         .bind(collection.id).all();
+      const downloads = env.DOWNLOAD_EMAIL_REQUIRED === 'true' ? (await env.DB.prepare('SELECT id,email,category,quality,notification_status,created_at,photo_ids FROM download_requests WHERE collection_id = ? ORDER BY created_at DESC LIMIT 500').bind(collection.id).all()).results : [];
       const byId = new Map(photos.map((p) => [p.id, p]));
       return json({
         collection: publicShape(collection),
-        groups, students,
+        groups, students, downloads,
         photos: photos.map((p) => ({ id: p.id, studentId: p.student_id || null, category: p.category || 'full', filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
         selections: selections.map((s) => {
           const ids = JSON.parse(s.photo_ids);

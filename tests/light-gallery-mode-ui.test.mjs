@@ -15,7 +15,7 @@ const photos = [
   { id: 'photo-2', filename: 'famille.jpg', downloadFilename: 'famille-web.jpg', downloadQuality: 'web' },
 ];
 
-function createGallery({ mode, downloadsEnabled, sent = false, photoList = photos, failDownload = false, prepareGallery, showSaveFilePicker, cover } = {}) {
+function createGallery({ mode, downloadsEnabled, sent = false, photoList = photos, failDownload = false, prepareGallery, showSaveFilePicker, cover, downloadEmailRequired = false } = {}) {
   const slots = [], requests = [], downloads = [], copied = [], toggled = [];
   let cursor = 0, dirty = true, effects = [], tree, submitted = 0;
   const changed = (before, after) => !before || !after || before.length !== after.length || after.some((value, index) => !Object.is(value, before[index]));
@@ -44,7 +44,7 @@ function createGallery({ mode, downloadsEnabled, sent = false, photoList = photo
   };
   const props = {
     category: 'full', onCategory: (category) => { props.category = category; props.photos = categories.categoryPhotos(photoList, category); props.active = 0; dirty = true; },
-    gallery: { cover, photos: photoList, slug: 'metal-7', client: 'Métal 7', mode, downloadsEnabled, maxPicks: 1, extraPrice: 25 },
+    gallery: { downloadEmailRequired, cover, photos: photoList, slug: 'metal-7', client: 'Métal 7', mode, downloadsEnabled, maxPicks: 1, extraPrice: 25 },
     photos: photoList, picks: new Set(photoList.map((photo) => photo.id)), active: 0,
     onActive: (index) => { props.active = index; dirty = true; },
     onToggle: (id) => toggled.push(id), onSend: () => { submitted += 1; },
@@ -92,6 +92,7 @@ function createGallery({ mode, downloadsEnabled, sent = false, photoList = photo
           return options.writable ? null : new Blob(['zip-fixture']);
         },
       };
+      if (name === './api.js') return {api: async () => ({downloadId:'test-download',token:'test-token'})};
       throw new Error(`Unexpected dependency: ${name}`);
     },
   });
@@ -372,4 +373,13 @@ test('uploaded cover is used for the main image instead of the first collection 
   await page.flush();
   const image = page.all(node => node.props?.className === 'light-cover__photo')[0];
   assert.match(image.props.src, /cover-custom/);
+});
+
+test('download email gate prevents preparing files when contact details are missing', async () => {
+ const page=createGallery({mode:'download',downloadsEnabled:true,downloadEmailRequired:true});
+ await page.flush();
+ await page.click(page.label('Télécharger toutes les photos'));
+ await page.click(page.button('Télécharger toutes les photos (.zip)'));
+ assert.equal(page.requests.length,0);
+ assert.match(page.text(),/Indiquez un courriel valide/);
 });

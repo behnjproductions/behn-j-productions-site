@@ -205,3 +205,41 @@
 .light-categories button:focus-visible { outline:2px solid #FFB604; outline-offset:3px; }
 
 .light-photo__code { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 58px 12px 12px; color: white; background: linear-gradient(transparent,rgba(0,0,0,.8)); font: 600 12px/1.4 Inter,Arial,sans-serif; overflow-wrap: anywhere; pointer-events: none; }
+
+/* Private entrance inspired by the approved ivory photographic reference. */
+.cinema-gallery--luxury { background:#f4f0e9; color:#29251f; }
+.cinema-gallery--luxury .cinema-masthead { background:#f4f0e9; border-bottom:0; }
+.cinema-gallery--luxury .cinema-portal { display:block; max-width:none; padding:0; }
+.cinema-gallery--luxury .cinema-portal__intro { position:relative; min-height:440px; display:flex; align-items:flex-end; padding:58px max(7vw,24px); overflow:hidden; isolation:isolate; background:#302b25; }
+.cinema-portal__image { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 38%; z-index:-2; filter:brightness(.58) saturate(.65); }
+.cinema-portal__caption { position:relative; }
+.cinema-gallery--luxury .cinema-portal__intro h1 { color:#fffaf1; font-size:clamp(46px,7vw,86px); line-height:1; margin:20px 0 14px; }
+.cinema-gallery--luxury .cinema-portal__intro .cinema-eyebrow { color:#eee6d8; font-size:10px; letter-spacing:.24em; }
+.cinema-gallery--luxury .cinema-tagline { color:#fffaf1; font-size:28px; }
+.cinema-gallery--luxury .cinema-access { border:0; max-width:620px; margin:auto; padding:38px 30px 34px; }
+.cinema-gallery--luxury .cinema-access > svg { color:#514539; width:24px; height:24px; }
+.cinema-gallery--luxury .cinema-access h2 { font-size:29px; text-transform:uppercase; letter-spacing:.07em; line-height:1.25; margin:15px 0; }
+.cinema-gallery--luxury .cinema-access > p { font-size:14px; line-height:1.65; color:#79736b; }
+.cinema-gallery--luxury .cinema-field { margin-top:23px; }
+.cinema-gallery--luxury .cinema-field > span { color:#504a42; font-size:10px; letter-spacing:.2em; }
+.cinema-gallery--luxury .cinema-field input { background:transparent; border:1px solid #a49b8d; color:#29251f; min-height:50px; font-size:16px; padding:13px 45px 13px 15px; }
+.cinema-password { position:relative; }
+.cinema-password input { width:100%; box-sizing:border-box; }
+.cinema-password__toggle { position:absolute; right:10px; top:50%; transform:translateY(-50%); display:grid; place-items:center; border:0; background:transparent; color:#726654; width:32px; height:40px; cursor:pointer; }
+.cinema-gallery--luxury .cinema-send { background:#29251f; color:#ddc59a; font-size:11px; letter-spacing:.18em; min-height:54px; margin-top:18px; }
+.cinema-gallery--luxury .cinema-send:disabled { opacity:.6; }
+.cinema-gallery--luxury .cinema-access .cinema-access__help { font-size:11px; margin:18px 0; }
+.cinema-access__signature { text-align:center; margin:27px 0 0; color:#83715b; }
+.cinema-access__signature span { display:block; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:30px; line-height:.95; }
+.cinema-access__signature small { display:block; font-size:8px; letter-spacing:.3em; margin-top:22px; }
+@media(min-width:900px) { .cinema-gallery--luxury .cinema-portal { display:grid; grid-template-columns:1.1fr 1fr; min-height:calc(100svh - 90px); } .cinema-gallery--luxury .cinema-portal__intro { min-height:100%; } .cinema-gallery--luxury .cinema-access { width:100%; box-sizing:border-box; padding:45px 65px; } }
+@media(max-width:600px) { .cinema-gallery--luxury .cinema-portal__intro { min-height:300px; padding:28px 25px; } .cinema-gallery--luxury .cinema-portal__intro h1 { font-size:48px; } .cinema-gallery--luxury .cinema-tagline { font-size:24px; } .cinema-gallery--luxury .cinema-access { padding:27px 25px; } .cinema-gallery--luxury .cinema-access h2 { font-size:26px; } }
+.cinema-gallery.cinema-gallery--light-portal.cinema-gallery--luxury { background:#f4f0e9; --cinema-ink:#f4f0e9; }
+.cinema-gallery--luxury .cinema-send:disabled { background:#29251f; border-color:#29251f; color:#ddc59a; opacity:.65; }
+.cinema-gallery--luxury .cinema-send:hover:not(:disabled) { background:#3d352c; border-color:#3d352c; color:#f2dfbb; }
+.cinema-gallery--luxury .cinema-field input:focus { border-color:#a28a64; box-shadow:0 0 0 1px #a28a64; }
+.cinema-gallery--luxury .cinema-portal__intro .cinema-eyebrow::before { display:none; }
+/* Brand red on the private gallery's primary action. */
+.cinema-gallery--luxury .cinema-send,
+.cinema-gallery--luxury .cinema-send:disabled { background:#B12201; border-color:#B12201; color:#fffaf1; }
+.cinema-gallery--luxury .cinema-send:hover:not(:disabled) { background:#901B01; border-color:#901B01; color:#fffaf1; }

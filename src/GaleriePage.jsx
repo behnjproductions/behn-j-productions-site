@@ -1,6 +1,6 @@
 import { categoryPhotos, photoCategory } from './gallery-categories.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, ArrowsOut, CaretLeft, CaretRight, Check, Heart, ImageSquare, Lock, Star, X } from '@phosphor-icons/react';
+import { ArrowRight, ArrowsOut, CaretLeft, CaretRight, Check, Heart, ImageSquare, Lock, Star, X, Eye, EyeSlash } from '@phosphor-icons/react';
 import { BRAND } from './brand.js';
 import { api, photoUrl, saveSession, useSession } from './api.js';
 import './galerie-cinema.css';
@@ -85,6 +85,7 @@ function CinemaDialog({ children, onClose, onMove, labelledBy, label, className 
 
 function LockScreen({ gallery, onOpen, collectName = false, requirePassword = true, initialName = '', lightExperience = false }) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState(initialName);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -105,13 +106,16 @@ function LockScreen({ gallery, onOpen, collectName = false, requirePassword = tr
     } catch (err) { setError(err.message); }
     finally { setBusy(false); }
   };
-  return <div className={`cinema-gallery cinema-gallery--portal${lightExperience ? ' cinema-gallery--light-portal' : ''}`}>
+  return <div className={`cinema-gallery cinema-gallery--portal${lightExperience ? ' cinema-gallery--light-portal cinema-gallery--luxury' : ''}`}>
     <Masthead />
     <main className="cinema-portal">
       <div className="cinema-portal__intro">
+        {lightExperience && <img className="cinema-portal__image" src={/corpor/i.test(gallery.title || '') ? '/assets/photo-corporatif.jpg' : '/assets/photo-mariage.jpg'} alt="" fetchPriority="high" />}
+        <div className="cinema-portal__caption">
         <p className="cinema-eyebrow">Un espace, juste pour vous</p>
         <h1>{displayName(gallery.client)}</h1>
         <p className="cinema-tagline">Chaque détail compte</p>
+        </div>
       </div>
       <form className="cinema-access" onSubmit={submit}>
         <Lock size={28} weight="light" aria-hidden="true" />
@@ -126,13 +130,15 @@ function LockScreen({ gallery, onOpen, collectName = false, requirePassword = tr
             value={name} disabled={busy} onChange={(event) => setName(event.target.value)} />
         </label>}
         {requirePassword && <label className="cinema-field"><span>Mot de passe</span>
-          <input type="password" value={password} disabled={busy} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required autoFocus={!collectName} />
+          <div className="cinema-password"><input type={showPassword ? 'text' : 'password'} placeholder="Votre mot de passe" value={password} disabled={busy} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" required autoFocus={!collectName} />
+          <button type="button" className="cinema-password__toggle" aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} onClick={() => setShowPassword(value => !value)}>{showPassword ? <EyeSlash size={21} /> : <Eye size={21} />}</button></div>
         </label>}
         {error && <p className="cinema-error" role="alert">{error}</p>}
         <button className="cinema-send" type="submit" disabled={busy || (requirePassword && !password) || (collectName && !name.trim())}>
           {busy ? 'Vérification…' : <>Ouvrir ma galerie <ArrowRight size={22} weight="light" /></>}
         </button>
         {requirePassword && <p className="cinema-access__help">Mot de passe égaré? <a href={GALLERY_CONTACT_URL}>Écrivez-nous</a> · <a href={BRAND.phoneHref}>{BRAND.phone}</a></p>}
+        {lightExperience && <div className="cinema-access__signature"><span>Chaque détail compte</span><small>BEHN J. PRODUCTIONS</small></div>}
       </form>
     </main>
   </div>;

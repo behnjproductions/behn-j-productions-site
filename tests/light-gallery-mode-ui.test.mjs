@@ -15,7 +15,7 @@ const photos = [
   { id: 'photo-2', filename: 'famille.jpg', downloadFilename: 'famille-web.jpg', downloadQuality: 'web' },
 ];
 
-function createGallery({ mode, downloadsEnabled, sent = false, photoList = photos, failDownload = false, prepareGallery, showSaveFilePicker } = {}) {
+function createGallery({ mode, downloadsEnabled, sent = false, photoList = photos, failDownload = false, prepareGallery, showSaveFilePicker, cover } = {}) {
   const slots = [], requests = [], downloads = [], copied = [], toggled = [];
   let cursor = 0, dirty = true, effects = [], tree, submitted = 0;
   const changed = (before, after) => !before || !after || before.length !== after.length || after.some((value, index) => !Object.is(value, before[index]));
@@ -44,7 +44,7 @@ function createGallery({ mode, downloadsEnabled, sent = false, photoList = photo
   };
   const props = {
     category: 'full', onCategory: (category) => { props.category = category; props.photos = categories.categoryPhotos(photoList, category); props.active = 0; dirty = true; },
-    gallery: { photos: photoList, slug: 'metal-7', client: 'Métal 7', mode, downloadsEnabled, maxPicks: 1, extraPrice: 25 },
+    gallery: { cover, photos: photoList, slug: 'metal-7', client: 'Métal 7', mode, downloadsEnabled, maxPicks: 1, extraPrice: 25 },
     photos: photoList, picks: new Set(photoList.map((photo) => photo.id)), active: 0,
     onActive: (index) => { props.active = index; dirty = true; },
     onToggle: (id) => toggled.push(id), onSend: () => { submitted += 1; },
@@ -365,4 +365,11 @@ test('category controls keep the collection cover and download only the selected
   assert.match(page.downloads[0].filename, /bw-original.zip$/);
   const cover = page.all((node) => node.props?.className === 'light-cover__photo')[0];
   assert.match(cover.props.src, /photo-1/);
+});
+
+test('uploaded cover is used for the main image instead of the first collection photo', async () => {
+  const page = createGallery({mode: 'download', downloadsEnabled: true, cover: 'cover-custom'});
+  await page.flush();
+  const image = page.all(node => node.props?.className === 'light-cover__photo')[0];
+  assert.match(image.props.src, /cover-custom/);
 });

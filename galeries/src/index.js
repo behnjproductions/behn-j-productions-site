@@ -318,7 +318,8 @@ async function route(request, env, url, path, ip) {
     if (/^cover-[a-zA-Z0-9-]+$/.test(rest[0] || '')) {
       const owner = await env.DB.prepare('SELECT * FROM collections WHERE cover_key = ?').bind(rest[0]).first();
       if (!owner || rest.length !== 1) return new Response('Introuvable', { status: 404 });
-      if (!(await isAdmin(request, env))) return new Response('Accès refusé', { status: 403 });
+      const admin = await isAdmin(request, env);
+      if (!admin && (owner.collection_type === 'school' || !(await canSee(request, env, owner)))) return new Response('Accès refusé', { status: 403 });
       const object = await env.BUCKET.get(`covers/${rest[0]}.jpg`);
       return object ? new Response(object.body, { headers: { 'content-type': 'image/jpeg', 'cache-control': 'private, no-store' } }) : new Response('Introuvable', { status: 404 });
     }

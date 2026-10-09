@@ -27,6 +27,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
   const downloadTimer = useRef(null);
   const current = photos[active] || photos[0];
   const cover = (gallery.photos || photos).find((photo) => photo.id === gallery.cover) || (gallery.photos || photos)[0];
+  const coverId = gallery.cover?.startsWith('cover-') ? gallery.cover : cover?.id;
   const downloadMode = gallery.mode === 'download';
   const schoolSelection = gallery.collectionType === 'school' && !downloadMode;
   const visible = photos.map((photo, index) => ({ photo, index })).filter(({ photo }) => downloadMode || !favoritesOnly || picks.has(photo.id));
@@ -158,7 +159,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
 
   return <div className={`light-gallery${downloadMode ? ' light-gallery--download' : picks.size ? ' light-gallery--has-selection' : ''}`}>
     <section className="light-cover" aria-labelledby="light-gallery-title">
-      {cover && <img className="light-cover__photo" src={photoUrl(cover.id, 'web')} alt="" fetchPriority="high" />}
+      {coverId && <img className="light-cover__photo" src={photoUrl(coverId, 'web')} alt="" fetchPriority="high" />}
       <div className="light-cover__brand">Behn J. Productions</div>
       <div className="light-cover__title">
         <p>{downloadMode ? 'Vos photos sont prêtes' : 'Votre galerie privée'}</p>

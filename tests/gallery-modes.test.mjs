@@ -396,3 +396,15 @@ test('school collections retain their type independently of selection and downlo
   assert.equal((await f.admin('/collections', 'POST', { client: 'Invalid', collectionType: 'unknown' })).status, 400);
   f.unchanged();
 });
+
+test('uploaded standard cover follows publication and gallery authentication', async t => {
+  const f = fixture(t);
+  f.sqlite.prepare("UPDATE collections SET cover_key='cover-custom', status='brouillon', password_hash='locked' WHERE id='metal7'").run();
+  f.files.set('covers/cover-custom.jpg', {bytes:new TextEncoder().encode('chosen-cover'),type:'image/jpeg'});
+  assert.equal((await f.request('/photo/cover-custom')).status,403);
+  f.sqlite.prepare("UPDATE collections SET status='publié' WHERE id='metal7'").run();
+  assert.equal((await f.request('/photo/cover-custom')).status,403);
+  const session = token(f.env.SESSION_SECRET, 'g:metal7:named-v1');
+  assert.equal((await f.request(`/photo/cover-custom?t=${session}`)).status,200);
+  assert.equal((await f.request(`/photo/cover-custom?t=${token(f.env.SESSION_SECRET,'g:other')}`)).status,403);
+});

@@ -33,3 +33,20 @@ test('local uploads and ordinary API requests retain the same-origin route', asy
   try { await api('/admin/collections/test/photos', { method: 'POST', body: new FormData() }); }
   finally { globalThis.window = previousWindow; globalThis.fetch = previousFetch; }
 });
+
+test('high-resolution cover bypasses the proxy and retains the supplied JPEG bytes', async () => {
+  const previousWindow = globalThis.window;
+  const previousFetch = globalThis.fetch;
+  globalThis.window = { location: { hostname: 'behnjproductions.ca' }, localStorage: { setItem() {} } };
+  saveSession('admin', 'test-token');
+  const form = new FormData();
+  form.append('image', new Blob([new Uint8Array(9 * 1024 * 1024)], { type: 'image/jpeg' }), 'cover.jpg');
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, 'https://bjp-galeries.behnjedy.workers.dev/api/admin/collections/test/cover');
+    assert.equal(options.headers['x-bjp-token'], 'test-token');
+    assert.equal(options.body.get('image').size, 9 * 1024 * 1024);
+    return Response.json({});
+  };
+  try { await api('/admin/collections/test/cover', { method: 'POST', body: form }); }
+  finally { globalThis.window = previousWindow; globalThis.fetch = previousFetch; }
+});

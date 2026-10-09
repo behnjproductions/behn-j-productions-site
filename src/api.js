@@ -39,7 +39,7 @@ export async function api(path, options = {}) {
   // Large multipart originals bypass Netlify's request-size limit. Local uploads
   // stay on the development proxy; the same admin token authenticates both.
   const directUpload = options.body instanceof FormData && options.method === 'POST'
-    && /^\/admin\/collections\/[^/]+\/photos$/.test(path)
+    && /^\/admin\/collections\/[^/]+\/(?:photos|cover)$/.test(path)
     && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
   if (directUpload && !active.token) throw new Error('Reconnectez-vous avant d’envoyer les photos.');
   const endpoint = directUpload ? `https://bjp-galeries.behnjedy.workers.dev/api${path}` : `/api${path}`;

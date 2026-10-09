@@ -30,6 +30,7 @@ function SessionTitle({ value, onChange, disabled = false }) {
 }
 
 const WEB_SIDE = 2000;   // côté le plus long de la version web
+const COVER_SIDE = 3200;
 const THUMB_SIDE = 700;  // côté le plus long de la vignette
 const ORIGINAL_MAX_BYTES = 75 * 1024 * 1024;
 const DOWNLOAD_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -464,7 +465,8 @@ function Editor({ slug, onBack, onChanged }) {
     if (issue) { setError(issue); return; }
     savingRef.current = true; setSaving(true); setError('');
     try {
-      const image = await prepareImage(file, THUMB_SIDE, 0.85);
+      const image = await prepareImage(file, COVER_SIDE, 0.92);
+      if (!image.blob || image.blob.size > 10 * 1024 * 1024) throw new Error('La couverture dépasse 10 Mo. Choisissez un JPEG plus léger.');
       const form = new FormData(); form.append('image', image.blob, 'cover.jpg');
       const { collection } = await api(`/admin/collections/${slug}/cover`, { method: 'POST', body: form });
       setData((d) => ({ ...d, collection: { ...d.collection, cover: collection.cover } }));

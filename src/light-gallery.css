@@ -243,3 +243,4 @@
 .cinema-gallery--luxury .cinema-send,
 .cinema-gallery--luxury .cinema-send:disabled { background:#B12201; border-color:#B12201; color:#fffaf1; }
 .cinema-gallery--luxury .cinema-send:hover:not(:disabled) { background:#901B01; border-color:#901B01; color:#fffaf1; }
+.cinema-gallery--luxury .cinema-send:disabled { opacity:1; background:#B12201; border-color:#B12201; color:#fffaf1; cursor:not-allowed; }

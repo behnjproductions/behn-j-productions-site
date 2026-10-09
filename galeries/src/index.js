@@ -296,7 +296,9 @@ export default {
       for (const [k, v] of Object.entries(cors)) response.headers.set(k, v);
       return response;
     } catch (error) {
-      return json({ error: 'Erreur interne', detail: String(error && error.message || error) }, 500);
+      const response = json({ error: 'Erreur interne', detail: String(error && error.message || error) }, 500);
+      for (const [k, v] of Object.entries(cors)) response.headers.set(k, v);
+      return response;
     }
   },
 };

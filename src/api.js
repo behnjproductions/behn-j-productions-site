@@ -36,7 +36,15 @@ export async function api(path, options = {}) {
   if (active.token) headers['x-bjp-token'] = active.token;
   if (options.body && !(options.body instanceof FormData)) headers['content-type'] = 'application/json';
 
-  const response = await fetch(`/api${path}`, { credentials: 'include', ...options, headers });
+  // Large multipart originals bypass Netlify's request-size limit. Local uploads
+  // stay on the development proxy; the same admin token authenticates both.
+  const directUpload = options.body instanceof FormData && options.method === 'POST'
+    && /^\/admin\/collections\/[^/]+\/photos$/.test(path)
+    && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+  if (directUpload && !active.token) throw new Error('Reconnectez-vous avant d’envoyer les photos.');
+  const endpoint = directUpload ? `https://bjp-galeries.behnjedy.workers.dev/api${path}` : `/api${path}`;
+  const response = await fetch(endpoint, { ...options, credentials: directUpload ? 'omit' : 'include', headers,
+    signal: options.signal || (options.body instanceof FormData ? AbortSignal.timeout(300000) : undefined) });
 
   let data = null;
   try { data = await response.json(); } catch { /* réponse vide */ }

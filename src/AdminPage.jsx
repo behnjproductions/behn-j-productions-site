@@ -316,6 +316,8 @@ function Editor({ slug, onBack, onChanged }) {
   const [data, setData] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [upload, setUpload] = useState(null); // { done, total }
+  const [uploadFailures, setUploadFailures] = useState([]);
+  const [uploadResult, setUploadResult] = useState(null);
   const [saving, setSaving] = useState(false);
   const [proofProgress, setProofProgress] = useState('');
   const [error, setError] = useState('');
@@ -362,7 +364,9 @@ function Editor({ slug, onBack, onChanged }) {
     }
     uploadRef.current = true;
     setError('');
-    setUpload({ done: 0, total: images.length, category });
+    setUploadFailures([]);
+    setUploadResult(null);
+    setUpload({ done: 0, saved: 0, failed: 0, total: images.length, category });
 
     // Envoyer les photos en parallèle (par lots) plutôt qu'une à la fois : la
     // majorité du temps est passée à attendre le réseau, alors traiter plusieurs
@@ -370,8 +374,11 @@ function Editor({ slug, onBack, onChanged }) {
     // nettement l'envoi de grandes séries de photos.
     const UPLOAD_CONCURRENCY = 3;
     let doneCount = 0;
+    let savedCount = 0;
+    const failures = [];
     let nextIndex = 0;
     const uploadOne = async (file) => {
+      let photoSaved = false;
       try {
         const web = await prepareImage(file, WEB_SIDE, 0.82);
         const thumb = await prepareImage(file, THUMB_SIDE, 0.75);
@@ -395,16 +402,19 @@ function Editor({ slug, onBack, onChanged }) {
           form.append('original', original, file.name);
         }
         const result = await api(`/admin/collections/${slug}/photos`, { method: 'POST', body: form });
+        photoSaved = true;
+        savedCount += 1;
         if (data.collection.collectionType === 'school' && data.collection.mode !== 'download') {
           const proof = await prepareImage(file, 1200, 0.78, true);
           const proofForm = new FormData(); proofForm.append('proof', proof.blob, 'proof.jpg');
           await api(`/admin/collections/${slug}/proof/${result.photo.id}`, { method: 'POST', body: proofForm });
         }
       } catch (err) {
-        setError(`${file.name} : ${err.message}`);
+        failures.push({ file, category, studentId, retryable: !photoSaved, message: err.message });
+        setUploadFailures([...failures]);
       }
       doneCount += 1;
-      setUpload({ done: doneCount, total: images.length, category });
+      setUpload({ done: doneCount, saved: savedCount, failed: failures.length, total: images.length, category });
     };
     const worker = async () => {
       while (nextIndex < images.length) {
@@ -417,6 +427,7 @@ function Editor({ slug, onBack, onChanged }) {
 
     uploadRef.current = false;
     setUpload(null);
+    setUploadResult(`${savedCount} / ${images.length} photos enregistrées${failures.length ? ` · ${failures.length} erreurs` : ''}`);
     reload();
   }, [slug, reload, data, studentId]);
 
@@ -561,6 +572,11 @@ function Editor({ slug, onBack, onChanged }) {
 
         {selectionEntries.length > 0 && <Selection entries={selectionEntries} collection={c} copied={copied} copy={copy} />}
 
+        {uploadResult && <p role="status">{uploadResult}</p>}
+        {uploadFailures.length > 0 && <div className="adm-error" role="alert">
+          {uploadFailures.map((failure, index) => <p key={index}>{failure.file.name} : {failure.message}{!failure.retryable && ' — Photo enregistrée. Utilisez Protéger toutes les photos pour réessayer la protection.'}</p>)}
+          {!upload && uploadFailures.some((f) => f.retryable && f.studentId === studentId) && <button type="button" className="adm-ghost" disabled={saving} onClick={() => { const failed = uploadFailures.filter((f) => f.retryable && f.studentId === studentId); addFiles(failed.map((f) => f.file), failed[0].category); }}>Réessayer les photos non enregistrées</button>}
+        </div>}
         {(!school || student) && <><div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(visiblePhotos.length).padStart(2, '0')}</small></h2></div>{!school && <p><Star size={14} /> L’étoile définit la photo de couverture.</p>}</div>
 
         {(downloadMode ? PHOTO_CATEGORIES : [{ id: 'full', label: 'PHOTOS À SÉLECTIONNER', description: 'Photos proposées au client pour faire son choix' }]).map((category) => <section key={category.id} className="adm-category" aria-label={category.label}>
@@ -580,7 +596,7 @@ function Editor({ slug, onBack, onChanged }) {
           {upload?.category === category.id && (
             <div className="adm-progress">
               <div className="adm-progress__bar"><i style={{ width: `${(upload.done / upload.total) * 100}%` }} /></div>
-              <span>{upload.done} / {upload.total} photos envoyées</span>
+              <span>{upload.done} / {upload.total} photos traitées · {upload.saved} enregistrées · {upload.failed} erreurs</span>
             </div>
           )}
         </div>

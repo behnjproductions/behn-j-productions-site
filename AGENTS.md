@@ -39,3 +39,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - October 6 school collections: École retains selection/download modes and uses collection → group → student → photos. Admin must offer back navigation to create more groups/students. Families receive an individual private student link that exposes only that student’s photos and selections.
 
 - Selection-mode admin shows one upload section, PHOTOS À SÉLECTIONNER, with all existing photos regardless of stored category. Download mode retains its three categories.
+
+- School group cards accept photo drops directly without opening the student. Bind each upload and retry to the drop target, retain proof protection, and refresh per-student counts.

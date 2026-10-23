@@ -282,8 +282,9 @@ function NewCollection({ onCancel, onCreate }) {
 
 /* --------------------------------------------------------------- éditeur --- */
 
-function SchoolNavigator({ data, groupId, studentId, onGroup, onStudent, onCreate, busy }) {
+function SchoolNavigator({ data, groupId, studentId, onGroup, onStudent, onCreate, onAddFiles, upload, busy }) {
   const [name, setName] = useState('');
+  const [dropStudent, setDropStudent] = useState(null);
   const group = data.groups?.find((g) => g.id === groupId);
   const student = data.students?.find((s) => s.id === studentId);
   const students = (data.students || []).filter((s) => s.groupId === groupId);
@@ -304,8 +305,12 @@ function SchoolNavigator({ data, groupId, studentId, onGroup, onStudent, onCreat
         <button className="adm-primary" type="submit" disabled={busy || !name.trim()}><Plus size={17} /> {group ? 'Créer un élève' : 'Créer un groupe'}</button>
       </form>
       <div className="adm-school__cards">
-        {(group ? students : data.groups || []).map((item) => <button className="adm-school__card" type="button" key={item.id} disabled={busy} onClick={() => { setName(''); group ? onStudent(item.id) : onGroup(item.id); }}>
+        {(group ? students : data.groups || []).map((item) => <button className={`adm-school__card ${dropStudent === item.id ? 'is-dragging' : ''}`} type="button" key={item.id} disabled={busy}
+          onDragOver={(event) => { if (!group) return; event.preventDefault(); event.stopPropagation(); event.dataTransfer.dropEffect = busy ? 'none' : 'copy'; if (!busy) setDropStudent(item.id); }}
+          onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDropStudent(null); }}
+          onDrop={(event) => { if (!group) return; event.preventDefault(); event.stopPropagation(); setDropStudent(null); if (!busy) onAddFiles(event.dataTransfer.files, 'full', item.id); }} onClick={() => { setName(''); group ? onStudent(item.id) : onGroup(item.id); }}>
           <strong>{item.name}</strong><span>{group ? `${data.photos.filter((p) => p.studentId === item.id).length} photo${data.photos.filter((p) => p.studentId === item.id).length === 1 ? '' : 's'}` : `${(data.students || []).filter((s) => s.groupId === item.id).length} élèves`}</span><span>{group ? 'Ouvrir l’élève →' : 'Ouvrir le groupe →'}</span>
+          {group && <span className="adm-school__drop-hint">{upload?.studentId === item.id ? `${upload.done} / ${upload.total} photos traitées · ${upload.saved} enregistrées` : 'Glissez les photos ici'}</span>}
         </button>)}
       </div>
       {(group ? students : data.groups || []).length === 0 && <p className="adm-hint">{group ? 'Créez le premier élève de ce groupe.' : 'Créez votre premier groupe, puis ajoutez ses élèves.'}</p>}
@@ -349,9 +354,9 @@ function Editor({ slug, onBack, onChanged }) {
     finally { savingRef.current = false; setSaving(false); }
   };
 
-  const addFiles = useCallback(async (files, category = 'full') => {
+  const addFiles = useCallback(async (files, category = 'full', targetStudentId = studentId) => {
     if (uploadRef.current || savingRef.current || !data) return;
-    if (data.collection.collectionType === 'school' && !studentId) { setError('Ouvrez un élève avant d’ajouter des photos.'); return; }
+    if (data.collection.collectionType === 'school' && !data.students?.some((s) => s.id === targetStudentId)) { setError('Choisissez un élève de cette collection avant d’ajouter des photos.'); return; }
     const images = [...files];
     if (!images.length) return;
     const downloadMode = true; // Preserve supplied final files in every category.
@@ -367,7 +372,7 @@ function Editor({ slug, onBack, onChanged }) {
     setError('');
     setUploadFailures([]);
     setUploadResult(null);
-    setUpload({ done: 0, saved: 0, failed: 0, total: images.length, category });
+    setUpload({ done: 0, saved: 0, failed: 0, total: images.length, category, studentId: targetStudentId });
 
     // Envoyer les photos en parallèle (par lots) plutôt qu'une à la fois : la
     // majorité du temps est passée à attendre le réseau, alors traiter plusieurs
@@ -386,7 +391,7 @@ function Editor({ slug, onBack, onChanged }) {
         const form = new FormData();
         form.append('filename', file.name);
         form.append('category', category);
-        if (data.collection.collectionType === 'school') form.append('studentId', studentId);
+        if (data.collection.collectionType === 'school') form.append('studentId', targetStudentId);
         form.append('width', String(web.width));
         form.append('height', String(web.height));
         form.append('web', web.blob, 'web.jpg');
@@ -411,11 +416,11 @@ function Editor({ slug, onBack, onChanged }) {
           await api(`/admin/collections/${slug}/proof/${result.photo.id}`, { method: 'POST', body: proofForm });
         }
       } catch (err) {
-        failures.push({ file, category, studentId, retryable: !photoSaved, message: err.message });
+        failures.push({ file, category, studentId: targetStudentId, retryable: !photoSaved, message: err.message });
         setUploadFailures([...failures]);
       }
       doneCount += 1;
-      setUpload({ done: doneCount, saved: savedCount, failed: failures.length, total: images.length, category });
+      setUpload({ done: doneCount, saved: savedCount, failed: failures.length, total: images.length, category, studentId: targetStudentId });
     };
     const worker = async () => {
       while (nextIndex < images.length) {
@@ -565,7 +570,7 @@ function Editor({ slug, onBack, onChanged }) {
         </div>
 
         {school && !downloadMode && <div className="adm-link"><div><span className="adm-link__label">Protection des photos de sélection</span><p className="adm-hint">Barre rouge et texte incorporés. Les originaux restent conservés.</p><p role="status">{proofProgress}</p></div><button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={protectPhotos}>Protéger toutes les photos</button><button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={verifyProofs}>Vérifier la protection</button></div>}
-        {school && <SchoolNavigator data={data} groupId={groupId} studentId={studentId} onGroup={setGroupId} onStudent={setStudentId} onCreate={createSchoolEntity} busy={Boolean(upload) || saving} />}
+        {school && <SchoolNavigator data={data} groupId={groupId} studentId={studentId} onGroup={setGroupId} onStudent={setStudentId} onCreate={createSchoolEntity} onAddFiles={addFiles} upload={upload} busy={Boolean(upload) || saving} />}
         {school && !student && data.photos.some((p) => !p.studentId) && <p className="adm-hint">Des photos anciennes sont conservées dans cette collection sans élève associé.</p>}
 
         {settings && <Settings collection={c} onSave={patch} onDelete={removeCollection} disabled={Boolean(upload) || saving} webPhotoCount={webPhotoCount} />}
@@ -578,7 +583,7 @@ function Editor({ slug, onBack, onChanged }) {
         {uploadResult && <p role="status">{uploadResult}</p>}
         {uploadFailures.length > 0 && <div className="adm-error" role="alert">
           {uploadFailures.map((failure, index) => <p key={index}>{failure.file.name} : {failure.message}{!failure.retryable && ' — Photo enregistrée. Utilisez Protéger toutes les photos pour réessayer la protection.'}</p>)}
-          {!upload && uploadFailures.some((f) => f.retryable && f.studentId === studentId) && <button type="button" className="adm-ghost" disabled={saving} onClick={() => { const failed = uploadFailures.filter((f) => f.retryable && f.studentId === studentId); addFiles(failed.map((f) => f.file), failed[0].category); }}>Réessayer les photos non enregistrées</button>}
+          {!upload && uploadFailures.some((f) => f.retryable) && <button type="button" className="adm-ghost" disabled={saving} onClick={() => { const failed = uploadFailures.filter((f) => f.retryable); addFiles(failed.map((f) => f.file), failed[0].category, failed[0].studentId); }}>Réessayer les photos non enregistrées</button>}
         </div>}
         {(!school || student) && <><div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(visiblePhotos.length).padStart(2, '0')}</small></h2></div>{!school && <p><Star size={14} /> L’étoile définit la photo de couverture.</p>}</div>
 

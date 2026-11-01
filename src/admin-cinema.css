@@ -334,3 +334,6 @@
 .admin-cinema .adm-school__card span { color:var(--studio-muted); font-size:13px; }
 .admin-cinema .adm-school__card:hover { border-color:#cfb98a; }
 @media(max-width:600px) { .admin-cinema .adm-school__create { grid-template-columns:1fr; } }
+
+.adm-school__card.is-dragging { border-color: #FFB604; background: rgba(255,182,4,.12); outline: 2px solid #FFB604; outline-offset: -2px; }
+.adm-school__drop-hint { color: #FFB604; font-size: .78rem; }

@@ -186,9 +186,21 @@ async function getCollection(env, slug) {
   return env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
 }
 
-const listPhotos = (env, collectionId, studentId = null) => env.DB
-  .prepare(`SELECT id, filename, width, height, position, original_key, category, student_id FROM photos WHERE collection_id = ?${studentId ? ' AND student_id = ?' : ''} ORDER BY position, created_at`)
-  .bind(...(studentId ? [collectionId, studentId] : [collectionId])).all();
+const PHOTO_COLUMNS = 'id, filename, width, height, position, original_key, category, student_id';
+// La colonne `section` arrive avec migrations/0007_photo_sections.sql. Tant
+// qu'elle n'est pas appliquée, la galerie fonctionne comme avant, sans sections.
+const missingSection = (error) => /no such column: section/i.test(String(error?.message || error));
+const listPhotos = async (env, collectionId, studentId = null) => {
+  const where = `WHERE collection_id = ?${studentId ? ' AND student_id = ?' : ''} ORDER BY position, created_at`;
+  const binds = studentId ? [collectionId, studentId] : [collectionId];
+  try {
+    return await env.DB.prepare(`SELECT ${PHOTO_COLUMNS}, section FROM photos ${where}`).bind(...binds).all();
+  } catch (error) {
+    if (!missingSection(error)) throw error;
+    return env.DB.prepare(`SELECT ${PHOTO_COLUMNS} FROM photos ${where}`).bind(...binds).all();
+  }
+};
+const cleanSection = (value) => String(value ?? '').replace(/\s+/g, ' ').trim().slice(0, 60) || null;
 
 /* ------------------------------------------------------------------ courriel */
 
@@ -451,7 +463,14 @@ async function route(request, env, url, path, ip) {
       if (!chosen.length) return json({ error: 'Photos introuvables.' }, 400);
       if (collection.student_id && wanted.some((pid) => !chosen.some((p) => p.id === pid))) return json({ error: 'Ces photos n’appartiennent pas à cet élève.' }, 400);
 
-      const note = String(body.note || '').slice(0, 2000);
+      const baseNote = String(body.note || '').slice(0, 2000);
+      const photoNotes = body.photoNotes && typeof body.photoNotes === 'object' ? body.photoNotes : {};
+      const retouches = chosen
+        .map((p) => [p, String(photoNotes[p.id] || '').replace(/\s+/g, ' ').trim().slice(0, 500)])
+        .filter(([, text]) => text)
+        .map(([p, text]) => `- ${p.filename || p.id} : ${text}`);
+      const note = [baseNote, retouches.length ? `Notes de retouche :\n${retouches.join('\n')}` : '']
+        .filter(Boolean).join('\n\n').slice(0, 8000);
       // La selection est enregistree d'abord : meme si le courriel echoue, le
       // choix du client n'est jamais perdu.
       const saved = await env.DB
@@ -496,7 +515,7 @@ async function route(request, env, url, path, ip) {
         locked: false,
         draft: collection.status !== 'publié',
         cover: collection.cover_key || photos[0]?.id || null,
-        photos: photos.map((p) => ({ id: p.id, category: p.category || 'full', w: p.width, h: p.height,
+        photos: photos.map((p) => ({ id: p.id, category: p.category || 'full', section: p.section || null, w: p.width, h: p.height,
           ...(collection.collection_type === 'school' ? { filename: p.filename } : {}),
           ...(galleryMode(collection) === 'download' ? { filename: p.filename, downloadFilename: downloadFilename(p), downloadQuality: p.original_key ? 'original' : 'web' } : {}),
         })),
@@ -613,7 +632,7 @@ async function route(request, env, url, path, ip) {
       return json({
         collection: publicShape(collection),
         groups, students, downloads,
-        photos: photos.map((p) => ({ id: p.id, studentId: p.student_id || null, category: p.category || 'full', filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
+        photos: photos.map((p) => ({ id: p.id, studentId: p.student_id || null, category: p.category || 'full', section: p.section || null, filename: p.filename, downloadFilename: downloadFilename(p), w: p.width, h: p.height, downloadQuality: p.original_key ? 'original' : 'web' })),
         selections: selections.map((s) => {
           const ids = JSON.parse(s.photo_ids);
           return {
@@ -714,6 +733,25 @@ async function route(request, env, url, path, ip) {
       return json({ collection: publicShape({ ...collection, cover_key: cover }) });
     }
 
+    /* ---------- sections : classer des photos (ex. Cérémonie, Soirée) ---------- */
+    if (action === 'sections' && method === 'POST') {
+      const body = await request.json().catch(() => ({}));
+      const ids = Array.isArray(body.photoIds) ? [...new Set(body.photoIds.map(String))].slice(0, 2000) : [];
+      if (!ids.length) return json({ error: 'Choisissez au moins une photo.' }, 400);
+      const section = cleanSection(body.section);
+      try {
+        for (let i = 0; i < ids.length; i += 90) {
+          const chunk = ids.slice(i, i + 90);
+          await env.DB.prepare(`UPDATE photos SET section = ? WHERE collection_id = ? AND id IN (${chunk.map(() => '?').join(',')})`)
+            .bind(section, collection.id, ...chunk).run();
+        }
+      } catch (error) {
+        if (missingSection(error)) return json({ error: 'Les sections ne sont pas encore activées : appliquez la migration 0007_photo_sections.sql.' }, 409);
+        throw error;
+      }
+      return json({ ok: true, section, count: ids.length });
+    }
+
     /* ---------- téléversement d'une photo ---------- */
     if (action === 'photos' && method === 'POST') {
       const form = await request.formData();
@@ -748,13 +786,19 @@ async function route(request, env, url, path, ip) {
 
       const next = await env.DB.prepare('SELECT COALESCE(MAX(position), 0) + 1 AS n FROM photos WHERE collection_id = ?')
         .bind(collection.id).first();
-      await env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key, category, student_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-        .bind(photoId, collection.id, webKey, thumb instanceof File ? thumbKey : null,
-          String(form.get('filename') || '').slice(0, 200) || null,
-          Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey, category, studentId).run();
+      const section = cleanSection(form.get('section'));
+      const values = [photoId, collection.id, webKey, thumb instanceof File ? thumbKey : null,
+        String(form.get('filename') || '').slice(0, 200) || null,
+        Number(form.get('width')) || null, Number(form.get('height')) || null, next.n, originalKey, category, studentId];
+      const insert = (withSection) => env.DB.prepare(`INSERT INTO photos (id, collection_id, r2_key, thumb_key, filename, width, height, position, original_key, category, student_id${withSection ? ', section' : ''})
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${withSection ? ', ?' : ''})`)
+        .bind(...values, ...(withSection ? [section] : [])).run();
+      if (section) {
+        try { await insert(true); }
+        catch (error) { if (!missingSection(error)) throw error; await insert(false); }
+      } else await insert(false);
 
-      return json({ photo: { id: photoId, studentId, category, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
+      return json({ photo: { id: photoId, studentId, category, section, filename: form.get('filename'), w: Number(form.get('width')) || null, h: Number(form.get('height')) || null,
         downloadFilename: downloadFilename({ id: photoId, filename: form.get('filename'), original_key: originalKey }),
         downloadQuality: originalKey ? 'original' : 'web' } }, 201);
     }

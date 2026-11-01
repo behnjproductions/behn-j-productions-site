@@ -761,7 +761,7 @@ function Selection({ entries, collection, copied, copy }) {
   }
   const photos = [...byPhoto.values()];
   const names = photos.map((p) => p.filename).join('\n');
-  const lightroomNames = photos.map((p) => (p.filename || '').replace(/\.jpe?g$/i, '')).join('\n');
+  const lightroomNames = [...new Set(photos.map((p) => (p.filename || '').trim().replace(/\.jpe?g$/i, '')).filter(Boolean))].join(', ');
   const included = collection.maxPicks || 0;
   const price = collection.extraPrice ?? 25;
   const extras = included ? Math.max(0, photos.length - included) : 0;
@@ -800,6 +800,9 @@ function Selection({ entries, collection, copied, copy }) {
           <button className="adm-ghost" type="button" onClick={download}><DownloadSimple size={16} /> Télécharger</button>
         </div>
       </header>
+      <p className="adm-selection__count">
+        Lightroom Classic : Bibliothèque → Texte → Nom de fichier → Contient. Collez ensuite la liste dans le champ de recherche.
+      </p>
       {entries.length === 1 ? (
         <>
           <MailState status={entries[0].emailStatus} />

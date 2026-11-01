@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS photos (
   student_id TEXT REFERENCES school_students(id),
   category_legacy TEXT NOT NULL DEFAULT 'full' CHECK (category_legacy IN ('full', 'social', 'bw')),
   category TEXT NOT NULL DEFAULT 'full' CHECK (category IN ('full', 'advanced', 'social', 'bw')),
+  section TEXT,
   r2_key TEXT NOT NULL,
   thumb_key TEXT,
   original_key TEXT,

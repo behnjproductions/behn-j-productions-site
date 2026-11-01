@@ -225,8 +225,12 @@ export function GaleriePage() {
   };
   const closeReview = useCallback(() => setSent('fermé'), []);
   const closeExpanded = useCallback(() => setExpanded(false), []);
-  const send = async () => {
+  const send = async (photoNotes) => {
     if (downloadMode || sending || !picks.size) return;
+    // Notes de retouche par photo (visionneuse). Seules les photos choisies comptent.
+    const notes = photoNotes && typeof photoNotes === 'object' && !('nativeEvent' in photoNotes)
+      ? Object.fromEntries(Object.entries(photoNotes).filter(([id, text]) => picks.has(id) && String(text).trim()))
+      : {};
     const name = employeeName.trim().replace(/\s+/g, ' ');
     if (employeeGallery && !name) { setSendError('Veuillez saisir votre prénom et votre nom.'); return; }
     setSending(true); setSendError('');
@@ -235,6 +239,7 @@ export function GaleriePage() {
       // authority to overwrite an employee's earlier submission.
       await api(`/galerie/${slug}/selection`, { method: 'POST', body: JSON.stringify({
         photoIds: [...picks],
+        ...(Object.keys(notes).length ? { photoNotes: notes } : {}),
         ...(employeeGallery ? { note: `Nom et prénom : ${name}${sent ? '\nNouvel envoi de ma sélection modifiée.' : ''}` } : {}),
       }) });
       if (employeeGallery) setEmployeeName(name);

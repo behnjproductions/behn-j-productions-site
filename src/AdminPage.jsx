@@ -335,6 +335,12 @@ function Editor({ slug, onBack, onChanged }) {
   const coverInputRef = useRef(null);
   const uploadRef = useRef(false);
   const savingRef = useRef(false);
+  // Sections thématiques (ex. Cérémonie · Soirée) : la galerie client les affiche en onglets.
+  const [sectionName, setSectionName] = useState('');
+  const sectionRef = useRef('');
+  sectionRef.current = sectionName;
+  const [picked, setPicked] = useState(() => new Set());
+  const togglePicked = (photoId) => setPicked((previous) => { const next = new Set(previous); if (next.has(photoId)) next.delete(photoId); else next.add(photoId); return next; });
 
   const reload = useCallback(async () => {
     try { setData(await api(`/admin/collections/${slug}`)); } catch (err) { setError(err.message); }
@@ -392,6 +398,7 @@ function Editor({ slug, onBack, onChanged }) {
         form.append('filename', file.name);
         form.append('category', category);
         if (data.collection.collectionType === 'school') form.append('studentId', targetStudentId);
+        else if (sectionRef.current.trim()) form.append('section', sectionRef.current.trim());
         form.append('width', String(web.width));
         form.append('height', String(web.height));
         form.append('web', web.blob, 'web.jpg');
@@ -494,6 +501,16 @@ function Editor({ slug, onBack, onChanged }) {
     finally { savingRef.current = false; setSaving(false); }
   };
 
+  const assignSection = async (section) => {
+    if (!picked.size || uploadRef.current || savingRef.current) return;
+    savingRef.current = true; setSaving(true); setError('');
+    try {
+      await api(`/admin/collections/${slug}/sections`, { method: 'POST', body: JSON.stringify({ photoIds: [...picked], section }) });
+      setPicked(new Set());
+      await reload();
+    } catch (err) { setError(err.message); }
+    finally { savingRef.current = false; setSaving(false); }
+  };
   const removePhoto = async (photo) => {
     if (!window.confirm(`Retirer ${photo.filename || 'cette photo'} de la galerie?`)) return;
     try {
@@ -517,6 +534,7 @@ function Editor({ slug, onBack, onChanged }) {
   const school = c.collectionType === 'school';
   const student = data.students?.find((s) => s.id === studentId);
   const visiblePhotos = school ? data.photos.filter((p) => p.studentId === studentId && studentId) : data.photos;
+  const sectionsInUse = [...new Set(data.photos.map((p) => p.section).filter(Boolean))];
   const link = `${window.location.origin}/galerie/${student?.slug || c.slug}`;
   const preview = new URLSearchParams(window.location.search).get('apercu') === 'clair' ? '?apercu=clair' : '';
   const downloadMode = c.mode === 'download';
@@ -585,6 +603,23 @@ function Editor({ slug, onBack, onChanged }) {
           {uploadFailures.map((failure, index) => <p key={index}>{failure.file.name} : {failure.message}{!failure.retryable && ' — Photo enregistrée. Utilisez Protéger toutes les photos pour réessayer la protection.'}</p>)}
           {!upload && uploadFailures.some((f) => f.retryable) && <button type="button" className="adm-ghost" disabled={saving} onClick={() => { const failed = uploadFailures.filter((f) => f.retryable); addFiles(failed.map((f) => f.file), failed[0].category, failed[0].studentId); }}>Réessayer les photos non enregistrées</button>}
         </div>}
+        {!school && <div className="adm-link adm-sections">
+          <div>
+            <span className="adm-link__label">Sections de la galerie</span>
+            <p className="adm-hint">Ex. Cérémonie, Soirée, Équipe. Les nouvelles photos vont dans la section écrite ici (vide = aucune). Pour classer des photos déjà en ligne, cochez-les plus bas.</p>
+            {sectionsInUse.length > 0 && <p className="adm-hint">En ligne : {sectionsInUse.map((name) => `${name} (${data.photos.filter((p) => p.section === name).length})`).join(' · ')}</p>}
+          </div>
+          <label className="adm-sections__field"><span className="adm-sr">Nom de la section</span>
+            <input type="text" list="adm-sections-list" maxLength={60} placeholder="Nom de la section" value={sectionName} onChange={(e) => setSectionName(e.target.value)} />
+            <datalist id="adm-sections-list">{sectionsInUse.map((name) => <option key={name} value={name} />)}</datalist>
+          </label>
+          {picked.size > 0 && <div className="adm-sections__actions">
+            <button className="adm-primary" type="button" disabled={Boolean(upload) || saving || !sectionName.trim()} onClick={() => assignSection(sectionName.trim())}>
+              Classer {picked.size} photo{picked.size > 1 ? 's' : ''}{sectionName.trim() ? ` dans « ${sectionName.trim()} »` : ''}</button>
+            <button className="adm-ghost" type="button" disabled={Boolean(upload) || saving} onClick={() => assignSection('')}>Retirer la section</button>
+            <button className="adm-ghost" type="button" disabled={saving} onClick={() => setPicked(new Set())}>Annuler</button>
+          </div>}
+        </div>}
         {(!school || student) && <><div className="adm-section-heading"><div><p className="adm-eyebrow">Les images de la collection</p><h2>La photothèque <small>{String(visiblePhotos.length).padStart(2, '0')}</small></h2></div>{!school && <p><Star size={14} /> L’étoile définit la photo de couverture.</p>}</div>
 
         {(downloadMode ? PHOTO_CATEGORIES : [{ id: 'full', label: 'PHOTOS À SÉLECTIONNER', description: 'Photos proposées au client pour faire son choix' }]).map((category) => <section key={category.id} className="adm-category" aria-label={category.label}>
@@ -614,7 +649,9 @@ function Editor({ slug, onBack, onChanged }) {
             {(downloadMode ? categoryPhotos(visiblePhotos, category.id) : visiblePhotos).map((p, index) => (
               <figure key={p.id} className={c.cover === p.id ? 'is-cover' : ''}>
                 <img src={photoUrl(p.id, school && !downloadMode ? 'proof' : 'thumb')} alt={p.filename || `Photo ${index + 1}`} loading="lazy" />
-                <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span></figcaption>
+                <figcaption><span>{String(index + 1).padStart(2, '0')}</span><span>{c.cover === p.id ? 'Couverture' : p.filename}</span>{p.section && <span className="adm-photos__section">{p.section}</span>}</figcaption>
+                {!school && <button type="button" className={`adm-photos__pick${picked.has(p.id) ? ' is-picked' : ''}`} onClick={() => togglePicked(p.id)}
+                  aria-label={`${picked.has(p.id) ? 'Décocher' : 'Cocher'} ${p.filename || 'cette photo'} pour la classer`} aria-pressed={picked.has(p.id)}><Check size={14} weight="bold" /></button>}
                 <button type="button" className="adm-photos__del" onClick={() => removePhoto(p)}
                   aria-label={`Retirer ${p.filename || 'la photo'}`}><X size={14} weight="bold" /></button>
                 {!school && <button type="button" className="adm-photos__cover" onClick={() => patch({ cover: p.id })}

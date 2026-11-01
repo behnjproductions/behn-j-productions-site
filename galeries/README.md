@@ -134,3 +134,18 @@ Appliquer `migrations/0004_school_groups_students.sql` une seule fois avant de p
 Une collection École contient des groupes, puis des élèves. Les nouveaux téléversements scolaires exigent un élève appartenant à cette collection. Chaque élève dispose d’un lien aléatoire privé `/galerie/eleve-…`, limité à ses propres photos, téléchargements et sélections. Le mode, le forfait, le prix supplémentaire, le mot de passe facultatif et la publication sont hérités de la collection. Le lien général d’une école est réservé au photographe. Les liens individuels doivent être transmis uniquement à la famille concernée; toute personne possédant un lien peut l’utiliser lorsque la collection est publiée et sans mot de passe. Les sessions avec mot de passe sont propres à chaque élève.
 
 Le formulaire permet de créer plusieurs groupes, créer plusieurs élèves, revenir au groupe ou à la liste des groupes et téléverser les trois catégories dans chaque élève. Une école contenant des groupes ne peut pas être convertie en collection standard. Aucun effacement de groupes ou d’élèves n’est ajouté à cette étape.
+
+## Sections thématiques et notes de retouche
+
+Appliquer une seule fois `migrations/0007_photo_sections.sql` (ajoute
+`photos.section`, NULL par défaut). Le Worker fonctionne aussi avant la
+migration : la galerie s’affiche simplement sans sections, et le classement
+dans `/admin` répond qu’il faut appliquer la migration.
+
+Dans `/admin`, le bloc **Sections de la galerie** donne le nom de section des
+prochains téléversements, et permet de cocher des photos déjà en ligne pour
+les classer (`POST /api/admin/collections/:slug/sections`). Les notes de
+retouche écrites par le client dans la visionneuse partent avec sa sélection
+(`photoNotes`) et s’ajoutent au message enregistré et au courriel, avec le nom
+de fichier de chaque photo.
+

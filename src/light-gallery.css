@@ -106,7 +106,7 @@
 .light-gallery .light-status { min-height: 20px; margin: 12px 0 0; color: var(--lg-muted); font-size: 13px; }
 
 /* Overlays */
-.light-gallery .light-overlay { padding: 24px; background: rgba(10,9,8,.97); backdrop-filter: none; color: var(--lg-ink); }
+.light-gallery .light-overlay { padding: 24px; background: #0A0908; backdrop-filter: none; color: var(--lg-ink); }
 .light-overlay--viewer .cinema-dialog { display: flex; flex-direction: column; width: 100%; max-width: 1760px; height: 100%; gap: 14px; }
 .light-viewer__top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .light-viewer__title { display: flex; align-items: center; gap: 16px; min-width: 0; }
@@ -193,7 +193,8 @@
   .light-footer { padding-left: 28px; padding-right: 28px; }
   .light-pill span { display: none; }
   .light-gallery .light-toolbar .light-pill { width: 44px; padding: 0; justify-content: center; }
-  .light-viewer__stage { flex-wrap: wrap; align-content: center; }
+  .light-overlay--viewer .cinema-dialog { overflow-y: auto; }
+  .light-viewer__stage { flex: none; flex-wrap: wrap; align-content: flex-start; }
   .light-viewer__image { order: -1; flex-basis: 100%; height: auto; min-height: 0; max-height: 62svh; }
   .light-viewer__image img { max-height: 62svh; }
   .light-viewer__note { order: 2; width: 100%; padding: 0; }
@@ -219,7 +220,6 @@
   .light-toolbar__actions { flex-wrap: nowrap; gap: 6px; }
   .light-toolbar__identity strong { max-width: 46vw; font-size: 18px; }
   .light-toolbar__identity span { font-size: 10px; }
-  .light-gallery .light-toolbar .light-icon[href] { display: none; }
   .light-main { padding: 26px 8px 40px; scroll-margin-top: 64px; }
   .light-collection-heading { padding: 0 6px; margin-bottom: 20px; }
   .light-collection-heading__hint, .light-collection-heading__side p { font-size: 13px; }
@@ -241,6 +241,9 @@
   .light-viewer__tools .light-pill span { display: none; }
   .light-viewer__tools .light-pill { width: 44px; padding: 0; justify-content: center; }
   .light-viewer__title strong { font-size: 18px; }
+  .light-viewer__image, .light-viewer__image img { max-height: 56svh; }
+  .light-gallery .light-toolbar .light-icon { display: none; }
+  .light-cover::after { background: linear-gradient(180deg, rgba(15,13,12,.6) 0%, rgba(15,13,12,0) 22%, rgba(15,13,12,.15) 40%, rgba(15,13,12,.95) 78%); }
   .light-viewer__film button { width: 56px; height: 40px; }
   .light-overlay--panel .cinema-dialog { padding: 30px 22px; max-height: calc(100svh - 24px); }
   .light-gallery .light-overlay--panel h2 { font-size: 30px; }

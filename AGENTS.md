@@ -41,3 +41,7 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Selection-mode admin shows one upload section, PHOTOS À SÉLECTIONNER, with all existing photos regardless of stored category. Download mode retains its three categories.
 
 - School group cards accept photo drops directly without opening the student. Bind each upload and retry to the drop target, retain proof protection, and refresh per-student counts.
+
+- November 1, 2026 client gallery redesign (approved canvas « Galerie BJP — nouvelle version »): the gallery after the password screen is cinematic dark (#0F0D0C ground, ivory text, garnet #9F1204 actions, amber #FFB604 for hearts/selection). Cover photo full-bleed with the title bottom-left (never over faces), sticky bar with section pills and pill actions (Favoris, Diaporama, Télécharger), masonry grid keeping each photo's real proportions, floating selection bar with a progress bar against the package, viewer with thumbnail strip and a per-photo « Note pour Behn » retouch note, thank-you screen with the Google review invitation. The ivory password entrance stays unchanged.
+- Sections (e.g. Cérémonie · Soirée · Équipe) are thematic groups inside a collection, independent from the FULL SIZE / RÉSEAUX SOCIAUX / NOIR & BLANC categories. The section bar appears only when a collection has at least two sections. Retouch notes are sent with the selection and stored in the selection note with real filenames.
+

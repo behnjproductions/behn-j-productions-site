@@ -337,3 +337,16 @@
 
 .adm-school__card.is-dragging { border-color: #FFB604; background: rgba(255,182,4,.12); outline: 2px solid #FFB604; outline-offset: -2px; }
 .adm-school__drop-hint { color: #FFB604; font-size: .78rem; }
+
+/* Sections thématiques de la galerie client */
+.admin-cinema .adm-sections { flex-wrap: wrap; }
+.admin-cinema .adm-sections > div:first-child { flex: 1 1 320px; }
+.admin-cinema .adm-sections__field input { min-height: 44px; min-width: 240px; padding: 10px 14px; border: 1px solid rgba(255,255,255,.2); background: transparent; color: inherit; font: inherit; }
+.admin-cinema .adm-sections__actions { display: flex; gap: 10px; flex-wrap: wrap; flex-basis: 100%; }
+.admin-cinema .adm-photos__pick { position: absolute; top: 10px; right: 58px; bottom: auto; left: auto; color: rgba(255,255,255,.35); }
+.admin-cinema .adm-photos__pick.is-picked { background: #ffb604; border-color: #ffb604; color: #171913; }
+.admin-cinema .adm-photos__pick:hover { border-color: #ffb604; color: #ffb604; }
+.admin-cinema .adm-photos__pick.is-picked:hover { color: #171913; }
+.admin-cinema .adm-photos__section { display: block; color: #ffb604; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+.adm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.admin-cinema .adm-selection__note { white-space: pre-line; }

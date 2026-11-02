@@ -1,11 +1,21 @@
 import { PHOTO_CATEGORIES, categoryPhotos } from './gallery-categories.js';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDown, ArrowRight, CaretLeft, CaretRight, Check, Copy, DownloadSimple, Heart, ImageSquare, NotePencil, Pause, Play, ShareFat, ShoppingCart, Star, X } from '@phosphor-icons/react';
+import { ArrowDown, ArrowRight, CaretLeft, CaretRight, Check, Copy, DeviceMobile, DownloadSimple, Heart, ImageSquare, NotePencil, Pause, Play, ShareFat, ShoppingCart, Star, X } from '@phosphor-icons/react';
 import { archiveFilename, prepareGalleryDownload, preparePhotoDownload } from './gallery-downloads.js';
 import { api } from './api.js';
 import './light-gallery.css';
 
 const countLabel = (count) => `${count} photo${count > 1 ? 's' : ''}`;
+// Sur téléphone, le menu de partage natif propose « Enregistrer l'image » :
+// la photo va directement dans l'app Photos au lieu de l'app Fichiers.
+function deviceCanSaveToPhotos() {
+  try {
+    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
+    if (!window.matchMedia?.('(pointer: coarse)').matches) return false;
+    return navigator.canShare({ files: [new File(['x'], 'photo.jpg', { type: 'image/jpeg' })] });
+  } catch { return false; }
+}
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GOOGLE_REVIEW_URL = 'https://g.page/r/CQkeWPsjYGSdEBM/review';
 const OTHER_SECTION = '__autres__';
 const photoName = (photo, index) => photo?.downloadFilename || photo?.filename || `Photo ${index + 1}`;
@@ -43,6 +53,10 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
   const downloadRequest = useRef(null);
   const downloadObject = useRef(null);
   const downloadTimer = useRef(null);
+  const [canSaveToPhone] = useState(deviceCanSaveToPhotos);
+  const [phoneFiles, setPhoneFiles] = useState(null);
+  const [phoneSaved, setPhoneSaved] = useState(0);
+  const phoneUrl = useRef(null);
   const current = photos[active] || photos[0];
   const cover = (gallery.photos || photos).find((photo) => photo.id === gallery.cover) || (gallery.photos || photos)[0];
   const coverId = gallery.cover?.startsWith('cover-') ? gallery.cover : cover?.id;
@@ -80,6 +94,8 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
     : current?.downloadQuality === 'original';
   const quality = downloadQuality === 'original' && originalAvailable ? 'original' : 'social';
   const downloadBusy = downloadState === 'busy';
+  // Lots plus petits en haute résolution pour ménager la mémoire du téléphone.
+  const phoneBatch = quality === 'original' ? 10 : 25;
   const selectionDisabled = sending || (employeeGallery && !employeeName?.trim());
   // A share link identifies the gallery only. Never copy the session or preview query.
   const shareUrl = `https://behnjproductions.ca/galerie/${encodeURIComponent(gallery.slug)}`;
@@ -99,7 +115,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
   }, []);
   const closePanel = useCallback(() => {
     abortDownload();
-    setToolPanel(null); setCopyState(''); setDownloadState(''); setDownloadError('');
+    setToolPanel(null); setCopyState(''); setDownloadState(''); setDownloadError(''); setPhoneFiles(null); setPhoneSaved(0);
     setDownloadProgress({ done: 0, total: 0 });
   }, [abortDownload]);
 
@@ -152,6 +168,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
     const hasOriginals = scope === 'all' ? photos.length > 0 && photos.every((item) => item.downloadQuality === 'original') : photo?.downloadQuality === 'original';
     setDownloadScope(scope); setDownloadQuality(hasOriginals ? 'original' : 'social');
     setDownloadState(''); setDownloadError(''); setDownloadProgress({ done: 0, total: 0 });
+    setPhoneFiles(null); setPhoneSaved(0);
   };
   const openDownload = (scope, photo = current) => {
     if (!canDownload || downloadRequest.current) return;
@@ -228,6 +245,51 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
         setDownloadError(error.code === 'ARCHIVE_TOO_LARGE' ? error.message : '');
         setDownloadState(error.name === 'AbortError' ? 'cancelled' : 'failed');
       }
+    } finally { if (downloadRequest.current === controller) downloadRequest.current = null; }
+  };
+  const saveToPhone = async (batch = phoneFiles, automatic = false) => {
+    if (!batch) return;
+    try {
+      await navigator.share({ files: batch.files });
+    } catch (error) {
+      // Menu fermé, ou le téléphone exige un nouveau toucher : le bouton reste prêt.
+      if (error?.name === 'AbortError' || (automatic && error?.name === 'NotAllowedError')) return;
+      setPhoneFiles(null); setDownloadState('failed');
+      setDownloadError('Votre téléphone n’a pas pu ouvrir l’enregistrement. Utilisez le téléchargement ci-dessous.');
+      return;
+    }
+    setPhoneFiles(null); setPhoneSaved(batch.end);
+    setDownloadState(batch.end < batch.total ? 'phone-next' : 'phone-done');
+  };
+  const preparePhone = async (start = 0) => {
+    if (!canDownload || !canSaveToPhone || !current || downloadRequest.current || downloadBusy) return;
+    if (gallery.downloadEmailRequired && !EMAIL_PATTERN.test(downloadEmail.trim())) { setDownloadState('failed'); setDownloadError('Indiquez un courriel valide.'); return; }
+    const list = downloadScope === 'all' ? photos.slice(start, start + phoneBatch) : [current];
+    if (!list.length) return;
+    const total = downloadScope === 'all' ? photos.length : 1;
+    const controller = new AbortController();
+    downloadRequest.current = controller;
+    setPhoneFiles(null); setDownloadState('busy'); setDownloadError(''); setDownloadProgress({ done: 0, total: list.length, phone: true });
+    const isCurrentRequest = () => downloadRequest.current === controller && !controller.signal.aborted;
+    try {
+      if (!gallery.downloadEmailRequired) phoneUrl.current = photoUrl;
+      else if (start === 0 || !phoneUrl.current) {
+        const result = await api(`/galerie/${gallery.slug}/download-request`, { method: 'POST', signal: controller.signal, body: JSON.stringify({ email: downloadEmail, category, quality, photoIds: (downloadScope === 'all' ? photos : [current]).map((p) => p.id) }) });
+        phoneUrl.current = (...args) => { const url = photoUrl(...args); return `${url}${url.includes('?') ? '&' : '?'}d=${encodeURIComponent(result.downloadId)}&dt=${encodeURIComponent(result.token)}`; };
+      }
+      const files = [];
+      for (const photo of list) {
+        const { blob, filename } = await preparePhotoDownload({ photo, quality, photoUrl: phoneUrl.current, signal: controller.signal });
+        files.push(new File([blob], filename, { type: blob.type || 'image/jpeg' }));
+        if (isCurrentRequest()) setDownloadProgress({ done: files.length, total: list.length, phone: true });
+      }
+      if (!isCurrentRequest()) return;
+      downloadRequest.current = null;
+      const batch = { files, start, end: start + list.length, total };
+      setPhoneFiles(batch); setDownloadState('phone-ready');
+      await saveToPhone(batch, true);
+    } catch (error) {
+      if (isCurrentRequest()) { setDownloadError(''); setDownloadState(error.name === 'AbortError' ? 'cancelled' : 'failed'); }
     } finally { if (downloadRequest.current === controller) downloadRequest.current = null; }
   };
   const cancelDownload = () => { abortDownload(); setDownloadState('cancelled'); };
@@ -366,7 +428,7 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
         <p className={copyState === 'failed' ? 'light-error' : 'light-status'} role="status">{copyState === 'failed' ? 'Copie impossible. Sélectionnez le lien ci-dessus pour le copier.' : copyState === 'copied' ? 'Le lien est prêt à partager.' : ''}</p>
       </> : <>
         <p className="light-panel__eyebrow">Téléchargement</p><h2 id="light-panel-title">Vos photos, prêtes à garder</h2>
-        {canDownload && current ? <><p>{downloadScope === 'all' ? `Retrouvez toutes les photos de la catégorie ${PHOTO_CATEGORIES.find((item) => item.id === category)?.label || 'FULL SIZE'} dans un seul fichier ZIP.` : 'Enregistrez cette photo sur votre appareil pour la garder et la partager.'}</p>
+        {canDownload && current ? <><p>{downloadScope === 'all' ? `Retrouvez toutes les photos de la catégorie ${PHOTO_CATEGORIES.find((item) => item.id === category)?.label || 'FULL SIZE'} ${canSaveToPhone ? 'directement dans votre galerie.' : 'dans un seul fichier ZIP.'}` : 'Enregistrez cette photo sur votre appareil pour la garder et la partager.'}</p>
           {gallery.downloadEmailRequired && <div className="light-download-contact">
             <label>Courriel<input type="email" autoComplete="email" maxLength={254} value={downloadEmail} disabled={downloadBusy} onChange={e=>setDownloadEmail(e.target.value)} required /></label>
             <p>Votre courriel est transmis à Behn J. Productions pour enregistrer votre demande de téléchargement. Il ne vous inscrit pas à des communications promotionnelles.</p>
@@ -379,18 +441,24 @@ export function LightGallery({ category = 'full', onCategory, gallery, photos, p
           {downloadScope === 'single' && <div className="light-download-photo"><img src={photoUrl(current.id)} alt="" /><span>{photoName(current, active)}<small>Photo {active + 1} sur {photos.length}</small></span></div>}
           <fieldset className="light-download-quality" disabled={downloadBusy}>
             <legend>Format</legend>
-            <label className={originalAvailable ? '' : 'is-unavailable'}><input type="radio" name="download-quality" value="original" checked={quality === 'original'} disabled={!originalAvailable} onChange={() => { setDownloadQuality('original'); setDownloadState(''); }} /><span>Haute résolution<small>Taille originale · pour l’impression</small></span></label>
-            <label><input type="radio" name="download-quality" value="social" checked={quality === 'social'} onChange={() => { setDownloadQuality('social'); setDownloadState(''); }} /><span>Web<small>Réseaux sociaux · 2 000 px</small></span></label>
+            <label className={originalAvailable ? '' : 'is-unavailable'}><input type="radio" name="download-quality" value="original" checked={quality === 'original'} disabled={!originalAvailable} onChange={() => { setDownloadQuality('original'); setDownloadState(''); setPhoneFiles(null); setPhoneSaved(0); }} /><span>Haute résolution<small>Taille originale · pour l’impression</small></span></label>
+            <label><input type="radio" name="download-quality" value="social" checked={quality === 'social'} onChange={() => { setDownloadQuality('social'); setDownloadState(''); setPhoneFiles(null); setPhoneSaved(0); }} /><span>Web<small>Réseaux sociaux · 2 000 px</small></span></label>
           </fieldset>
           {!originalAvailable && <p className="light-download-note">{downloadScope === 'all' ? 'Les fichiers en taille originale ne sont pas encore disponibles pour toutes les photos. Vous pouvez télécharger la version web.' : 'Le fichier en taille originale n’est pas disponible pour cette photo. La version web reste accessible.'}</p>}
           {downloadBusy && <div className="light-download-progress">
             <progress value={downloadProgress.done} max={downloadProgress.total || 1} aria-label="Préparation des photos" />
-            <p role="status">{downloadProgress.done} / {downloadProgress.total} photo{downloadProgress.total > 1 ? 's' : ''} préparée{downloadProgress.total > 1 ? 's' : ''}{downloadScope === 'all' && downloadProgress.done === downloadProgress.total ? ' · Création du ZIP…' : '…'}</p>
+            <p role="status">{downloadProgress.done} / {downloadProgress.total} photo{downloadProgress.total > 1 ? 's' : ''} préparée{downloadProgress.total > 1 ? 's' : ''}{downloadScope === 'all' && !downloadProgress.phone && downloadProgress.done === downloadProgress.total ? ' · Création du ZIP…' : '…'}</p>
           </div>}
-          <button className="light-button light-button--wide" type="button" onClick={downloadPhotos} disabled={downloadBusy}><DownloadSimple size={18} />{downloadBusy ? 'Préparation…' : downloadScope === 'all' ? 'Télécharger toutes les photos (.zip)' : 'Télécharger cette photo'}</button>
+          {canSaveToPhone && <div className="light-phone-save">
+            {phoneFiles && !downloadBusy
+              ? <button className="light-button light-button--wide" type="button" onClick={() => saveToPhone()}><DeviceMobile size={18} />{phoneFiles.total > 1 ? `Enregistrer les photos ${phoneFiles.start + 1} à ${phoneFiles.end}` : 'Enregistrer dans ma galerie'}</button>
+              : <button className="light-button light-button--wide" type="button" onClick={() => preparePhone(downloadState === 'phone-next' ? phoneSaved : 0)} disabled={downloadBusy}><DeviceMobile size={18} />{downloadBusy ? 'Préparation…' : downloadState === 'phone-next' ? `Continuer : photos ${phoneSaved + 1} à ${Math.min(phoneSaved + phoneBatch, photos.length)}` : 'Enregistrer dans ma galerie'}</button>}
+            <p className="light-status" role="status">{downloadState === 'phone-ready' ? 'Prêt! Touchez le bouton, puis choisissez « Enregistrer l’image » dans le menu.' : downloadState === 'phone-next' ? `${phoneSaved} photos sur ${photos.length} envoyées vers votre galerie. Continuez avec la suite.` : downloadState === 'phone-done' ? 'C’est fait! Retrouvez vos photos dans l’app Photos de votre téléphone.' : 'Les photos vont directement dans l’app Photos de votre téléphone.'}</p>
+          </div>}
+          <button className={canSaveToPhone ? 'light-text-button light-download-alt' : 'light-button light-button--wide'} type="button" onClick={downloadPhotos} disabled={downloadBusy}><DownloadSimple size={18} />{downloadBusy ? 'Préparation…' : downloadScope === 'all' ? 'Télécharger toutes les photos (.zip)' : 'Télécharger cette photo'}</button>
           {downloadBusy && <button className="light-download-cancel light-text-button" type="button" onClick={cancelDownload}>Annuler</button>}
           <p className={downloadState === 'failed' ? 'light-error' : 'light-status'} role="status">{downloadState === 'failed' ? downloadError || 'Le téléchargement a échoué. Aucun fichier n’a été téléchargé. Réessayez ou écrivez-nous.' : downloadState === 'saved' ? 'Votre fichier ZIP a été enregistré.' : downloadState === 'done' ? 'Le téléchargement a été lancé.' : downloadState === 'cancelled' ? 'Préparation annulée. Aucun fichier n’a été téléchargé.' : ''}</p>
-          {downloadScope === 'all' && (downloadState === 'done' || downloadState === 'saved') && <div className="light-review">
+          {downloadScope === 'all' && (downloadState === 'done' || downloadState === 'saved' || downloadState === 'phone-done') && <div className="light-review">
             <div className="light-review__stars" aria-hidden="true">{[0, 1, 2, 3, 4].map((index) => <Star key={index} size={16} weight="fill" />)}</div>
             <h3>Un petit mot avant de partir?</h3>
             <p>Votre avis Google nous aiderait beaucoup. Ça prend une minute et ça fait une vraie différence pour une entreprise d’ici.</p>

@@ -4,7 +4,7 @@ import { BRAND } from './brand.js';
 import { submitContact } from './contactSubmission.js';
 import { useDialog } from './useDialog.js';
 
-export const CONTACT_TYPES = ['Corporatif / Institutionnel', 'Mariage', 'Événement', 'Vidéo', 'Diffusion web', 'Sites web', 'Design graphique', 'École', 'Maternité', 'Bébé / nouveau-né', 'Famille', 'Anniversaire', 'Bal de finissants', 'Question sur ma galerie', 'Autre demande'];
+export const CONTACT_TYPES = ['Corporatif / Institutionnel', 'Mariage', 'Événement', 'Vidéo', 'Diffusion web', 'Sites web', 'Systèmes IA', 'Design graphique', 'École', 'Maternité', 'Bébé / nouveau-né', 'Famille', 'Anniversaire', 'Bal de finissants', 'Question sur ma galerie', 'Autre demande'];
 
 export function ContactForm({ prefillType, onOpenPrivacy, resetKey }) {
   const [sent, setSent] = useState(false);

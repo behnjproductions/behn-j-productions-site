@@ -47,3 +47,5 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 
 
 - November 1, 2026 phone downloads: on touch devices that can share files, the download panel's main action is « Enregistrer dans ma galerie » (Web Share with image files → iOS/Android « Enregistrer l'image », straight into the Photos app). Batches of 25 web / 10 high-resolution photos; the ZIP stays available as a secondary link. Desktop keeps the ZIP flow unchanged.
+
+- November 2, 2026: new « Systèmes IA » service (custom AI systems that learn a client's task and run it alone). Dedicated page /systemes-ia, chapter 05 on /services (Écoles is now 06), link in the home nav and footers, and « Systèmes IA » option in the contact form. Its CTAs open the site's contact form with « Systèmes IA » preselected.

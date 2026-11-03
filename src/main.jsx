@@ -7,6 +7,7 @@ import { RealisationsPage } from "./RealisationsPage.jsx";
 import { GaleriePage } from "./GaleriePage.jsx";
 import { AdminPage } from "./AdminPage.jsx";
 import { BoutiquePage } from "./BoutiquePage.jsx";
+import { SystemesIAPage } from "./SystemesIAPage.jsx";
 import "./styles.css";
 import "./cinema-fonts.css";
 import "./boutique.css";
@@ -25,6 +26,12 @@ const ROUTES = {
     title: "Services | Photographie, vidéo, sites web et design — Sept-Îles",
     description:
       "Photographie, vidéo, diffusion web en direct, création de sites web, design graphique et portraits scolaires à Sept-Îles et sur la Côte-Nord.",
+  },
+  "/systemes-ia": {
+    component: SystemesIAPage,
+    title: "Systèmes IA sur mesure | Behn J. Productions — Sept-Îles",
+    description:
+      "Expliquez-nous une tâche en 30 minutes : nous construisons un système d'intelligence artificielle qui la fait à votre place. Pour entrepreneurs, coachs et PME de la Côte-Nord.",
   },
   "/realisations": {
     component: RealisationsPage,

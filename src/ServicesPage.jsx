@@ -30,7 +30,7 @@ export function ServicesPage() {
           <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" />
           <div className="services-band__shade" />
           <div className="services-band__content">
-            <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
+            <p className="eyebrow">Photographie · Vidéo · Sites web · Systèmes IA</p>
             <h1>Nos services</h1>
             <p>Découvrez tout ce qu’on peut créer pour vous.</p>
             <a className="button" href="/contact#formulaire">Commencer mon projet <ArrowRight size={18} weight="bold" /></a>
@@ -92,8 +92,23 @@ export function ServicesPage() {
     </section>
     </div>
 
+    <section id="systemes-ia" className="chapter chapter--media chapter--design chapter--ia" data-reveal>
+    <div className="media-shade" />
+    <div className="chapter__number"><strong>05</strong><span>Une tâche expliquée.<br />Un système qui la fait seul.</span></div>
+    <div className="media-copy"><p className="eyebrow">Automatisation · IA sur mesure</p><h2>Systèmes IA</h2><p>Expliquez-moi une tâche en 30 minutes.<br />Je vous livre un système qui la fait seul.</p><p className="media-copy__proof">Nos propres factures, galeries clients et soumissions roulent déjà ainsi.</p><a className="button button--secondary" href="/systemes-ia">Découvrir les systèmes IA <ArrowRight size={18} weight="bold" /></a></div>
+    <aside className="media-markets" aria-label="Exemples de systèmes IA">
+    <p>Ce que nous automatisons</p>
+    <ol>
+    <li><span>01</span>Courriels et réponses aux clients</li>
+    <li><span>02</span>Soumissions, relances et facturation</li>
+    <li><span>03</span>Rapports, documents et saisie de données</li>
+    <li><span>04</span>Contenu pour les réseaux sociaux</li>
+    </ol>
+    </aside>
+    </section>
+
     <section id="ecoles" className="school-feature" data-reveal>
-    <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" loading="lazy" decoding="async" /><div className="school-feature__wash" /><div className="school-feature__number">05</div>
+    <img src="/assets/school-premium.jpg" alt="Portraits scolaires naturels et joyeux" loading="lazy" decoding="async" /><div className="school-feature__wash" /><div className="school-feature__number">06</div>
     <div className="school-feature__content"><p className="eyebrow eyebrow--dark">Pour les écoles et les parents</p><h2>Écoles</h2><p>Des sourires d’aujourd’hui<br />pour les souvenirs de demain.</p><a className="button" href={BRAND.schoolPortal}>Ouvrir l’espace scolaire <ArrowRight size={18} weight="bold" /></a></div>
     </section>
 
@@ -107,7 +122,7 @@ export function ServicesPage() {
       <footer className="footer">
         <img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" />
         <div><strong>Sept-Îles · Québec</strong><a href="/contact#formulaire">{BRAND.email}</a><a href={BRAND.phoneHref}>{BRAND.phone}</a></div>
-        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/realisations">Réalisations</a><a href="/boutique">Boutique</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact#formulaire">Contact</a></div>
+        <div className="footer-links"><a href="/">Accueil</a><a href="/services">Services</a><a href="/systemes-ia">Systèmes IA</a><a href="/realisations">Réalisations</a><a href="/boutique">Boutique</a><a href="/#seances">Séances</a><a href="/a-propos">À propos</a><a href="/contact#formulaire">Contact</a></div>
         <div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div>
       </footer>
     </div>

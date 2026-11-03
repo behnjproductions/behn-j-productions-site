@@ -52,3 +52,8 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - November 2, 2026 (approved by the user): the whole site uses the floating capsule header from the Systèmes IA mockup — rounded pill, dark glass, logo separated by a hairline, Plus Jakarta Sans links, red gradient CTA, phone hidden in the header. On phones: logo + CTA on subpages, logo + menu button with a full-width rounded dropdown on the home page. The /systemes-ia page keeps its own black/red design (Plus Jakarta Sans) inside the standard site header and footer, with an interactive problem → system examples section (#exemples).
 
 - November 2, 2026: /systemes-ia keeps its hero intact. Extend its deep black, intense red, white and charcoal identity below the hero, with restrained red glows, dark cards, connection lines, smooth reveals and hover; preserve all copy, commercial structure and contact routes. Respect reduced motion and keyboard access.
+<<<<<<< HEAD
+=======
+
+- November 3, 2026: temporary Christmas homepage approved for official repository: Christmas hero with supplied portrait, event December 10–13, 2026 at Galeries Montagnaises in Sept-Îles from 10 h, no reservation required; then Nos services, inline contact form, and a thin group wedding photo strip (desktop object-position 50% 52%). Earlier homepage remains recoverable in Git history. Jingle Bells instrumental attempts autoplay with first-interaction fallback and a silence control. Preserve all other routes and gallery workflows.
+>>>>>>> d6a2b04373e7656e663cfb2dd8d9d0ae208fe919

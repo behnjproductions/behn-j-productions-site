@@ -10,6 +10,9 @@ const CATEGORIES = [
     label: 'Mariages',
     lead: 'L’émotion vraie d’une journée qui ne se rejoue pas.',
     photos: [
+      { src: '/assets/portfolio/mariage-rire.jpg', alt: 'Les mariés partagent un éclat de rire en forêt', natural: true },
+      { src: '/assets/portfolio/mariage-reception.jpg', alt: 'Détail de la réception : verres et décor de table violet', natural: true },
+      { src: '/assets/portfolio/mariage-cortege.jpg', alt: 'Le cortège et les mariés réunis dans une scène joyeuse en forêt', wide: true, natural: true },
       { src: '/assets/portfolio/mariage-ceremonie.jpg', pos: '50% 38%', alt: 'Mariés joue contre joue sous l’arche florale' },
       { src: '/assets/portfolio/mariage-bouquet.jpg', alt: 'Bouquets levés par le cortège pendant la réception', wide: true },
       { src: '/assets/hero-mariage.jpg', alt: 'Couple de mariés dans une lumière dorée' },
@@ -107,7 +110,7 @@ export function RealisationsPage() {
             </div>
             <div className="gallery-grid">
               {c.photos.map((p) => (
-                <figure key={p.src} className={p.wide ? 'is-wide' : undefined} data-reveal>
+                <figure key={p.src} className={[p.wide && 'is-wide', p.natural && 'is-natural'].filter(Boolean).join(' ') || undefined} data-reveal>
                   <img src={p.src} alt={p.alt} style={p.pos ? { objectPosition: p.pos } : undefined} loading="lazy" decoding="async" />
                 </figure>
               ))}

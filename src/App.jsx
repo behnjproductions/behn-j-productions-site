@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, List, X } from '@phosphor-icons/react';
+import { MapPin, Clock, ChatCircleDots, StarFour, ArrowLeft, ArrowRight, FacebookLogo, InstagramLogo, List, X } from '@phosphor-icons/react';
 import { BRAND } from './brand.js';
 import { ContactForm, PrivacyModal } from './ContactForm.jsx';
 import { useDialog } from './useDialog.js';
@@ -43,13 +43,12 @@ function Header() {
         <a href="/systemes-ia" onClick={() => setMenuOpen(false)}>Systèmes IA</a>
         <a href="/realisations" onClick={() => setMenuOpen(false)}>Réalisations</a>
         <a href="/boutique" onClick={() => setMenuOpen(false)}>Boutique</a>
-        <button type="button" onClick={() => { scrollToSection('seances'); setMenuOpen(false); }}>Séances</button>
         <a href="/a-propos" onClick={() => setMenuOpen(false)}>À propos</a>
-        <a href="/contact" onClick={() => setMenuOpen(false)}>Contact</a>
+        <a href="#formulaire" onClick={() => setMenuOpen(false)}>Contact</a>
       </nav>
       <div className="header-actions">
         <a className="header-phone" href={BRAND.phoneHref}>{BRAND.phone}</a>
-        <a className="header-cta" href="/contact">Nous contacter</a>
+        <a className="header-cta" href="#formulaire">Nous contacter</a>
       </div>
       <button className="menu-toggle" type="button" ref={menuToggleRef} aria-expanded={menuOpen} aria-controls="home-main-navigation" onClick={() => setMenuOpen((isOpen) => !isOpen)} aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}>
         {menuOpen ? <X size={26} /> : <List size={28} />}
@@ -128,12 +127,38 @@ function ProjectModal({ open, onClose, onOpenPrivacy, prefillType }) {
   );
 }
 
+function ChristmasAmbience() {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    const audio = audioRef.current;
+    audio.volume = 0.65;
+    const removeListeners = () => {
+      document.removeEventListener('click', startOnInteraction);
+      document.removeEventListener('keydown', startOnInteraction);
+    };
+    const start = () => audio.play().then(() => { setPlaying(true); removeListeners(); }).catch(() => {});
+    const startOnInteraction = (event) => {
+      if (event.target.closest?.('.noel-ambience')) return;
+      start();
+    };
+    audio.addEventListener('playing', removeListeners);
+    document.addEventListener('click', startOnInteraction);
+    document.addEventListener('keydown', startOnInteraction);
+    start();
+    return () => { removeListeners(); audio.removeEventListener('playing', removeListeners); audio.pause(); };
+  }, []);
+  const toggle = async () => {
+    const audio = audioRef.current;
+    if (!audio.paused) { audio.pause(); setPlaying(false); }
+    else { try { await audio.play(); setPlaying(true); } catch { setPlaying(false); } }
+  };
+  return <div className="noel-ambience"><audio ref={audioRef} src="/assets/jingle-bells-carillon.wav" autoPlay loop preload="auto" onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)} /><button type="button" onClick={toggle} aria-pressed={playing}>{playing ? '♫ Couper la musique' : '♪ Activer l’ambiance de Noël'}</button></div>;
+}
+
 export function App() {
-  const [contactOpen, setContactOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
-  const [sessionsOpen, setSessionsOpen] = useState(false);
   const [prefillType, setPrefillType] = useState('');
-  const openProject = (type = '') => { setPrefillType(type); setContactOpen(true); };
 
   useEffect(() => {
     const els = document.querySelectorAll('[data-reveal]');
@@ -160,90 +185,50 @@ export function App() {
     <div className="site-shell">
       <Header />
       <main>
-        <section id="accueil" className="hero">
-          <div className="hero__media" aria-label="Mariage, portrait corporatif et événement captés par Behn J. Productions">
-            <img fetchPriority="high" src="/assets/hero-mariage.jpg" alt="Mariage photographié par Behn J. Productions" />
-            <img src="/assets/hero-corporatif.jpg" alt="Portrait corporatif réalisé par Behn J. Productions" />
-            <img src="/assets/hero-evenement.jpg" alt="Événement photographié par Behn J. Productions" />
+        <section id="accueil" className="christmas-feature christmas-feature--hero" aria-labelledby="christmas-title">
+          <div className="noel-festive-layer" aria-hidden="true">
+            <img className="noel-pine" src="/assets/noel-pine.png" alt="" />
+            <div className="noel-snow">{Array.from({length:26},(_,i)=><i key={i} style={{'--x':`${(i*37+9)%100}%`,'--size':`${3+i%4}px`,'--duration':`${9+i%7}s`,'--delay':`${-i*.73}s`}} />)}</div>
           </div>
-          <div className="hero__shade" />
-          <div className="hero__content"><p className="eyebrow">Sept-Îles · Côte-Nord</p><h1>Chaque détail<br />compte<span>.</span></h1><p className="hero__lead">Photographie <i /> Vidéo <i /> Diffusion web</p><div className="hero__actions"><CTAButton onClick={() => openProject()}>Commencer mon projet</CTAButton><a className="showreel" href="/realisations">Voir nos réalisations <ArrowRight size={18} weight="bold" /></a></div></div>
-          <p className="hero__manifesto">Des gens d’ici.<br />Des lieux d’ici.<br />Des histoires<br />en mouvement.</p>
-          <button className="hero__scroll" type="button" onClick={() => scrollToSection('photographie')}>Découvrir <span /></button>
-        </section>
-
-        <section id="photographie" className="chapter chapter--photo">
-          <div className="chapter__number" data-reveal><strong>01</strong><span>Émotions authentiques.<br />Images intemporelles.</span></div>
-          <div className="chapter__heading" data-reveal><p className="eyebrow">L'art de saisir l'essentiel</p><h2>Photographie</h2><p>Des moments vrais, cadrés avec intention.</p></div>
-          <div className="photo-triptych">
-            {[
-              ['Corporatif', '/assets/photo-corporatif.jpg', 'Portrait corporatif haut de gamme', 'Corporatif / Institutionnel'],
-              ['Mariages', '/assets/photo-mariage.jpg', 'Couple de mariés dans une lumière dorée', 'Mariage'],
-              ['Événements', '/assets/photo-evenement.jpg', 'Performance culturelle sur scène', 'Événement'],
-            ].map(([label, src, alt, projectType], i) => (
-              <button key={label} type="button" data-reveal style={{ transitionDelay: `${i * 0.12}s` }} onClick={() => openProject(projectType)}>
-                <img className="photo-triptych__image" src={src} alt={alt} loading="lazy" decoding="async" />
-                <span className="photo-triptych__label"><span>{label}</span><ArrowRight /></span>
-              </button>
-            ))}
+          <span id="noel" className="noel-anchor" aria-hidden="true" /><ChristmasAmbience />
+          <div className="christmas-feature__copy">
+            <p className="eyebrow"><StarFour weight="fill" size={22} aria-hidden="true" />Behn J. Productions présente</p>
+            <h1 id="christmas-title"><em>La magie de Noël</em><strong>aux Galeries Montagnaises</strong></h1>
+            <ul className="christmas-feature__details">
+              <li className="noel-location"><MapPin weight="fill" size={30} aria-hidden="true" /><strong>Sept-Îles</strong></li>
+              <li className="christmas-feature__date" aria-label="Du 10 au 13 décembre 2026"><div className="noel-date-range" aria-hidden="true"><div className="noel-date-card"><img src="/assets/noel-hat.png" alt="" /><span>Du</span><strong>10</strong></div><div className="noel-date-card noel-date-card--end"><img src="/assets/noel-hat.png" alt="" /><span>au</span><strong>13</strong></div></div><span className="noel-date-month" aria-hidden="true">décembre 2026</span></li>
+              <li className="noel-time"><Clock size={32} aria-hidden="true" /><span>Dès <strong>10 h</strong></span></li>
+            </ul>
+            <p className="christmas-feature__badge"><StarFour size={24} weight="fill" aria-hidden="true" />Aucune réservation nécessaire !</p>
+            <a className="christmas-feature__contact" href="#formulaire" onClick={() => setPrefillType('Famille')}><ChatCircleDots size={26} aria-hidden="true" />Écrivez-moi pour plus d’infos <ArrowRight size={22} /></a>
           </div>
+          <figure className="christmas-feature__photo"><img src="/assets/noel-famille.jpg" alt="Deux proches enlacés devant un décor de Noël aux lumières dorées" loading="lazy" decoding="async" /></figure>
         </section>
 
-        <section id="services" className="services-intro" data-reveal>
-          <p>Behn J. Productions transforme vos idées en images concrètes. Établis à Sept-Îles et attachés à la Côte-Nord, nous mettons le même soin dans chaque mandat : photographie, vidéo, création de sites web et design graphique. Familles, entreprises, écoles, artistes et organisations — chaque projet est l’occasion de raconter ce qui se passe vraiment ici, avec une approche humaine, un regard cinématographique et une attention portée à ce que les autres ne voient pas toujours.</p>
-          <a className="button" href="/services">Découvrir tous nos services <ArrowRight size={18} weight="bold" /></a>
-        </section>
-
-        <div className="services-band" data-reveal>
+        <section id="services" className="services-band" aria-labelledby="home-services-title" data-reveal>
           <img src="/assets/services-hero.jpg" alt="Moment de complicité capté sur scène par Behn J. Productions" loading="lazy" decoding="async" />
           <div className="services-band__shade" />
           <div className="services-band__content">
             <p className="eyebrow">Photographie · Vidéo · Sites web · Design</p>
-            <h2>Nos services</h2>
+            <h2 id="home-services-title">Nos services</h2>
             <p>Découvrez tout ce qu’on peut créer pour vous.</p>
             <a className="button" href="/services">Voir nos services <ArrowRight size={18} weight="bold" /></a>
           </div>
-        </div>
-
-        <a className="quote-band" href="/contact">
-          <span>Obtenez une soumission pour votre projet</span>
-          <ArrowRight size={26} weight="bold" />
-        </a>
-
-        <section id="seances" className="sessions-teaser" data-reveal>
-          <p className="eyebrow">Choisis ton moment. Je m’occupe du reste.</p>
-          <h2>Séances photo.</h2>
-          <p>Maternité, bébé, famille, anniversaire ou bal de finissants — des séances simples à réserver, avec un tarif clair dès le départ.</p>
-          <div className="sessions-teaser__actions">
-            <CTAButton onClick={() => openProject()}>Demander une séance</CTAButton>
-            <button className="sessions-teaser__explore" type="button" onClick={() => setSessionsOpen(true)}>Explorer nos séances <ArrowRight size={18} /></button>
-          </div>
         </section>
 
-        <section className="trust" data-reveal><blockquote><p>« Bon photographe. Il a vraiment pris le temps avec moi pour essayer plusieurs poses. »</p><footer>— Jesse Robitaille, avis Google ★★★★★</footer></blockquote><div className="local-pride"><span>Fiers de la Côte-Nord</span><strong>Nos gens.<br />Nos paysages.<br />Notre lumière.</strong></div></section>
-
-        <section className="client-trust" aria-labelledby="client-trust-title" data-reveal>
-          <div className="client-trust__intro">
-            <p className="eyebrow">Ils nous font confiance</p>
-            <h2 id="client-trust-title">Des relations bâties<br />sur la confiance.</h2>
-            <p>Quelques organisations avec lesquelles nous avons eu le privilège de travailler.</p>
-          </div>
-          <div className="client-trust__names" aria-label="Organisations clientes">
-            <span>ITUM</span>
-            <span>Ville de Sept-Îles</span>
-            <span className="client-trust__chamber"><strong>Chambre de commerce</strong><small>Sept-Îles / Port-Cartier</small></span>
-            <span>Rio Tinto</span>
-            <span>Métal 7</span>
+        <section id="contact" className="home-contact" aria-labelledby="home-contact-title">
+          <div id="formulaire" className="contact-form-card">
+            <p className="eyebrow">Parlons de votre projet</p>
+            <h2 id="home-contact-title">Contactez-nous</h2>
+            <ContactForm prefillType={prefillType} onOpenPrivacy={() => setPrivacyOpen(true)} resetKey="home-contact" />
           </div>
         </section>
-
-        <section id="contact" className="closing" data-reveal><img src="/assets/coast-footer.jpg" alt="Photographe au coucher du soleil sur la Côte-Nord" loading="lazy" decoding="async" /><div className="closing__shade" /><div className="closing__content"><p>Chaque détail compte.</p><h2>Votre histoire<br />commence ici<span>.</span></h2><CTAButton onClick={() => openProject()}>Commencer mon projet</CTAButton></div></section>
+        <figure id="photo-finale" className="home-wedding-finale">
+          <img src="/assets/portfolio/mariage-cortege.jpg" alt="Les mariés et tout leur cortège réunis dans une scène joyeuse en forêt" loading="lazy" decoding="async" />
+        </figure>
       </main>
 
-      <footer className="footer"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /><div><strong>Sept-Îles · Québec</strong><button className="footer-contact" type="button" onClick={() => openProject()}>{BRAND.email}</button><a href={BRAND.phoneHref}>{BRAND.phone}</a></div><div className="footer-links"><a href="/services">Services</a><a href="/systemes-ia">Systèmes IA</a><a href="/realisations">Réalisations</a><a href="/boutique">Boutique</a><button type="button" onClick={() => scrollToSection('seances')}>Séances</button><a href="/a-propos">À propos</a><a href="/contact">Contact</a><button className="footer-privacy" type="button" onClick={() => setPrivacyOpen(true)}>Confidentialité</button></div><div className="socials" aria-label="Réseaux sociaux"><a href={BRAND.instagram} target="_blank" rel="noreferrer" aria-label="Instagram"><InstagramLogo /></a><a href={BRAND.facebook} target="_blank" rel="noreferrer" aria-label="Facebook"><FacebookLogo /></a></div></footer>
-      <ProjectModal open={contactOpen} onClose={() => setContactOpen(false)} onOpenPrivacy={() => setPrivacyOpen(true)} prefillType={prefillType} />
       <PrivacyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
-      <SessionsModal open={sessionsOpen} onClose={() => setSessionsOpen(false)} onBook={(name) => { setSessionsOpen(false); openProject(name); }} />
     </div>
   );
 }

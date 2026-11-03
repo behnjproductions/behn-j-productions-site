@@ -61,29 +61,38 @@ const CASES = [
 function Cases() {
   const [active, setActive] = useState(0);
   const [auto, setAuto] = useState(true);
+  const [paused, setPaused] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
-    if (!auto || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!auto || paused || motion.matches) return undefined;
+    const stop = () => setAuto(false);
+    motion.addEventListener('change', stop);
     const timer = window.setInterval(() => setActive((index) => (index + 1) % CASES.length), 7000);
-    return () => window.clearInterval(timer);
-  }, [auto]);
+    return () => { window.clearInterval(timer); motion.removeEventListener('change', stop); };
+  }, [auto, paused]);
   const choose = (index) => { setAuto(false); setActive(index); };
   const item = CASES[active];
   return (
-    <section id="exemples" className="iax-cases" aria-labelledby="iax-cases-title" ref={ref}>
+    <section id="exemples" className="iax-cases" aria-labelledby="iax-cases-title" ref={ref} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocusCapture={() => setAuto(false)}>
       <h2 id="iax-cases-title" data-anim>Un problème réel. Un système qui le règle.</h2>
       <p className="iax-cases__intro" data-anim>Choisissez une situation qui vous ressemble.</p>
       <div className="iax-cases__layout" data-anim>
         <div className="iax-cases__list" role="tablist" aria-label="Exemples de problèmes">
           {CASES.map((entry, index) => (
-            <button key={entry.name} type="button" role="tab" id={`iax-tab-${index}`} aria-selected={index === active} aria-controls="iax-case-panel" className={index === active ? 'is-active' : ''} onClick={() => choose(index)}>
+            <button key={entry.name} type="button" role="tab" id={`iax-tab-${index}`} aria-selected={index === active} tabIndex={index === active ? 0 : -1} onKeyDown={(event) => {
+              const next = event.key === 'Home' ? 0 : event.key === 'End' ? CASES.length - 1 : ['ArrowRight', 'ArrowDown'].includes(event.key) ? (index + 1) % CASES.length : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? (index + CASES.length - 1) % CASES.length : null;
+              if (next === null) return;
+              event.preventDefault(); choose(next);
+              ref.current?.querySelector(`#iax-tab-${next}`)?.focus();
+            }} aria-controls="iax-case-panel" className={index === active ? 'is-active' : ''} onClick={() => choose(index)}>
               <span>{entry.who}</span>
               « {entry.problem} »
               {index === active && auto && <i className="iax-cases__timer" />}
             </button>
           ))}
         </div>
-        <div className="iax-case" id="iax-case-panel" role="tabpanel" aria-labelledby={`iax-tab-${active}`} key={active}>
+        <div className="iax-case" id="iax-case-panel" role="tabpanel" tabIndex={0} aria-labelledby={`iax-tab-${active}`} key={active}>
           <p className="iax-case__label">Le système</p>
           <h3>{item.name}{item.ours && <em>Utilisé chez Behn J.</em>}</h3>
           <ol className="iax-case__flow">

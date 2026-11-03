@@ -275,3 +275,53 @@
   .iax-case__flow::after { content:''; position:absolute; left:23px; top:28px; width:10px; height:10px; border-radius:50%; background:#fff; box-shadow:0 0 12px var(--red),0 0 22px var(--red); animation:iax-travel 3.2s ease-in-out 1.3s infinite; }
   @keyframes iax-travel { 0% { top:28px; opacity:0; } 10% { opacity:1; } 80% { opacity:1; } 100% { top:calc(100% - 38px); opacity:0; } }
 }
+
+/* Identité continue sous la portada — styles strictement limités à cette page. */
+.iax-bento,.iax-cases,.iax-steps,.iax-final { position:relative; isolation:isolate; }
+.iax-bento::before,.iax-cases::before,.iax-steps::before,.iax-final::before { content:''; position:absolute; z-index:-1; pointer-events:none; inset:0; background:radial-gradient(ellipse at 85% 45%,rgba(255,43,28,.075),transparent 65%); }
+.iax-cases::before { background:radial-gradient(ellipse at 10% 60%,rgba(255,43,28,.08),transparent 65%); }
+.iax-panel { background:radial-gradient(ellipse at 100% 0,rgba(255,43,28,.07),transparent 65%),linear-gradient(160deg,#171717,#080808); box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+.iax-cases,.iax-steps { scroll-margin-top:110px; }
+.iax-cases__list button { min-height:80px; }
+.iax-cases__list button.is-active span,.iax-case__label { color:#ff776b; }
+.iax-case h3 em { color:#fff; border-color:rgba(255,43,28,.6); background:rgba(255,43,28,.13); }
+.iax-case__gain svg { color:#ff776b; }
+.iax-case { box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 48px rgba(0,0,0,.25); }
+.iax-steps ol { gap:24px; }
+.iax-steps li { min-width:0; padding:28px; border:1px solid var(--line); border-radius:18px; background:radial-gradient(ellipse at 0 0,rgba(255,43,28,.1),transparent 70%),linear-gradient(160deg,#151515,#080808); box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+.iax-steps li:not(:last-child)::after { top:56px; left:84px; right:-25px; height:1px; z-index:0; }
+.iax-steps li span { background:#200604; }
+.iax-steps h3,.iax-steps p { position:relative; z-index:1; }
+.iax-final { border-radius:24px; background:linear-gradient(135deg,rgba(22,22,22,.8),rgba(0,0,0,.4)); box-shadow:inset 0 1px 0 rgba(255,43,28,.25); }
+.iax-final h2 { text-wrap:balance; }
+.iax .footer { position:relative; background:linear-gradient(180deg,#0d0b0b,#050505); font-family:'Plus Jakarta Sans',system-ui,sans-serif; border-top:1px solid rgba(255,43,28,.25); }
+.iax .footer a { text-decoration-thickness:1px; text-underline-offset:5px; }
+.iax .footer a:hover { color:#ff776b; }
+.iax .socials a { border-radius:12px; background:#141414; }
+.iax main > section:not(.iax-hero) a:focus-visible,.iax main > section:not(.iax-hero) button:focus-visible,.iax .footer a:focus-visible { outline:2px solid #fff; outline-offset:5px; }
+@media (hover:hover) and (prefers-reduced-motion:no-preference) {
+  .iax-steps li,.iax .socials a { transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease; }
+  .iax-steps li:hover { transform:translateY(-4px); border-color:rgba(255,43,28,.45); box-shadow:0 12px 32px rgba(255,43,28,.08); }
+  .iax .socials a:hover { transform:translateY(-2px); border-color:var(--red); }
+}
+@media (max-width:900px) {
+  .iax-steps ol { gap:24px; }
+  .iax-steps li { padding:24px; }
+  .iax-steps li:not(:last-child)::after { display:block; top:auto; bottom:-25px; left:52px; width:1px; height:24px; background:linear-gradient(var(--red),rgba(255,43,28,.25)); transform:none; }
+  .iax-cases__list { scroll-padding-inline:4px; padding:5px 4px 12px; }
+}
+@media (max-width:420px) {
+  .iax-case { padding:22px 18px; }
+  .iax-case__flow li { grid-template-columns:48px minmax(0,1fr); gap:12px; }
+  .iax-case__icon { width:48px; height:48px; }
+  .iax-case__flow::before { left:23px; }
+  .iax-case__flow::after { left:19px; }
+  .iax main > section:not(.iax-hero) .iax-btn { max-width:100%; gap:10px; font-size:16px; padding:16px 18px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .iax main > section:not(.iax-hero) *, .iax main > section:not(.iax-hero) *::before, .iax main > section:not(.iax-hero) *::after,.iax .footer * { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+  .iax-cases__timer { display:none; }
+}
+
+.iax-cases__list { scrollbar-width:thin; scrollbar-color:#69251f #111; }
+.iax-cases__list:hover .iax-cases__timer { animation-play-state:paused; }

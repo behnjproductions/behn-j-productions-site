@@ -68,7 +68,7 @@
 .iax-inbox__list { padding:18px 18px 0; }
 .iax-inbox__list p { margin:0 0 14px; font-size:13px; color:#cfcfcf; }
 .iax-inbox__list div { display:grid; grid-template-columns:16px 1fr; grid-template-rows:8px 6px; gap:6px 14px; align-items:center; padding:14px; border-bottom:1px solid var(--line); }
-.iax-inbox__list div.is-on { border:1px solid rgba(255,43,28,.6); border-radius:10px; background:linear-gradient(90deg,rgba(255,43,28,.55),rgba(255,43,28,.2)); box-shadow:0 0 30px rgba(255,43,28,.35); }
+.iax-inbox__list div.iax-row--static { border:1px solid rgba(255,43,28,.6); border-radius:10px; background:linear-gradient(90deg,rgba(255,43,28,.55),rgba(255,43,28,.2)); box-shadow:0 0 30px rgba(255,43,28,.35); }
 .iax-inbox__list i { grid-row:span 2; width:14px; height:14px; border:1.5px solid #d0d0d0; border-radius:4px; }
 .iax-inbox__list b { height:6px; width:45%; border-radius:4px; background:rgba(255,255,255,.35); }
 .iax-inbox__list b+b { width:75%; background:rgba(255,255,255,.18); }
@@ -79,7 +79,7 @@
 .iax-cal__rings i { width:5px; height:18px; border-radius:3px; background:#d9d9d9; }
 .iax-cal__grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
 .iax-cal__grid i { height:20px; border-radius:4px; background:rgba(255,255,255,.1); }
-.iax-cal__grid i.is-on { background:var(--red); box-shadow:0 0 14px var(--red); }
+.iax-cal__grid i.iax-cell--static { background:var(--red); box-shadow:0 0 14px var(--red); }
 .iax-cal__bell { position:absolute; right:-14px; bottom:-14px; display:grid; place-items:center; width:44px; height:44px; border:1.5px solid var(--red); border-radius:12px; background:#140303; color:#fff; box-shadow:0 0 20px rgba(255,43,28,.5); }
 
 .iax-net { position:relative; width:230px; height:140px; }
@@ -123,3 +123,101 @@
   .iax-card { padding:14px 16px; min-width:60%; }
 }
 @media (prefers-reduced-motion:reduce) { .iax-ring,.iax-link b { animation:none; } }
+
+
+/* Mouvement — la page se raconte : le courriel entre, se traite, repart prêt */
+.iax-inbox__list .iax-row:first-of-type { border:1px solid rgba(255,43,28,.6); border-radius:10px; background:linear-gradient(90deg,rgba(255,43,28,.55),rgba(255,43,28,.2)); box-shadow:0 0 30px rgba(255,43,28,.35); }
+.iax-cal__grid i:nth-child(7) { background:var(--red); box-shadow:0 0 14px var(--red); }
+.iax-flow__tilt { position:absolute; inset:0; transition:transform .4s ease-out; }
+.iax-net__flow { stroke-dasharray:0 1; opacity:0; }
+
+@media (prefers-reduced-motion:no-preference) {
+  /* Entrée de la portada, une seule fois */
+  .iax--anim .iax-pill,.iax--anim .iax-hero h1>*,.iax--anim .iax-hero__lead,.iax--anim .iax-hero .iax-btn,.iax--anim .iax-hero__note { animation:iax-rise .9s cubic-bezier(.2,.8,.2,1) both; }
+  .iax--anim .iax-hero h1>:nth-child(1) { animation-delay:.12s; }
+  .iax--anim .iax-hero h1>:nth-child(2) { animation-delay:.24s; }
+  .iax--anim .iax-hero h1>:nth-child(3) { animation-delay:.36s; animation-name:iax-rise-glow; animation-duration:1.4s; }
+  .iax--anim .iax-hero__lead { animation-delay:.5s; }
+  .iax--anim .iax-hero .iax-btn { animation-delay:.62s; }
+  .iax--anim .iax-hero__note { animation-delay:.74s; }
+  .iax--anim .iax-flow { animation:iax-zoom 1.4s cubic-bezier(.2,.8,.2,1) .2s both; }
+  @keyframes iax-rise { from { opacity:0; transform:translateY(28px); filter:blur(6px); } to { opacity:1; transform:none; filter:none; } }
+  @keyframes iax-rise-glow { 0% { opacity:0; transform:translateY(28px); filter:blur(6px); } 60% { opacity:1; transform:none; filter:none; text-shadow:0 0 80px rgba(255,43,28,.9); } 100% { opacity:1; text-shadow:0 0 40px rgba(255,43,28,.35); } }
+  @keyframes iax-zoom { from { opacity:0; transform:scale(.85) rotate(-6deg); } to { opacity:1; transform:none; } }
+
+  /* L'anneau tourne lentement, le visuel suit la souris */
+  .iax-ring__a,.iax-ring__b { transform-box:view-box; transform-origin:50% 50%; }
+  .iax-ring__a { animation:iax-spin 26s linear infinite; }
+  .iax-ring__b { animation:iax-spin 34s linear infinite reverse; }
+  @keyframes iax-spin { to { transform:rotate(360deg); } }
+  .iax-flow__tilt { transform:perspective(900px) rotateY(calc(var(--mx,0) * 14deg)) rotateX(calc(var(--my,0) * -12deg)) translate(calc(var(--mx,0) * 18px),calc(var(--my,0) * 18px)); }
+
+  /* Le processus en boucle : courriel → traitement → réponse prête */
+  .iax-card { animation:iax-card-cycle 4.8s ease-in-out infinite; }
+  .iax-card--2 { animation-delay:1.2s; }
+  .iax-card--3 { animation-delay:2.4s; }
+  @keyframes iax-card-cycle { 0%,100% { border-color:rgba(255,255,255,.2); box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12); } 12%,30% { border-color:rgba(255,43,28,.9); box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 38px rgba(255,43,28,.55),inset 0 1px 0 rgba(255,255,255,.2); } }
+  .iax-card--2 svg { animation:iax-spin 4s linear infinite; }
+  .iax-check { animation:iax-pop 4.8s ease-in-out 2.4s infinite; }
+  @keyframes iax-pop { 0%,8% { transform:scale(0); } 16% { transform:scale(1.35); } 24%,90% { transform:scale(1); } 100% { transform:scale(0); } }
+  .iax-link b { animation-duration:1.2s; animation-iteration-count:infinite; }
+  .iax-link--1 b { animation:iax-pulse 4.8s ease-in-out .6s infinite; }
+  .iax-link--2 b { animation:iax-pulse 4.8s ease-in-out 1.8s infinite; }
+  @keyframes iax-pulse { 0% { top:0; opacity:0; } 4% { opacity:1; } 22% { top:100%; opacity:1; } 26%,100% { top:100%; opacity:0; } }
+
+  /* Les blocs apparaissent quand on y arrive */
+  .iax--anim [data-anim] { opacity:0; transform:translateY(40px); transition:opacity .9s cubic-bezier(.2,.8,.2,1),transform .9s cubic-bezier(.2,.8,.2,1); }
+  .iax--anim [data-anim].is-in { opacity:1; transform:none; }
+  .iax--anim .iax-bento__grid>[data-anim]:nth-child(2) { transition-delay:.12s; }
+  .iax--anim .iax-bento__grid>[data-anim]:nth-child(3) { transition-delay:.24s; }
+  .iax-panel { transition:border-color .3s ease,box-shadow .3s ease; }
+  .iax-panel:hover { border-color:rgba(255,43,28,.45); box-shadow:0 0 50px rgba(255,43,28,.15); }
+
+  /* La boîte de réception se trie toute seule */
+  .iax-inbox__list .iax-row { animation:iax-row 6s ease-in-out infinite; border:1px solid transparent; border-radius:10px; }
+  .iax-inbox__list .iax-row:first-of-type { animation-delay:0s; }
+  .iax-inbox__list .iax-row:nth-of-type(2) { animation-delay:2s; }
+  .iax-inbox__list .iax-row:nth-of-type(3) { animation-delay:4s; }
+  .iax-inbox__list .iax-row:first-of-type { border-color:transparent; background:none; box-shadow:none; }
+  @keyframes iax-row { 0%,100% { background:transparent; border-color:transparent; box-shadow:none; } 6%,30% { background:linear-gradient(90deg,rgba(255,43,28,.55),rgba(255,43,28,.2)); border-color:rgba(255,43,28,.6); box-shadow:0 0 30px rgba(255,43,28,.35); } 38% { background:transparent; border-color:transparent; box-shadow:none; } }
+  .iax-inbox__list .iax-row i { animation:iax-tick 6s ease-in-out infinite; animation-delay:inherit; }
+  @keyframes iax-tick { 0%,12% { background:transparent; } 20%,32% { background:#fff; border-color:#fff; } 40%,100% { background:transparent; } }
+  .iax-inbox__side .is-on { animation:iax-glow 2s ease-in-out infinite alternate; }
+  @keyframes iax-glow { to { box-shadow:0 0 18px rgba(255,43,28,.8); } }
+
+  /* Le calendrier avance, la cloche sonne */
+  .iax-cal__grid i:nth-child(7) { background:rgba(255,255,255,.1); box-shadow:none; }
+  .iax-cal__grid i { animation:iax-cell 5.4s ease-in-out infinite; animation-delay:var(--d); }
+  @keyframes iax-cell { 0%,100% { background:rgba(255,255,255,.1); box-shadow:none; } 4%,10% { background:var(--red); box-shadow:0 0 14px var(--red); } 16% { background:rgba(255,255,255,.1); box-shadow:none; } }
+  .iax-cal__bell svg { animation:iax-ring 2.7s ease-in-out infinite; transform-origin:50% 10%; }
+  @keyframes iax-ring { 0%,70%,100% { transform:rotate(0); } 75% { transform:rotate(18deg); } 80% { transform:rotate(-16deg); } 85% { transform:rotate(10deg); } 90% { transform:rotate(-6deg); } }
+
+  /* Les données circulent entre les outils */
+  .iax-net__flow { opacity:1; stroke-dasharray:6 34; animation:iax-dash 1.6s linear infinite; filter:drop-shadow(0 0 4px #ff2b1c); }
+  @keyframes iax-dash { to { stroke-dashoffset:-40; } }
+  .iax-net__hub { animation:iax-hub 2.4s ease-in-out infinite; }
+  .iax-net__hub svg { animation:iax-spin 6s linear infinite; }
+  @keyframes iax-hub { 0%,100% { box-shadow:0 0 22px rgba(255,43,28,.45); } 50% { box-shadow:0 0 46px rgba(255,43,28,.85); } }
+
+  /* La méthode se trace étape par étape */
+  .iax-steps li:not(:last-child)::after { transform:scaleX(0); transform-origin:left; transition:transform 1s cubic-bezier(.2,.8,.2,1); }
+  .iax-steps ol.is-in li:not(:last-child)::after { transform:scaleX(1); }
+  .iax-steps ol.is-in li:nth-child(2)::after { transition-delay:.5s; }
+  .iax-steps li span { transition:transform .6s cubic-bezier(.2,1.6,.4,1),box-shadow .6s ease; transform:scale(.6); }
+  .iax-steps ol.is-in li span { transform:none; box-shadow:0 0 28px rgba(255,43,28,.55); }
+  .iax-steps ol.is-in li:nth-child(2) span { transition-delay:.4s; }
+  .iax-steps ol.is-in li:nth-child(3) span { transition-delay:.9s; }
+  .iax--anim .iax-steps ol[data-anim] { transform:none; }
+
+  /* La vague respire, le bouton brille */
+  .iax-wave { animation:iax-wave 6s ease-in-out infinite alternate; transform-origin:100% 100%; }
+  @keyframes iax-wave { from { transform:translateY(0) scaleY(1); opacity:.85; } to { transform:translateY(-18px) scaleY(1.08); opacity:1; } }
+  .iax-btn { position:relative; overflow:hidden; }
+  .iax-btn::after { content:''; position:absolute; top:0; bottom:0; left:-60%; width:40%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent); transform:skewX(-20deg); animation:iax-shine 4.5s ease-in-out infinite; }
+  .iax-btn--small::after { animation-delay:1.5s; }
+  @keyframes iax-shine { 0%,70% { left:-60%; } 100% { left:130%; } }
+  .iax-btn svg { transition:transform .25s ease; }
+  .iax-btn:hover svg { transform:translate(3px,-3px); }
+  .iax-pill span { animation:iax-dot 1.6s ease-in-out infinite; }
+  @keyframes iax-dot { 50% { box-shadow:0 0 0 6px rgba(255,43,28,.15),0 0 18px var(--red); } }
+}

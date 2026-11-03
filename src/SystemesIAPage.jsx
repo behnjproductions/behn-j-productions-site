@@ -1,4 +1,5 @@
 import { ArrowUpRight, Bell, CheckCircle, Cloud, EnvelopeSimple, FacebookLogo, Folder, Gear, InstagramLogo, NotePencil, PaperPlaneTilt, Stack, Tag, CalendarBlank } from '@phosphor-icons/react';
+import { useEffect, useRef } from 'react';
 import { BRAND } from './brand.js';
 import './systemes-ia.css';
 
@@ -12,7 +13,7 @@ const STEPS = [
 
 function HeroFlow() {
   return (
-    <div className="iax-flow" aria-hidden="true">
+    <div className="iax-flow" aria-hidden="true"><div className="iax-flow__tilt">
       <svg className="iax-ring" viewBox="0 0 520 520">
         <defs>
           <linearGradient id="iax-glass" x1="0" y1="0" x2="1" y2="1">
@@ -23,24 +24,44 @@ function HeroFlow() {
           </linearGradient>
           <filter id="iax-blur"><feGaussianBlur stdDeviation="14" /></filter>
         </defs>
-        <ellipse cx="260" cy="260" rx="215" ry="120" transform="rotate(-32 260 260)" fill="none" stroke="#ff2b1c" strokeOpacity=".55" strokeWidth="34" filter="url(#iax-blur)" />
+        <g className="iax-ring__a"><ellipse cx="260" cy="260" rx="215" ry="120" transform="rotate(-32 260 260)" fill="none" stroke="#ff2b1c" strokeOpacity=".55" strokeWidth="34" filter="url(#iax-blur)" />
         <ellipse cx="260" cy="260" rx="215" ry="120" transform="rotate(-32 260 260)" fill="none" stroke="url(#iax-glass)" strokeWidth="26" />
-        <ellipse cx="260" cy="260" rx="215" ry="120" transform="rotate(-32 260 260)" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="1.5" />
+        <ellipse cx="260" cy="260" rx="215" ry="120" transform="rotate(-32 260 260)" fill="none" stroke="#fff" strokeOpacity=".35" strokeWidth="1.5" /></g><g className="iax-ring__b">
         <ellipse cx="260" cy="260" rx="190" ry="150" transform="rotate(48 260 260)" fill="none" stroke="url(#iax-glass)" strokeWidth="18" strokeOpacity=".75" />
-        <ellipse cx="260" cy="260" rx="190" ry="150" transform="rotate(48 260 260)" fill="none" stroke="#fff" strokeOpacity=".25" strokeWidth="1" />
+        <ellipse cx="260" cy="260" rx="190" ry="150" transform="rotate(48 260 260)" fill="none" stroke="#fff" strokeOpacity=".25" strokeWidth="1" /></g>
       </svg>
       <div className="iax-card iax-card--1"><EnvelopeSimple size={24} /><span>Nouveau courriel</span><i>•••</i></div>
       <div className="iax-link iax-link--1"><b /></div>
       <div className="iax-card iax-card--2"><Gear size={24} /><span>Traitement automatique</span></div>
       <div className="iax-link iax-link--2"><b /></div>
       <div className="iax-card iax-card--3"><NotePencil size={24} /><span>Réponse préparée</span><CheckCircle className="iax-check" size={24} weight="fill" /></div>
-    </div>
+    </div></div>
   );
 }
 
 export function SystemesIAPage() {
+  const rootRef = useRef(null);
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return undefined;
+    root.classList.add('iax--anim');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('is-in'); observer.unobserve(entry.target); } });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.15 });
+    root.querySelectorAll('[data-anim]').forEach((el) => observer.observe(el));
+    const hero = root.querySelector('.iax-hero');
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const move = (event) => {
+      const box = hero.getBoundingClientRect();
+      hero.style.setProperty('--mx', ((event.clientX - box.left) / box.width - 0.5).toFixed(3));
+      hero.style.setProperty('--my', ((event.clientY - box.top) / box.height - 0.5).toFixed(3));
+    };
+    if (hero && !reduce) hero.addEventListener('pointermove', move);
+    return () => { observer.disconnect(); hero?.removeEventListener('pointermove', move); };
+  }, []);
+
   return (
-    <div className="iax">
+    <div className="iax" ref={rootRef}>
       <header className="iax-nav">
         <a className="iax-nav__brand" href="/" aria-label="Retour à l’accueil"><img src="/assets/behn-j-logo-transparent.png" alt="Behn J. Productions" /></a>
         <nav aria-label="Navigation principale">
@@ -63,25 +84,25 @@ export function SystemesIAPage() {
         </section>
 
         <section className="iax-bento" aria-labelledby="iax-bento-title">
-          <h2 id="iax-bento-title" className="iax-rule">Moins de friction. Plus d’action.</h2>
+          <h2 id="iax-bento-title" className="iax-rule" data-anim>Moins de friction. Plus d’action.</h2>
           <div className="iax-bento__grid">
-            <article className="iax-panel iax-panel--inbox">
+            <article className="iax-panel iax-panel--inbox" data-anim>
               <h3>Vos courriels, déjà organisés.</h3>
               <p>Triez, résumez et préparez vos réponses.</p>
               <div className="iax-inbox" aria-hidden="true">
                 <div className="iax-inbox__dots"><i /><i /><i /></div>
                 <div className="iax-inbox__side"><span className="is-on"><EnvelopeSimple size={18} /></span><span><PaperPlaneTilt size={18} /></span><span><Folder size={18} /></span><span><Tag size={18} /></span></div>
-                <div className="iax-inbox__list"><p>Boîte de réception</p><div className="is-on"><i /><b /><b /></div><div><i /><b /><b /></div><div><i /><b /><b /></div></div>
+                <div className="iax-inbox__list"><p>Boîte de réception</p><div className="iax-row"><i /><b /><b /></div><div className="iax-row"><i /><b /><b /></div><div className="iax-row"><i /><b /><b /></div></div>
               </div>
             </article>
-            <article className="iax-panel iax-panel--wide">
+            <article className="iax-panel iax-panel--wide" data-anim>
               <div><h3>Des relances au bon moment.</h3><p>Centralisez vos demandes et vos relances.</p></div>
-              <div className="iax-cal" aria-hidden="true"><div className="iax-cal__rings"><i /><i /><i /><i /></div><div className="iax-cal__grid">{Array.from({ length: 12 }, (_, i) => <i key={i} className={i === 6 ? 'is-on' : ''} />)}</div><span className="iax-cal__bell"><Bell size={20} /></span></div>
+              <div className="iax-cal" aria-hidden="true"><div className="iax-cal__rings"><i /><i /><i /><i /></div><div className="iax-cal__grid">{Array.from({ length: 12 }, (_, i) => <i key={i} style={{ '--d': `${i * 0.45}s` }} />)}</div><span className="iax-cal__bell"><Bell size={20} /></span></div>
             </article>
-            <article className="iax-panel iax-panel--wide">
+            <article className="iax-panel iax-panel--wide" data-anim>
               <div><h3>Vos outils travaillent ensemble.</h3><p>Connectez vos outils à votre façon de travailler.</p></div>
               <div className="iax-net" aria-hidden="true">
-                <svg viewBox="0 0 230 140"><path d="M44 36 H80 Q92 36 92 50 V60 M44 104 H80 Q92 104 92 90 V80 M186 36 H150 Q138 36 138 50 V60 M186 104 H150 Q138 104 138 90 V80" fill="none" stroke="#ff2b1c" strokeWidth="2" /></svg>
+                <svg viewBox="0 0 230 140"><path d="M44 36 H80 Q92 36 92 50 V60 M44 104 H80 Q92 104 92 90 V80 M186 36 H150 Q138 36 138 50 V60 M186 104 H150 Q138 104 138 90 V80" fill="none" stroke="#ff2b1c" strokeOpacity=".45" strokeWidth="2" /><path className="iax-net__flow" d="M44 36 H80 Q92 36 92 50 V60 M44 104 H80 Q92 104 92 90 V80 M186 36 H150 Q138 36 138 50 V60 M186 104 H150 Q138 104 138 90 V80" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" /></svg>
                 <span style={{ left: 0, top: 14 }}><EnvelopeSimple size={20} /></span>
                 <span style={{ left: 0, top: 82 }}><CalendarBlank size={20} /></span>
                 <span style={{ right: 0, top: 14 }}><Stack size={20} /></span>
@@ -93,7 +114,7 @@ export function SystemesIAPage() {
         </section>
 
         <section id="methode" className="iax-steps" aria-label="La méthode en trois étapes">
-          <ol>
+          <ol data-anim>
             {STEPS.map(([number, title, text]) => <li key={number}><span>{number}</span><h3>{title}</h3><p>{text}</p></li>)}
           </ol>
         </section>
@@ -104,7 +125,7 @@ export function SystemesIAPage() {
             <path d="M120 400 C 360 330, 520 260, 800 40" fill="none" stroke="url(#iax-wave-g)" strokeWidth="60" filter="url(#iax-wave-b)" />
             <path d="M160 400 C 400 330, 560 250, 800 80" fill="none" stroke="#ff6a5c" strokeOpacity=".7" strokeWidth="2" />
           </svg>
-          <h2>Et si cette tâche se faisait toute seule ?</h2>
+          <h2 data-anim>Et si cette tâche se faisait toute seule ?</h2>
           <a className="iax-btn" href={CONTACT_IA}>Parlons de votre projet <ArrowUpRight size={22} weight="bold" /></a>
         </section>
       </main>

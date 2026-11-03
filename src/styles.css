@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Alice&family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alice&family=Anton&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root { --red:#9f1204; --red-bright:#d52211; --gold:#ffb604; --ink:#080808; --paper:#f5f0e7; --white:#fffdf8; --display:'Anton',Impact,sans-serif; --body:'Alice',Georgia,serif; color:var(--white); background:var(--ink); font-family:var(--body); font-synthesis:none; }
 * { box-sizing:border-box; }
@@ -1328,3 +1328,33 @@ section[data-reveal].is-visible > img { transform:scale(1); }
 .chapter--ia { background:radial-gradient(circle at 78% 40%,rgba(213,34,17,.38),transparent 46%),radial-gradient(circle at 20% 90%,rgba(255,182,4,.12),transparent 40%),linear-gradient(135deg,#120302 0%,#080808 60%); }
 .chapter--ia::before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px); background-size:48px 48px; mask-image:linear-gradient(90deg,transparent,#000 45%,#000); pointer-events:none; }
 .chapter--ia .media-shade { background:none; }
+
+
+/* Menu flottant en capsule — tout le site (2 nov. 2026) */
+.site-header { inset:16px 16px auto; max-width:1180px; margin:0 auto; height:76px; padding:10px 12px 10px 26px; grid-template-columns:auto 1fr auto; gap:24px; border:1px solid rgba(255,255,255,.12); border-radius:999px; background:rgba(12,12,12,.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); box-shadow:0 12px 40px rgba(0,0,0,.45); font-family:'Plus Jakarta Sans',system-ui,sans-serif; }
+.site-header .brand { padding-right:24px; border-right:1px solid rgba(255,255,255,.12); }
+.site-header .brand img { width:140px; height:52px; }
+.site-header .main-nav,.site-header .about-nav { justify-self:end; display:flex; gap:clamp(14px,2vw,32px); }
+.site-header .main-nav button,.site-header .main-nav a,.site-header .about-nav a { padding:8px 0; color:#f4f4f4; font-family:inherit; font-size:15px; font-weight:500; }
+.site-header .main-nav button::after,.site-header .main-nav a::after,.site-header .about-nav a::after { bottom:2px; height:2px; background:#ff2b1c; }
+.site-header .main-nav button:hover,.site-header .main-nav a:hover,.site-header .about-nav a:hover { color:#fff; }
+.site-header .header-phone { display:none; }
+.site-header .header-cta { display:inline-flex; align-items:center; padding:13px 22px; border:0; border-radius:12px; background:linear-gradient(180deg,#ff3b2b,#e5180a); color:#fff; font-family:inherit; font-size:16px; font-weight:700; text-decoration:none; white-space:nowrap; box-shadow:0 8px 30px rgba(255,43,28,.35),inset 0 1px 0 rgba(255,255,255,.25); }
+.site-header .header-cta:hover { background:linear-gradient(180deg,#ff4a3b,#ef2010); color:#fff; box-shadow:0 12px 40px rgba(255,43,28,.5),inset 0 1px 0 rgba(255,255,255,.25); }
+.site-header a:focus-visible,.site-header button:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+.about-main { padding-top:108px; }
+@media (max-width:1040px) {
+  .site-header .header-actions { display:none; }
+}
+@media (max-width:760px) {
+  .site-header { inset:10px 10px auto; height:64px; padding:6px 8px 6px 16px; grid-template-columns:1fr auto; }
+  .site-header .brand { padding-right:0; border-right:0; }
+  .site-header .brand img { width:104px; height:44px; }
+  .site-header .main-nav { position:fixed; inset:84px 10px auto; justify-self:stretch; width:auto; display:none; flex-direction:column; gap:0; padding:12px; border:1px solid rgba(255,255,255,.12); border-radius:22px; background:rgba(12,12,12,.96); }
+  .site-header .main-nav--open { display:flex; }
+  .site-header .main-nav button,.site-header .main-nav a { padding:14px; text-align:left; font-size:17px; }
+  .about-header .about-nav { display:none; }
+  .about-header .header-actions { display:flex; }
+  .about-header .header-cta { padding:10px 14px; font-size:14px; }
+  .about-main { padding-top:84px; }
+}

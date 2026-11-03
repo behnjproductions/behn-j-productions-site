@@ -70,7 +70,7 @@ export function ContactForm({ prefillType, onOpenPrivacy, resetKey }) {
       <label>Votre courriel<input name="email" type="email" required maxLength={254} autoComplete="email" placeholder="vous@exemple.ca" /></label>
       <label>Votre téléphone (optionnel)<input name="phone" type="tel" maxLength={40} autoComplete="tel" placeholder="514 000-0000" /></label>
       <label>Date envisagée (optionnel)<input name="date" type="date" /></label>
-      <label className="contact-field--wide">Type de projet<select name="type" defaultValue={initialType} required><option value="" disabled>Choisir un service ou une demande</option>{CONTACT_TYPES.map((type) => <option key={type}>{type}</option>)}</select></label>
+      <label className="contact-field--wide">Type de projet<select key={initialType} name="type" defaultValue={initialType} required><option value="" disabled>Choisir un service ou une demande</option>{CONTACT_TYPES.map((type) => <option key={type}>{type}</option>)}</select></label>
       <label className="contact-field--wide">Votre message<textarea name="message" required maxLength={10000} rows="5" placeholder="Parlez-nous de votre projet ou posez votre question…" /></label>
       <div className="privacy-consent">
         <input id={consentId} name="privacy-consent" type="checkbox" value="accepted" required />

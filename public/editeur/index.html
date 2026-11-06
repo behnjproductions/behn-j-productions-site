@@ -125,8 +125,23 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.rv,.hero .anim,.hero h1 .w8,.phonewrap,.badge{opacity:1!important;transform:none!important}.sticky{transform:none}}
 .phone{position:relative}.son{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;background:var(--a);color:var(--ink);border:3px solid var(--ink);border-radius:30px;padding:10px 18px;font:800 15px 'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:3px 3px 0 var(--ink);animation:bob 1.6s ease-in-out infinite;white-space:nowrap}
 .son.off{display:none}
+.val{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch;margin-top:28px}
+.vc{border:3px solid var(--ink);border-radius:20px;padding:24px;background:#fff}
+.vc.them{background:#f3ece3}
+.vc.us{background:var(--ink);color:var(--c);box-shadow:8px 8px 0 var(--g)}
+.vc .lbl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.vc .big2{font-family:'Anton';font-size:58px;line-height:1;margin:10px 0 4px}
+.vc.us .big2{color:var(--a)}
+.vc p{font-size:15.5px}
+.vs{align-self:center;font-family:'Anton';font-size:34px;color:var(--g)}
+.calc{margin-top:22px;text-align:center;font-weight:800;font-size:19px}
+.calc s{opacity:.55}
+.stack{margin:26px auto 0;max-width:620px}
+.stack li{list-style:none;display:flex;justify-content:space-between;gap:12px;border-bottom:2px dashed #d8cec4;padding:11px 2px;font-weight:700}
+.stack li b{color:var(--g);white-space:nowrap}
+@media (max-width:860px){.val{grid-template-columns:1fr}.vs{text-align:center}}
 </style></head><body>
-<div class="top">Nouveau ✦ <b>Mon éditeur vidéo</b> : 27 $, paiement unique</div>
+<div class="top">Nouveau ✦ <b>Mon éditeur vidéo</b> : 27 $, paiement unique, accès à vie</div>
 <div class="wrap">
   <nav><div class="logo">BEHN J. <span>PRODUCTIONS</span></div><a href="#offre" style="font-weight:800;font-size:15px">Obtenir le fichier →</a></nav>
   <div class="hero">
@@ -135,7 +150,7 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
       <h1><span class="w8" style="animation-delay:0.15s">Monte</span> <span class="w8" style="animation-delay:0.24s">tes</span> <span class="w8" style="animation-delay:0.33s">vidéos</span> <span class="acc"><span class="w8" style="animation-delay:0.42s">en</span> <span class="w8" style="animation-delay:0.51s">quelques</span> <span class="w8" style="animation-delay:0.60s">minutes.</span></span></h1>
       <p class="lead anim" style="animation-delay:.6s">Tu enregistres, tu mets ta vidéo dans un dossier, et Claude la monte pour toi : il coupe les pauses, ajoute les sous-titres mot par mot, met la musique et respecte <b>ton style</b>.</p>
       <a class="btn anim" style="animation-delay:.75s" href="#offre">Je veux mon éditeur <small>27 $</small></a>
-      <div class="mini anim" style="animation-delay:.9s">Paiement unique · Fichier livré tout de suite · En français</div>
+      <div class="mini anim" style="animation-delay:.9s">Paiement unique · Accès à vie · En français</div>
     </div>
     <div class="phonewrap"><span class="badge b1">✂️ Coupes</span><span class="badge b2">💬 Sous-titres</span><span class="badge b3">🎵 Musique</span><div class="phone"><video id="demo" src="/editeur/media/demo.mp4" poster="/editeur/media/demo.jpg" autoplay muted loop playsinline preload="auto"></video><button id="son" class="son" type="button">🔊 Activer le son</button></div></div>
   </div>
@@ -200,16 +215,27 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
   <p class="need"><b>Ce qu'il te faut :</b> un ordinateur Mac ou Windows et l'application Claude, avec un abonnement qui permet de travailler dans un dossier en mode Local. Le reste (ffmpeg et les outils), le fichier l'installe avec ton accord.</p>
 </div></section>
 
+<section class="band" style="padding-top:56px"><div class="wrap">
+  <div class="eyebrow" style="color:var(--a)">Ce que ça vaut vraiment</div>
+  <h2 class="rv">5 outils en un, <span class="acc">pour le prix d'un lunch.</span></h2>
+  <div class="val">
+    <div class="vc them rv" style="color:var(--ink)"><div class="lbl">Un montage pro, comme les miens</div><div class="big2">150–250 $</div><p><b>Pour UNE seule vidéo.</b> C'est ce que je facture à mes clients pour un montage de ce style.</p></div>
+    <div class="vs rv">VS</div>
+    <div class="vc us rv"><div class="lbl">Mon éditeur vidéo</div><div class="big2">27 $</div><p><b>Une seule fois. À vie.</b> Tous mes outils, pour toutes tes vidéos, autant que tu veux.</p></div>
+  </div>
+  <p class="calc rv">4 vidéos par mois chez un monteur = <s>600 à 1 000 $ / mois</s> · Avec le fichier : <span style="color:var(--a)">27 $, une fois.</span></p>
+</div></section>
 <section id="offre"><div class="wrap">
   <div class="offer rv">
     <div class="eyebrow">Offre de lancement</div>
     <div class="anton" style="font-size:40px">Mon éditeur vidéo</div>
     <div class="price">27 $<small> CAD</small></div>
-    <div style="color:var(--mut)">Paiement unique, pas d'abonnement</div>
+    <div style="color:var(--mut)">Paiement unique · <b>accès à vie</b> · pas d'abonnement</div><div style="margin-top:8px;font-weight:800;color:var(--g)">Un seul montage pro vaut 150 à 250 $</div>
     <ul>
       <li>Le fichier avec les 5 outils (coupe, sous-titres, animations, musique, style)</li>
       <li>Le guide d'installation pas à pas, en français</li>
       <li>Fonctionne sur Mac et Windows</li>
+      <li><b>Accès à vie</b> : utilise-le pour toutes tes vidéos</li>
     </ul>
     <a class="btn" id="acheter" href="https://buy.stripe.com/00wfZg3506q4eoMd71eUU00">Acheter maintenant · 27 $</a>
     <div class="mini">Paiement sécurisé · Téléchargement immédiat après l'achat</div>

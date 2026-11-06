@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="fr-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon éditeur vidéo — Behn J. Productions</title>
+<meta name="description" content="Monte tes vidéos en quelques minutes avec l'intelligence assistée : coupes, sous-titres mot par mot, musique et ton style. 27 $, paiement unique.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,500;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#9F1204;--a:#FFB604;--c:#FDF8F0;--ink:#141212;--mut:#5b5552;--card:#fff}
+*{box-sizing:border-box;margin:0}
+body{background:var(--c);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:17px;line-height:1.55}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.top{background:var(--ink);color:var(--c);font-size:13px;font-weight:700;text-align:center;padding:9px 16px;letter-spacing:.02em}
+.top b{color:var(--a)}
+nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+nav .logo{font-weight:800;letter-spacing:.12em;font-size:13px}
+nav .logo span{color:var(--g)}
+h1,h2,.anton{font-family:'Anton',sans-serif;text-transform:uppercase;line-height:1.02;font-weight:400}
+h1{font-size:clamp(42px,7vw,76px)}
+h2{font-size:clamp(32px,5vw,50px);margin-bottom:14px}
+.acc{color:var(--g)}
+.it{font-style:italic;font-weight:800}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--g);text-transform:uppercase;margin-bottom:10px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding:24px 0 60px}
+.hero p.lead{font-size:20px;color:var(--mut);margin:18px 0 24px;max-width:540px}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--g);color:#fff;text-decoration:none;font-weight:800;font-size:18px;padding:17px 28px;border-radius:14px;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+.btn small{font-weight:700;opacity:.85}
+.mini{font-size:14px;color:var(--mut);margin-top:12px}
+.phone{justify-self:center;width:min(320px,80vw);aspect-ratio:9/16;border:4px solid var(--ink);border-radius:30px;overflow:hidden;box-shadow:10px 10px 0 var(--g);background:#000}
+.phone video{width:100%;height:100%;object-fit:cover;display:block}
+section{padding:64px 0}
+.band{background:var(--ink);color:var(--c)}
+.band .acc{color:var(--a)}
+.pains{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+.pain{border:2px solid #ffffff33;border-radius:16px;padding:22px}
+.pain .e{font-size:30px}
+.pain h3{font-size:19px;margin:8px 0 6px}
+.pain p{color:#d8d2cd;font-size:15.5px}
+.tools{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:28px}
+.tool{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:20px 16px;box-shadow:5px 5px 0 var(--ink)}
+.tool .n{font-family:'Anton';font-size:30px;color:var(--g)}
+.tool h3{font-size:17px;margin:6px 0}
+.tool p{font-size:14.5px;color:var(--mut)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:28px;counter-reset:s}
+.step{position:relative;padding:26px 22px 22px;border-radius:18px;background:var(--card);border:3px solid var(--ink)}
+.step:before{counter-increment:s;content:counter(s);position:absolute;top:-20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(--a);border:3px solid var(--ink);font-family:'Anton';font-size:22px;display:flex;align-items:center;justify-content:center}
+.step h3{font-size:19px;margin-bottom:6px}
+.step p{font-size:15.5px;color:var(--mut)}
+.ba{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:center;margin-top:26px}
+.ba figure{margin:0}
+.ba figcaption{font-weight:800;font-size:13px;letter-spacing:.12em;margin-bottom:8px}
+.ba video{width:100%;display:block;border:3px solid var(--ink);border-radius:16px;background:#000}
+.ba .v9{max-width:300px;aspect-ratio:9/16;object-fit:cover}
+.chat{background:var(--ink);color:#fff;border-radius:18px 18px 4px 18px;padding:14px 18px;font-weight:700;display:inline-block;margin:16px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+.box{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:24px}
+.box h3{font-size:19px;margin-bottom:10px}
+.box li{margin:7px 0 7px 2px;list-style:none;padding-left:28px;position:relative;font-size:16px}
+.box li:before{position:absolute;left:0;font-weight:800}
+.yes li:before{content:'✓';color:#1d8a3a}
+.no li:before{content:'✗';color:var(--g)}
+.need{margin-top:16px;font-size:15.5px;color:var(--mut)}
+.offer{max-width:620px;margin:0 auto;text-align:center;background:var(--card);border:4px solid var(--ink);border-radius:26px;padding:36px 28px;box-shadow:10px 10px 0 var(--g)}
+.offer .price{font-family:'Anton';font-size:84px;line-height:1;margin:10px 0 2px}
+.offer .price small{font-size:26px}
+.offer ul{text-align:left;margin:22px auto;max-width:420px}
+.offer li{list-style:none;padding-left:28px;position:relative;margin:8px 0}
+.offer li:before{content:'✓';position:absolute;left:0;color:#1d8a3a;font-weight:800}
+details{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px 20px;margin:12px 0}
+summary{font-weight:800;cursor:pointer}
+details p{margin-top:10px;color:var(--mut);font-size:16px}
+footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
+.sticky{position:fixed;left:12px;right:12px;bottom:12px;display:none;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;border-radius:16px;padding:10px 12px 10px 18px;z-index:9}
+.sticky b{display:block;font-size:15px}.sticky span{font-size:13px;opacity:.8}
+.sticky a{background:var(--a);color:var(--ink);text-decoration:none;font-weight:800;padding:12px 18px;border-radius:12px}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:30px;padding-top:8px}
+  .tools{grid-template-columns:1fr 1fr}
+  .pains,.steps,.two,.ba{grid-template-columns:1fr}
+  .steps{gap:32px}
+  .ba .v9{margin:0 auto}
+  .sticky{display:flex}
+  footer{padding-bottom:110px}
+  section{padding:48px 0}
+}
+</style></head><body>
+<div class="top">Nouveau ✦ <b>Mon éditeur vidéo</b> : 27 $, paiement unique</div>
+<div class="wrap">
+  <nav><div class="logo">BEHN J. <span>PRODUCTIONS</span></div><a href="#offre" style="font-weight:800;font-size:15px">Obtenir le fichier →</a></nav>
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Montage avec l'intelligence assistée</div>
+      <h1>Monte tes vidéos <span class="acc">en quelques minutes.</span></h1>
+      <p class="lead">Tu enregistres, tu mets ta vidéo dans un dossier, et Claude la monte pour toi : il coupe les pauses, ajoute les sous-titres mot par mot, met la musique et respecte <b>ton style</b>.</p>
+      <a class="btn" href="#offre">Je veux mon éditeur <small>27 $</small></a>
+      <div class="mini">Paiement unique · Fichier livré tout de suite · En français</div>
+    </div>
+    <div class="phone"><video src="/editeur/media/demo.mp4" poster="/editeur/media/demo.jpg" controls playsinline preload="metadata"></video></div>
+  </div>
+</div>
+
+<section class="band"><div class="wrap">
+  <div class="eyebrow" style="color:var(--a)">Le problème</div>
+  <h2>Le montage te <span class="acc">vole tes soirées.</span></h2>
+  <div class="pains">
+    <div class="pain"><div class="e">⏳</div><h3>Des heures pour 60 secondes</h3><p>Couper chaque pause, chaque « euh », chaque mauvaise prise… à la main.</p></div>
+    <div class="pain"><div class="e">💸</div><h3>Un monteur coûte cher</h3><p>Payer quelqu'un pour chaque vidéo, quand tu dois publier toutes les semaines, ça devient vite lourd.</p></div>
+    <div class="pain"><div class="e">🎨</div><h3>Ça ne te ressemble pas</h3><p>Les applications font toutes les mêmes vidéos. Toi, tu veux tes couleurs, ta police, ton rythme.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="eyebrow">Ce que tu reçois</div>
+  <h2>Cinq outils, <span class="acc">un seul fichier.</span></h2>
+  <p style="color:var(--mut);max-width:640px">Tu le colles une seule fois dans Claude et il s'installe. Ensuite, tu lui parles normalement, en français.</p>
+  <div class="tools">
+    <div class="tool"><div class="n">01</div><h3>✂️ Coupe</h3><p>Enlève les pauses et les mauvaises prises. Il garde la dernière prise, sans couper tes mots.</p></div>
+    <div class="tool"><div class="n">02</div><h3>💬 Sous-titres</h3><p>Mot par mot : le mot que tu dis s'allume, aux couleurs de ta marque.</p></div>
+    <div class="tool"><div class="n">03</div><h3>✨ Animations</h3><p>Un zoom à chaque coupe et des titres animés sur tes phrases fortes.</p></div>
+    <div class="tool"><div class="n">04</div><h3>🎵 Son &amp; musique</h3><p>La musique baisse quand tu parles et finit en douceur. Le son est égalisé.</p></div>
+    <div class="tool"><div class="n">05</div><h3>🎨 Ton style</h3><p>Il analyse 3 à 5 vidéos que tu aimes et retient ton style pour toutes tes vidéos.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:20px"><div class="wrap">
+  <div class="eyebrow">Comment ça marche</div>
+  <h2>Trois étapes. <span class="acc">C'est tout.</span></h2>
+  <div class="steps">
+    <div class="step"><h3>Ouvre Claude sur ton ordinateur</h3><p>Dans l'application (pas le navigateur). Nouvelle conversation, mode « Local », et tu choisis ton dossier de vidéos.</p></div>
+    <div class="step"><h3>Colle mon fichier une fois</h3><p>Il installe les outils et vérifie que tout est prêt. Tu mets 3 à 5 vidéos de référence : il apprend ton style.</p></div>
+    <div class="step"><h3>Demande, il monte</h3><p>« Monte ma vidéo, coupe les pauses et garde la dernière prise. » Tu révises avec tes mots, et c'est prêt.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="eyebrow">Un vrai exemple</div>
+  <h2>Avant <span class="acc">/ après.</span></h2>
+  <div class="ba">
+    <figure><figcaption>AVANT · tourné en 4K, à l'horizontale</figcaption><video src="/editeur/media/avant.mp4" poster="/editeur/media/avant.jpg" controls muted playsinline preload="metadata"></video>
+      <div class="chat">« Mets-la à la verticale, ajoute deux titres et ma musique. »</div></figure>
+    <figure><figcaption>APRÈS · monté par le fichier</figcaption><video class="v9" src="/editeur/media/apres.mp4" poster="/editeur/media/apres.jpg" controls playsinline preload="metadata"></video></figure>
+  </div>
+</div></section>
+
+<section style="padding-top:10px"><div class="wrap">
+  <div class="two">
+    <div class="box yes"><h3>C'est pour toi si…</h3><ul>
+      <li>Tu fais des vidéos pour ton entreprise, tes réseaux ou tes clients</li>
+      <li>Tu veux publier plus souvent, sans y passer tes soirées</li>
+      <li>Tu veux que tes vidéos aient TON style</li>
+      <li>Tu es entrepreneur, coach, créateur ou photographe</li></ul></div>
+    <div class="box no"><h3>Ce n'est pas pour toi si…</h3><ul>
+      <li>Tu cherches un logiciel de montage à la souris</li>
+      <li>Tu veux des effets de cinéma image par image</li>
+      <li>Tu n'as pas d'ordinateur (Mac ou Windows)</li></ul></div>
+  </div>
+  <p class="need"><b>Ce qu'il te faut :</b> un ordinateur Mac ou Windows et l'application Claude, avec un abonnement qui permet de travailler dans un dossier en mode Local. Le reste (ffmpeg et les outils), le fichier l'installe avec ton accord.</p>
+</div></section>
+
+<section id="offre"><div class="wrap">
+  <div class="offer">
+    <div class="eyebrow">Offre de lancement</div>
+    <div class="anton" style="font-size:40px">Mon éditeur vidéo</div>
+    <div class="price">27 $<small> CAD</small></div>
+    <div style="color:var(--mut)">Paiement unique, pas d'abonnement</div>
+    <ul>
+      <li>Le fichier avec les 5 outils (coupe, sous-titres, animations, musique, style)</li>
+      <li>Le guide d'installation pas à pas, en français</li>
+      <li>Fonctionne sur Mac et Windows</li>
+    </ul>
+    <a class="btn" id="acheter" href="https://buy.stripe.com/00wfZg3506q4eoMd71eUU00">Acheter maintenant · 27 $</a>
+    <div class="mini">Paiement sécurisé · Téléchargement immédiat après l'achat</div>
+  </div>
+</div></section>
+
+<section style="padding-top:10px"><div class="wrap" style="max-width:760px">
+  <h2 style="text-align:center">Questions</h2>
+  <details><summary>Est-ce que je dois savoir programmer ?</summary><p>Non. Tu parles à Claude en français, comme à un monteur. C'est lui qui lance les outils.</p></details>
+  <details><summary>Est-ce que ça marche avec mon téléphone ?</summary><p>Tu peux filmer avec ton téléphone, mais le montage se fait sur ton ordinateur, dans l'application Claude.</p></details>
+  <details><summary>Mes vidéos sont-elles envoyées quelque part ?</summary><p>Le montage se fait sur ton ordinateur, dans ton dossier. Tes vidéos originales ne sont jamais modifiées : les montages vont dans un dossier à part.</p></details>
+  <details><summary>Quels formats ?</summary><p>Vertical (Reels, TikTok, Shorts), carré, 4:5 pour Facebook, ou le format d'origine.</p></details>
+  <details><summary>Et si je veux que tu montes mes vidéos pour moi ?</summary><p>Écris-moi : je fais aussi le montage sur mesure. <a href="https://behnjproductions.ca/contact">behnjproductions.ca/contact</a></p></details>
+</div></section>
+
+<footer>© Behn J. Productions · Sept-Îles, Québec · <a href="https://behnjproductions.ca">behnjproductions.ca</a><br>Claude est une marque d'Anthropic. Ce produit est indépendant et n'est pas affilié à Anthropic.</footer>
+<div class="sticky"><div><b>Mon éditeur vidéo</b><span>27 $ · paiement unique</span></div><a href="#offre">Je le veux</a></div>
+</body></html>

@@ -149,3 +149,12 @@ retouche écrites par le client dans la visionneuse partent avec sa sélection
 (`photoNotes`) et s’ajoutent au message enregistré et au courriel, avec le nom
 de fichier de chaque photo.
 
+
+
+## Livraisons scolaires individuelles — 4 novembre 2026
+
+La migration additive 0008_student_deliveries.sql conserve les élèves, link_key, photos et sélections. Chaque livraison est désactivée par défaut. Les finales vivent dans un préfixe R2 distinct; school_delivery_photos référence uniquement les photos autorisées du même élève. Une livraison activée affiche le mode téléchargement sur le lien existant de cet élève uniquement. Les autres élèves héritent toujours du mode de la collection. Les finales ne remplacent jamais les fichiers de sélection.
+
+L'activation doit suivre la sauvegarde vérifiée, le contrôle de la feuille QR et du forfait, et la vérification des fichiers finaux. Les nouvelles tables ne sont pas une preuve de paiement. Le retour à enabled=0 rétablit la sélection sans effacer aucun historique. Ne pas changer le mode de la collection entière pour livrer seulement quelques élèves. Les tests student-delivery.test.mjs couvrent l'isolation, les autorisations de téléchargement, la conservation des sélections et le retour en arrière.
+
+Le déploiement Queen Elizabeth utilise le code réellement publié comme base pour éviter d'y inclure les modifications de sections locales encore non déployées. Le dépôt conserve ces modifications locales et intègre la même logique de livraison.

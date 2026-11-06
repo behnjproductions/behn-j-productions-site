@@ -175,13 +175,28 @@ async function canSee(request, env, collection) {
   return readToken(env.SESSION_SECRET, gallerySessionScope(collection), tokenFrom(request, galleryCookieName(collection.student_id || collection.id)));
 }
 
+async function studentDelivery(env, studentId, collectionId) {
+  if (!studentId) return null;
+  try {
+    return await env.DB.prepare("SELECT student_id FROM school_deliveries WHERE student_id = ? AND collection_id = ? AND enabled = 1").bind(studentId, collectionId).first();
+  } catch (error) {
+    if (/no such table: school_deliveries/i.test(String(error?.message || error))) return null;
+    throw error;
+  }
+}
+async function deliveredPhotos(env, collectionId, studentId) {
+  return env.DB.prepare(`SELECT p.id, p.filename, d.width, d.height, p.position, d.original_key, p.category, p.student_id
+    FROM photos p JOIN school_delivery_photos d ON d.photo_id = p.id AND d.student_id = p.student_id
+    WHERE p.collection_id = ? AND p.student_id = ? ORDER BY p.position, p.created_at`).bind(collectionId, studentId).all();
+}
 async function getCollection(env, slug) {
   if (slug.startsWith('eleve-')) {
     const student = await env.DB.prepare('SELECT s.id, s.name, s.link_key, g.name AS group_name, g.collection_id FROM school_students s JOIN school_groups g ON g.id = s.group_id WHERE s.link_key = ?').bind(slug.slice(6)).first();
     if (!student) return null;
     const parent = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(student.collection_id).first();
     if (!parent || parent.collection_type !== 'school') return null;
-    return { ...parent, slug, client: student.name, title: student.group_name, cover_key: null, student_id: student.id };
+    const delivery = await studentDelivery(env, student.id, parent.id);
+    return { ...parent, ...(delivery ? { mode: 'download', delivery_active: true } : {}), slug, client: student.name, title: student.group_name, cover_key: null, student_id: student.id };
   }
   return env.DB.prepare('SELECT * FROM collections WHERE slug = ?').bind(slug).first();
 }
@@ -191,6 +206,7 @@ const PHOTO_COLUMNS = 'id, filename, width, height, position, original_key, cate
 // qu'elle n'est pas appliquée, la galerie fonctionne comme avant, sans sections.
 const missingSection = (error) => /no such column: section/i.test(String(error?.message || error));
 const listPhotos = async (env, collectionId, studentId = null) => {
+  if (await studentDelivery(env, studentId, collectionId)) return deliveredPhotos(env, collectionId, studentId);
   const where = `WHERE collection_id = ?${studentId ? ' AND student_id = ?' : ''} ORDER BY position, created_at`;
   const binds = studentId ? [collectionId, studentId] : [collectionId];
   try {
@@ -335,7 +351,7 @@ async function route(request, env, url, path, ip) {
       const object = await env.BUCKET.get(`covers/${rest[0]}.jpg`);
       return object ? new Response(object.body, { headers: { 'content-type': 'image/jpeg', 'cache-control': 'private, no-store' } }) : new Response('Introuvable', { status: 404 });
     }
-    const photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[0]).first();
+    let photo = await env.DB.prepare('SELECT * FROM photos WHERE id = ?').bind(rest[0]).first();
     if (!photo) return new Response('Introuvable', { status: 404 });
     let collection = await env.DB.prepare('SELECT * FROM collections WHERE id = ?').bind(photo.collection_id).first();
     if (collection?.collection_type === 'school' && !(await isAdmin(request, env))) {
@@ -343,6 +359,13 @@ async function route(request, env, url, path, ip) {
       const scoped = studentSlug.startsWith('eleve-') ? await getCollection(env, studentSlug) : null;
       if (!scoped || scoped.id !== collection.id || scoped.student_id !== photo.student_id) return new Response('Accès refusé', { status: 403 });
       collection = scoped;
+      if (collection.delivery_active) {
+        const finalPhoto = await env.DB.prepare(`SELECT d.r2_key, d.thumb_key, d.original_key, d.width, d.height
+          FROM school_delivery_photos d JOIN photos p ON p.id = d.photo_id AND p.student_id = d.student_id
+          WHERE d.student_id = ? AND d.photo_id = ? AND p.collection_id = ?`).bind(collection.student_id, photo.id, collection.id).first();
+        if (!finalPhoto) return new Response("Accès refusé", { status: 403 });
+        photo = { ...photo, ...finalPhoto };
+      }
     }
     if (!collection || !(await canSee(request, env, collection))) return new Response('Accès refusé', { status: 403 });
 
@@ -373,7 +396,7 @@ async function route(request, env, url, path, ip) {
     const headers = new Headers();
     object.writeHttpMetadata(headers);
     headers.set('etag', object.httpEtag);
-    headers.set('cache-control', download || protectedSelection ? 'private, no-store' : 'private, max-age=31536000, immutable');
+    headers.set('cache-control', download || protectedSelection || collection.delivery_active ? 'private, no-store' : 'private, max-age=31536000, immutable');
     if (download) {
       headers.set('content-disposition', downloadDisposition(downloadOriginal ? photo : { ...photo, original_key: null }));
       headers.set('x-content-type-options', 'nosniff');

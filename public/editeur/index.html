@@ -47,11 +47,11 @@ section{padding:64px 0}
 .step:before{counter-increment:s;content:counter(s);position:absolute;top:-20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(--a);border:3px solid var(--ink);font-family:'Anton';font-size:22px;display:flex;align-items:center;justify-content:center}
 .step h3{font-size:19px;margin-bottom:6px}
 .step p{font-size:15.5px;color:var(--mut)}
-.ba{display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:center;margin-top:26px}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;margin-top:26px}
 .ba figure{margin:0}
 .ba figcaption{font-weight:800;font-size:13px;letter-spacing:.12em;margin-bottom:8px}
 .ba video{width:100%;display:block;border:3px solid var(--ink);border-radius:16px;background:#000}
-.ba .v9{max-width:300px;aspect-ratio:9/16;object-fit:cover}
+.ba .v9{max-width:300px;width:100%;aspect-ratio:9/16;object-fit:cover}
 .chat{background:var(--ink);color:#fff;border-radius:18px 18px 4px 18px;padding:14px 18px;font-weight:700;display:inline-block;margin:16px 0}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
 .box{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:24px}
@@ -77,9 +77,10 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
 @media (max-width:860px){
   .hero{grid-template-columns:1fr;gap:30px;padding-top:8px}
   .tools{grid-template-columns:1fr 1fr}
-  .pains,.steps,.two,.ba{grid-template-columns:1fr}
+  .pains,.steps,.two{grid-template-columns:1fr}
+  .ba{gap:12px;align-items:start}.ba figcaption{font-size:10.5px;letter-spacing:.06em}.chat{font-size:14px;padding:10px 12px}
   .steps{gap:32px}
-  .ba .v9{margin:0 auto}
+
   .sticky{display:flex}
   footer{padding-bottom:110px}
   section{padding:48px 0}
@@ -137,8 +138,8 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
   <div class="eyebrow">Un vrai exemple</div>
   <h2>Avant <span class="acc">/ après.</span></h2>
   <div class="ba">
-    <figure><figcaption>AVANT · tourné en 4K, à l'horizontale</figcaption><video src="/editeur/media/avant.mp4" poster="/editeur/media/avant.jpg" controls muted playsinline preload="metadata"></video>
-      <div class="chat">« Mets-la à la verticale, ajoute deux titres et ma musique. »</div></figure>
+    <figure><figcaption>AVANT · la vidéo brute, telle que filmée</figcaption><video class="v9" src="/editeur/media/avant.mp4" poster="/editeur/media/avant.jpg" controls muted playsinline preload="metadata"></video>
+      <div class="chat">« Ajoute deux titres, des zooms et ma musique. »</div></figure>
     <figure><figcaption>APRÈS · monté par le fichier</figcaption><video class="v9" src="/editeur/media/apres.mp4" poster="/editeur/media/apres.jpg" controls playsinline preload="metadata"></video></figure>
   </div>
 </div></section>

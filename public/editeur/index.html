@@ -70,10 +70,10 @@ section{padding:64px 0}
 details{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px 20px;margin:12px 0}
 summary{font-weight:800;cursor:pointer}
 details p{margin-top:10px;color:var(--mut);font-size:16px}
-footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
-.sticky{position:fixed;left:12px;right:12px;bottom:12px;display:none;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;border-radius:16px;padding:10px 12px 10px 18px;z-index:9}
-.sticky b{display:block;font-size:15px}.sticky span{font-size:13px;opacity:.8}
-.sticky a{background:var(--a);color:var(--ink);text-decoration:none;font-weight:800;padding:12px 18px;border-radius:12px}
+footer{padding:36px 0 120px;text-align:center;font-size:14px;color:var(--mut)}
+.sticky{position:fixed;left:50%;bottom:14px;width:min(620px,calc(100% - 24px));transform:translateX(-50%);display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(20,18,18,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;border:2px solid #ffffff22;border-radius:18px;padding:12px 12px 12px 20px;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.sticky b{display:block;font-size:17px}.sticky span{font-size:14px;opacity:.8}
+.sticky a{background:var(--a);color:var(--ink);text-decoration:none;font-weight:800;font-size:17px;padding:13px 22px;border-radius:12px;white-space:nowrap;position:relative;overflow:hidden}.sticky a:after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite}
 @media (max-width:860px){
   .hero{grid-template-columns:1fr;gap:30px;padding-top:8px}
   .tools{grid-template-columns:1fr 1fr}
@@ -81,8 +81,6 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
   .ba{gap:12px;align-items:start}.ba figcaption{font-size:10.5px;letter-spacing:.06em}.chat{font-size:14px;padding:10px 12px}
   .steps{gap:32px}
 
-  .sticky{display:flex}
-  footer{padding-bottom:110px}
   section{padding:48px 0}
 }
 
@@ -118,11 +116,9 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
 .step:before{transform:scale(0)}.step.in:before{animation:pop .5s .25s forwards}
 .offer.in{animation:pulse 2.6s ease-in-out .8s infinite}
 .price{display:inline-block}
-.sticky{transform:translateY(140%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
-.sticky.on{transform:none}
 .chat{position:relative}.chat:after{content:'▍';animation:bob 1s steps(2) infinite;margin-left:2px}
 @media (max-width:860px){.badge{font-size:12px;padding:6px 10px}.badge.b1{left:-8px}.badge.b2{right:-8px}.badge.b3{left:-4px}}
-@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.rv,.hero .anim,.hero h1 .w8,.phonewrap,.badge{opacity:1!important;transform:none!important}.sticky{transform:none}}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.rv,.hero .anim,.hero h1 .w8,.phonewrap,.badge{opacity:1!important;transform:none!important}}
 .phone{position:relative}.son{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;background:var(--a);color:var(--ink);border:3px solid var(--ink);border-radius:30px;padding:10px 18px;font:800 15px 'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:3px 3px 0 var(--ink);animation:bob 1.6s ease-in-out infinite;white-space:nowrap}
 .son.off{display:none}
 .val{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch;margin-top:28px}
@@ -252,12 +248,12 @@ footer{padding:36px 0 60px;text-align:center;font-size:14px;color:var(--mut)}
 </div></section>
 
 <footer>© Behn J. Productions · Sept-Îles, Québec · <a href="https://behnjproductions.ca">behnjproductions.ca</a><br>Claude est une marque d'Anthropic. Ce produit est indépendant et n'est pas affilié à Anthropic.</footer>
-<div class="sticky"><div><b>Mon éditeur vidéo</b><span>27 $ · paiement unique</span></div><a href="#offre">Je le veux</a></div>
+<div class="sticky"><div><b>Mon éditeur vidéo</b><span>27 $ · paiement unique · à vie</span></div><a href="https://buy.stripe.com/00wfZg3506q4eoMd71eUU00">Acheter</a></div>
 <script>
 (()=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
 document.querySelectorAll('.rv').forEach(el=>{const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv'));const k=sib.indexOf(el);el.style.transitionDelay=(Math.max(0,k)*0.09)+'s';io.observe(el)});
 const pr=document.querySelector('.offer .price');if(pr){const o=new IntersectionObserver(es=>{if(es[0].isIntersecting){o.disconnect();const t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/900);pr.firstChild.nodeValue=Math.round(27*(1-Math.pow(1-k,3)))+' $';if(k<1)requestAnimationFrame(f)};if(!matchMedia('(prefers-reduced-motion:reduce)').matches)requestAnimationFrame(f)}},{threshold:.5});o.observe(pr)}
-const st=document.querySelector('.sticky'),hero=document.querySelector('.hero');addEventListener('scroll',()=>{st&&st.classList.toggle('on',hero.getBoundingClientRect().bottom<0)},{passive:true});
+
 const lead=document.querySelector('.hero');addEventListener('scroll',()=>{const y=scrollY;const ph=document.querySelector('.phonewrap');if(ph&&y<900)ph.style.translate='0 '+(y*-.06)+'px'},{passive:true});
 })();
 </script><script>

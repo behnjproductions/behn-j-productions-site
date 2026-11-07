@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fr-CA"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mon bureau assisté — Behn J. Productions</title>
+<meta name="description" content="6 employés assistés pour ton entreprise, en français, dans Claude : ventes, factures, marketing, organisation, prospection. 15 $, paiement unique, accès à vie.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:ital,wght@0,500;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#9F1204;--a:#FFB604;--c:#FDF8F0;--ink:#141212;--mut:#5b5552;--card:#fff}
+*{box-sizing:border-box;margin:0}
+body{background:var(--c);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:17px;line-height:1.55}
+a{color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+.top{background:var(--ink);color:var(--c);font-size:13px;font-weight:700;text-align:center;padding:9px 16px;letter-spacing:.02em}
+.top b{color:var(--a)}
+nav{display:flex;justify-content:space-between;align-items:center;padding:18px 0}
+nav .logo{font-weight:800;letter-spacing:.12em;font-size:13px}
+nav .logo span{color:var(--g)}
+h1,h2,.anton{font-family:'Anton',sans-serif;text-transform:uppercase;line-height:1.02;font-weight:400}
+h1{font-size:clamp(42px,7vw,76px)}
+h2{font-size:clamp(32px,5vw,50px);margin-bottom:14px}
+.acc{color:var(--g)}
+.it{font-style:italic;font-weight:800}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--g);text-transform:uppercase;margin-bottom:10px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding:24px 0 60px}
+.hero p.lead{font-size:20px;color:var(--mut);margin:18px 0 24px;max-width:540px}
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--g);color:#fff;text-decoration:none;font-weight:800;font-size:18px;padding:17px 28px;border-radius:14px;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+.btn small{font-weight:700;opacity:.85}
+.mini{font-size:14px;color:var(--mut);margin-top:12px}
+.phone{justify-self:center;width:min(320px,80vw);aspect-ratio:9/16;border:4px solid var(--ink);border-radius:30px;overflow:hidden;box-shadow:10px 10px 0 var(--g);background:#000}
+.phone video{width:100%;height:100%;object-fit:cover;display:block}
+section{padding:64px 0}
+.band{background:var(--ink);color:var(--c)}
+.band .acc{color:var(--a)}
+.pains{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+.pain{border:2px solid #ffffff33;border-radius:16px;padding:22px}
+.pain .e{font-size:30px}
+.pain h3{font-size:19px;margin:8px 0 6px}
+.pain p{color:#d8d2cd;font-size:15.5px}
+.tools{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:28px}
+.tool{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:20px 16px;box-shadow:5px 5px 0 var(--ink)}
+.tool .n{font-family:'Anton';font-size:30px;color:var(--g)}
+.tool h3{font-size:17px;margin:6px 0}
+.tool p{font-size:14.5px;color:var(--mut)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:28px;counter-reset:s}
+.step{position:relative;padding:26px 22px 22px;border-radius:18px;background:var(--card);border:3px solid var(--ink)}
+.step:before{counter-increment:s;content:counter(s);position:absolute;top:-20px;left:20px;width:40px;height:40px;border-radius:50%;background:var(--a);border:3px solid var(--ink);font-family:'Anton';font-size:22px;display:flex;align-items:center;justify-content:center}
+.step h3{font-size:19px;margin-bottom:6px}
+.step p{font-size:15.5px;color:var(--mut)}
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;margin-top:26px}
+.ba figure{margin:0}
+.ba figcaption{font-weight:800;font-size:13px;letter-spacing:.12em;margin-bottom:8px}
+.ba video{width:100%;display:block;border:3px solid var(--ink);border-radius:16px;background:#000}
+.ba .v9{max-width:300px;width:100%;aspect-ratio:9/16;object-fit:cover}
+.chat{background:var(--ink);color:#fff;border-radius:18px 18px 4px 18px;padding:14px 18px;font-weight:700;display:inline-block;margin:16px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px}
+.box{background:var(--card);border:3px solid var(--ink);border-radius:18px;padding:24px}
+.box h3{font-size:19px;margin-bottom:10px}
+.box li{margin:7px 0 7px 2px;list-style:none;padding-left:28px;position:relative;font-size:16px}
+.box li:before{position:absolute;left:0;font-weight:800}
+.yes li:before{content:'✓';color:#1d8a3a}
+.no li:before{content:'✗';color:var(--g)}
+.need{margin-top:16px;font-size:15.5px;color:var(--mut)}
+.offer{max-width:620px;margin:0 auto;text-align:center;background:var(--card);border:4px solid var(--ink);border-radius:26px;padding:36px 28px;box-shadow:10px 10px 0 var(--g)}
+.offer .price{font-family:'Anton';font-size:84px;line-height:1;margin:10px 0 2px}
+.offer .price small{font-size:26px}
+.offer ul{text-align:left;margin:22px auto;max-width:420px}
+.offer li{list-style:none;padding-left:28px;position:relative;margin:8px 0}
+.offer li:before{content:'✓';position:absolute;left:0;color:#1d8a3a;font-weight:800}
+details{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px 20px;margin:12px 0}
+summary{font-weight:800;cursor:pointer}
+details p{margin-top:10px;color:var(--mut);font-size:16px}
+footer{padding:36px 0 120px;text-align:center;font-size:14px;color:var(--mut)}
+.sticky{position:fixed;left:50%;bottom:14px;width:min(620px,calc(100% - 24px));transform:translateX(-50%);display:flex;justify-content:space-between;align-items:center;gap:12px;background:rgba(20,18,18,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;border:2px solid #ffffff22;border-radius:18px;padding:12px 12px 12px 20px;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.sticky b{display:block;font-size:17px}.sticky span{font-size:14px;opacity:.8}
+.sticky a{background:var(--a);color:var(--ink);text-decoration:none;font-weight:800;font-size:17px;padding:13px 22px;border-radius:12px;white-space:nowrap;position:relative;overflow:hidden}.sticky a:after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite}
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:30px;padding-top:8px}
+  .tools{grid-template-columns:1fr 1fr}
+  .pains,.steps,.two{grid-template-columns:1fr}
+  .ba{gap:12px;align-items:start}.ba figcaption{font-size:10.5px;letter-spacing:.06em}.chat{font-size:14px;padding:10px 12px}
+  .steps{gap:32px}
+
+  section{padding:48px 0}
+}
+
+/* ===== animations ===== */
+@keyframes up{from{opacity:0;transform:translateY(34px)}to{opacity:1;transform:none}}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(1deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes shine{0%{left:-60%}60%,100%{left:130%}}
+@keyframes marq{to{transform:translateX(-50%)}}
+@keyframes wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg) scale(1.1)}75%{transform:rotate(10deg)}}
+@keyframes pulse{0%,100%{box-shadow:10px 10px 0 var(--g)}50%{box-shadow:14px 14px 0 var(--g)}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.hero .anim{opacity:0;animation:up .8s cubic-bezier(.2,.8,.2,1) forwards}
+.hero h1 .w8{display:inline-block;opacity:0;animation:up .7s cubic-bezier(.2,.8,.2,1) forwards}
+.phonewrap{position:relative;justify-self:center;opacity:0;animation:up 1s .5s cubic-bezier(.2,.8,.2,1) forwards}
+.phonewrap .phone{animation:floaty 6s ease-in-out 1.6s infinite}
+.badge{position:absolute;z-index:2;background:#fff;border:3px solid var(--ink);border-radius:40px;padding:8px 14px;font-weight:800;font-size:14px;box-shadow:4px 4px 0 var(--ink);white-space:nowrap;opacity:0;animation:pop .5s forwards,bob 3.2s ease-in-out infinite}
+.badge.b1{top:12%;left:-34px;animation-delay:1.2s,1.7s}
+.badge.b2{top:46%;right:-40px;background:var(--a);animation-delay:1.5s,2.1s}
+.badge.b3{bottom:14%;left:-28px;animation-delay:1.8s,2.4s}
+.btn{position:relative;overflow:hidden}
+.btn:after{content:'';position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);animation:shine 3.2s ease-in-out infinite}
+.marq{background:var(--g);color:var(--c);overflow:hidden;border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:rotate(-1.2deg);margin:0 -10px}
+.marq div{display:inline-flex;white-space:nowrap;font-family:'Anton';font-size:24px;letter-spacing:.02em;padding:12px 0;animation:marq 22s linear infinite}
+.marq span{padding:0 18px}.marq b{color:var(--a);font-weight:400}
+.rv{opacity:0;transform:translateY(40px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+.tool,.step,.box,.pain{transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.tool.in:hover{transform:translateY(-8px) rotate(-1.5deg);box-shadow:9px 9px 0 var(--g)}
+.step.in:hover,.box.in:hover{transform:translateY(-6px)}
+.pain .e{display:inline-block}.pain.in .e{animation:wob 1.2s .3s ease-in-out}
+.pain.in:hover .e{animation:wob .8s ease-in-out}
+.step:before{transform:scale(0)}.step.in:before{animation:pop .5s .25s forwards}
+.offer.in{animation:pulse 2.6s ease-in-out .8s infinite}
+.price{display:inline-block}
+.chat{position:relative}.chat:after{content:'▍';animation:bob 1s steps(2) infinite;margin-left:2px}
+@media (max-width:860px){.badge{font-size:12px;padding:6px 10px}.badge.b1{left:-8px}.badge.b2{right:-8px}.badge.b3{left:-4px}}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.rv,.hero .anim,.hero h1 .w8,.phonewrap,.badge{opacity:1!important;transform:none!important}}
+.phone{position:relative}.son{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;background:var(--a);color:var(--ink);border:3px solid var(--ink);border-radius:30px;padding:10px 18px;font:800 15px 'Plus Jakarta Sans',sans-serif;cursor:pointer;box-shadow:3px 3px 0 var(--ink);animation:bob 1.6s ease-in-out infinite;white-space:nowrap}
+.son.off{display:none}
+.val{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:stretch;margin-top:28px}
+.vc{border:3px solid var(--ink);border-radius:20px;padding:24px;background:#fff}
+.vc.them{background:#f3ece3}
+.vc.us{background:var(--ink);color:var(--c);box-shadow:8px 8px 0 var(--g)}
+.vc .lbl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.vc .big2{font-family:'Anton';font-size:58px;line-height:1;margin:10px 0 4px}
+.vc.us .big2{color:var(--a)}
+.vc p{font-size:15.5px}
+.vs{align-self:center;font-family:'Anton';font-size:34px;color:var(--g)}
+.calc{margin-top:22px;text-align:center;font-weight:800;font-size:19px}
+.calc s{opacity:.55}
+.stack{margin:26px auto 0;max-width:620px}
+.stack li{list-style:none;display:flex;justify-content:space-between;gap:12px;border-bottom:2px dashed #d8cec4;padding:11px 2px;font-weight:700}
+.stack li b{color:var(--g);white-space:nowrap}
+@media (max-width:860px){.val{grid-template-columns:1fr}.vs{text-align:center}}
+
+.tools.t6{grid-template-columns:repeat(3,1fr)}
+.av{width:54px;height:54px;border-radius:50%;background:var(--a);border:3px solid var(--ink);font-family:Anton;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:3px 3px 0 var(--ink)}
+.tool:nth-child(even) .av{background:var(--g);color:#fff}
+.role{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--g);margin-bottom:6px}
+.steps.s5{grid-template-columns:repeat(5,1fr);gap:16px}
+.win{width:min(380px,88vw);background:#fff;border:4px solid var(--ink);border-radius:22px;box-shadow:10px 10px 0 var(--g);overflow:hidden;animation:floaty 6s ease-in-out 1.6s infinite}
+.win .bar{background:var(--ink);color:#fff;font-weight:800;font-size:13px;padding:10px 14px;display:flex;gap:6px;align-items:center}
+.win .bar i{width:10px;height:10px;border-radius:50%;background:#ff5f57;display:inline-block}.win .bar i+i{background:#febc2e}.win .bar i+i+i{background:#28c840;margin-right:8px}
+.msgs{padding:16px;display:flex;flex-direction:column;gap:12px;min-height:300px}
+.m{max-width:88%;padding:12px 14px;border-radius:16px;font-size:14.5px;font-weight:700;opacity:0;animation:up .6s forwards}
+.m.tu{align-self:flex-end;background:var(--ink);color:#fff;border-bottom-right-radius:4px;animation-delay:1s}
+.m.c{align-self:flex-start;background:#f3ece3;border:2px solid var(--ink);border-bottom-left-radius:4px;animation-delay:2.4s}
+.m.c b{color:var(--g)}
+.file{align-self:flex-start;display:flex;gap:10px;align-items:center;border:2px dashed var(--ink);border-radius:12px;padding:10px 12px;font-size:13.5px;font-weight:800;opacity:0;animation:fpop .5s 3.4s forwards}
+@keyframes fpop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+html,body{overflow-x:hidden}
+.file span{background:var(--g);color:#fff;border-radius:6px;padding:4px 6px;font-size:11px}
+@media (max-width:860px){.tools.t6{grid-template-columns:1fr 1fr}.steps.s5{grid-template-columns:1fr}}
+</style></head><body>
+<div class="top">Nouveau ✦ <b>Mon bureau assisté</b> : 15 $, paiement unique, accès à vie</div>
+<div class="wrap">
+  <nav><div class="logo">BEHN J. <span>PRODUCTIONS</span></div><a href="#offre" style="font-weight:800;font-size:15px">Ouvrir mon bureau →</a></nav>
+  <div class="hero">
+    <div>
+      <div class="eyebrow anim" style="animation-delay:.05s">L'intelligence assistée pour ton entreprise</div>
+      <h1><span class="w8" style="animation-delay:0.15s">6</span> <span class="w8" style="animation-delay:0.24s">employés.</span> <span class="acc"><span style="white-space:nowrap"><span class="w8" style="animation-delay:0.33s">15</span>&nbsp;<span class="w8" style="animation-delay:0.42s">$.</span></span> <span class="w8" style="animation-delay:0.51s">À</span> <span class="w8" style="animation-delay:0.60s">vie.</span></span></h1>
+      <p class="lead anim" style="animation-delay:.6s">Le même bureau que j'utilise pour mon entreprise : <b>ventes, factures, marketing, organisation et prospection</b>, dans Claude, en français. Tu colles un texte, il s'installe, et tu lui parles comme à ton équipe.</p>
+      <a class="btn anim" style="animation-delay:.75s" href="#offre">J'ouvre mon bureau <small>15 $</small></a>
+      <div class="mini anim" style="animation-delay:.9s">Paiement unique · Accès à vie · Mini-cours inclus</div>
+    </div>
+    <div class="phonewrap"><div class="win"><div class="bar"><i></i><i></i><i></i>Claude · Mon bureau</div><div class="msgs">
+      <div class="m tu">César, fais une soumission pour mon nouveau client : 3 séances photo à 350 $.</div>
+      <div class="m c">Voici ta soumission <b>S-2026-014</b> : sous-total 1 050,00 $, TPS 52,50 $, TVQ 104,74 $, <b>total 1 207,24 $</b>. Je prépare le message pour le client ?</div>
+      <div class="file"><span>PDF</span>Soumission_S-2026-014.pdf</div>
+    </div></div></div>
+  </div>
+</div>
+
+<div class="marq" aria-hidden="true"><div><span>SOUMISSIONS</span><b>✦</b><span>FACTURES</span><b>✦</b><span>RELANCES</span><b>✦</b><span>PUBLICATIONS</span><b>✦</b><span>COURRIELS</span><b>✦</b><span>PROSPECTION</span><b>✦</b><span>RAPPORT DU MATIN</span><b>✦</b><span>EN FRANÇAIS</span><b>✦</b><span>SOUMISSIONS</span><b>✦</b><span>FACTURES</span><b>✦</b><span>RELANCES</span><b>✦</b><span>PUBLICATIONS</span><b>✦</b><span>COURRIELS</span><b>✦</b><span>PROSPECTION</span><b>✦</b><span>RAPPORT DU MATIN</span><b>✦</b><span>EN FRANÇAIS</span><b>✦</b><span>SOUMISSIONS</span><b>✦</b><span>FACTURES</span><b>✦</b><span>RELANCES</span><b>✦</b><span>PUBLICATIONS</span><b>✦</b><span>COURRIELS</span><b>✦</b><span>PROSPECTION</span><b>✦</b><span>RAPPORT DU MATIN</span><b>✦</b><span>EN FRANÇAIS</span><b>✦</b></div></div>
+<section class="band"><div class="wrap">
+  <div class="eyebrow" style="color:var(--a)">Le problème</div>
+  <h2 class="rv">Tu fais tout <span class="acc">toi-même.</span></h2>
+  <div class="pains">
+    <div class="pain rv"><div class="e">🧾</div><h3>Les soumissions et les factures</h3><p>Le soir, après ta journée, à calculer la TPS et la TVQ et à relancer ceux qui n'ont pas payé.</p></div>
+    <div class="pain rv"><div class="e">📱</div><h3>Les réseaux sociaux</h3><p>Tu sais qu'il faut publier, mais tu ne sais jamais quoi écrire.</p></div>
+    <div class="pain rv"><div class="e">💸</div><h3>Engager coûte cher</h3><p>Une seule heure d'une adjointe coûte déjà plus que ton bureau complet ici.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="eyebrow">Ton équipe</div>
+  <h2 class="rv">Six employés, <span class="acc">un seul copier-coller.</span></h2>
+  <p style="color:var(--mut);max-width:660px">Ils connaissent ton entreprise : tes services, tes prix, ta façon de parler. Tu leur parles par leur nom : « César, fais une soumission », « Fiona, qui ne m'a pas payé ? ». Et rien ne part sans ton accord.</p>
+  <div class="tools t6"><div class="tool rv"><div class="av">S</div><h3>Sam</h3><div class="role">Direction & stratégie</div><p>Ton rapport chaque matin, tes priorités, ton plan sur 90 jours.</p></div><div class="tool rv"><div class="av">C</div><h3>César</h3><div class="role">Ventes & clients</div><p>Tes soumissions avec TPS/TVQ, tes suivis, tes réponses aux objections.</p></div><div class="tool rv"><div class="av">O</div><h3>Olivia</h3><div class="role">Organisation</div><p>Ta semaine organisée, tes courriels triés, tes comptes rendus.</p></div><div class="tool rv"><div class="av">M</div><h3>Marcos</h3><div class="role">Marketing</div><p>Ton calendrier de contenu, tes publications, tes scripts de vidéo.</p></div><div class="tool rv"><div class="av">F</div><h3>Fiona</h3><div class="role">Finances</div><p>Tes factures, tes relances de paiement, tes chiffres pour le comptable.</p></div><div class="tool rv"><div class="av">A</div><h3>Apollo</h3><div class="role">Prospection</div><p>Des entreprises à contacter et le premier message personnalisé.</p></div></div>
+</div></section>
+
+<section style="padding-top:20px"><div class="wrap">
+  <div class="eyebrow">Le mini-cours inclus</div>
+  <h2 class="rv">Les 5 piliers <span class="acc">de Claude.</span></h2>
+  <p style="color:var(--mut);max-width:640px">Cinq vidéos courtes, en français, pour passer de « je pose des questions » à « mon bureau travaille pour moi ».</p>
+  <div class="steps s5"><div class="step rv"><h3>Bien parler à Claude</h3><p>Obtenir une vraie bonne réponse du premier coup.</p></div><div class="step rv"><h3>Projets & fichiers</h3><p>Il se souvient de ton entreprise et te livre de vrais documents.</p></div><div class="step rv"><h3>Connecteurs</h3><p>Ton courriel, ton calendrier et tes fichiers, sans copier-coller.</p></div><div class="step rv"><h3>Mode Local & ton bureau</h3><p>Tes 6 employés installés en un copier-coller.</p></div><div class="step rv"><h3>Tâches planifiées</h3><p>Ton bureau travaille même quand tu dors.</p></div></div>
+</div></section>
+
+<section class="band" style="padding-top:56px"><div class="wrap">
+  <div class="eyebrow" style="color:var(--a)">Ce que ça vaut vraiment</div>
+  <h2 class="rv">Une équipe complète, <span class="acc">pour le prix d'un lunch.</span></h2>
+  <div class="val">
+    <div class="vc them rv" style="color:var(--ink)"><div class="lbl">Engager de l'aide</div><div class="big2">$$$ / sem.</div><p><b>Chaque semaine.</b> Et une seule personne ne fait pas les ventes, les factures, le marketing et la prospection.</p></div>
+    <div class="vs rv">VS</div>
+    <div class="vc us rv"><div class="lbl">Mon bureau assisté</div><div class="big2">15 $</div><p><b>Une seule fois. À vie.</b> Six employés qui travaillent quand tu veux, autant que tu veux.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:56px"><div class="wrap">
+  <div class="two">
+    <div class="box yes rv"><h3>C'est pour toi si…</h3><ul>
+      <li>Tu as une petite entreprise, un service ou tu es travailleur autonome</li>
+      <li>Tu fais tes soumissions, tes factures et ton marketing toi-même</li>
+      <li>Tu veux gagner des heures chaque semaine</li>
+      <li>Tu veux que ça parle comme toi, en français du Québec</li></ul></div>
+    <div class="box no rv"><h3>Ce n'est pas pour toi si…</h3><ul>
+      <li>Tu cherches un logiciel de comptabilité officiel</li>
+      <li>Tu veux que tout parte tout seul, sans jamais rien relire</li>
+      <li>Tu n'as pas d'ordinateur (Mac ou Windows)</li></ul></div>
+  </div>
+  <p class="need"><b>Ce qu'il te faut :</b> un ordinateur Mac ou Windows et l'application Claude, avec un abonnement qui permet de travailler dans un dossier en mode Local. Les connecteurs et les tâches planifiées dépendent de ton abonnement.</p>
+</div></section>
+
+<section id="offre"><div class="wrap">
+  <div class="offer rv">
+    <div class="eyebrow">Offre de lancement</div>
+    <div class="anton" style="font-size:40px">Mon bureau assisté</div>
+    <div class="price">15 $<small> CAD</small></div>
+    <div style="color:var(--mut)">Paiement unique · <b>accès à vie</b> · pas d'abonnement</div>
+    <ul>
+      <li><b>6 employés assistés</b> : Sam, César, Olivia, Marcos, Fiona et Apollo</li>
+      <li><b>Mini-cours vidéo</b> : les 5 piliers de Claude, en français</li>
+      <li><b>Soumissions et factures</b> avec la TPS et la TVQ calculées</li>
+      <li><b>Bonus : 20 textes prêts à coller</b> pour commencer tout de suite</li>
+      <li><b>Mises à jour à vie</b> : chaque amélioration, gratuitement</li>
+      <li>Installation en un copier-coller, <b>sans Terminal</b> · Mac et Windows</li>
+    </ul>
+    <a class="btn" id="acheter" href="https://buy.stripe.com/fZu8wObBw4hW4Ocd71eUU01">Acheter maintenant · 15 $</a>
+    <div class="mini">Paiement sécurisé · Accès immédiat après l'achat</div>
+  </div>
+</div></section>
+
+<section style="padding-top:10px"><div class="wrap" style="max-width:760px">
+  <h2 style="text-align:center">Questions</h2>
+  <details class="rv"><summary>Est-ce que je dois savoir programmer ?</summary><p>Non. Tu colles un texte une fois, et ensuite tu parles à ton équipe en français, comme à des employés.</p></details>
+  <details class="rv"><summary>Est-ce qu'il envoie des courriels tout seul ?</summary><p>Non. Ton bureau prépare les brouillons. Rien n'est envoyé, publié ou supprimé sans ton accord.</p></details>
+  <details class="rv"><summary>Est-ce qu'il remplace mon comptable ?</summary><p>Non. Fiona prépare tes factures et tes chiffres proprement, mais ton comptable valide tes déclarations.</p></details>
+  <details class="rv"><summary>Et si je ne suis pas inscrit aux taxes ?</summary><p>Tu le dis à l'installation, et tes soumissions et factures se font sans taxes.</p></details>
+  <details class="rv"><summary>Et les mises à jour ?</summary><p>Quand j'améliore le bureau, tu reçois la nouvelle version gratuitement. Tu paies une seule fois.</p></details>
+  <details class="rv"><summary>J'ai déjà « Mon éditeur vidéo », ça marche ensemble ?</summary><p>Oui. Les deux s'installent dans le même Claude, et Marcos peut écrire les scripts que ton éditeur va monter. <a href="/editeur/">Voir Mon éditeur vidéo</a></p></details>
+  <details class="rv"><summary>Une question avant d'acheter ?</summary><p><a href="/contact">Écris-moi ici</a>.</p></details>
+</div></section>
+
+<footer>© Behn J. Productions · Sept-Îles, Québec · <a href="https://behnjproductions.ca">behnjproductions.ca</a><br>Claude est une marque d'Anthropic. Ce produit est indépendant et n'est pas affilié à Anthropic.</footer>
+<div class="sticky"><div><b>Mon bureau assisté</b><span>15 $ · paiement unique · à vie</span></div><a href="https://buy.stripe.com/fZu8wObBw4hW4Ocd71eUU01">Acheter</a></div>
+<script>
+(()=>{const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.15});
+document.querySelectorAll('.rv').forEach(el=>{const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv'));const k=sib.indexOf(el);el.style.transitionDelay=(Math.max(0,k)*0.09)+'s';io.observe(el)});
+const pr=document.querySelector('.offer .price');if(pr){const o=new IntersectionObserver(es=>{if(es[0].isIntersecting){o.disconnect();const t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/900);pr.firstChild.nodeValue=Math.round(15*(1-Math.pow(1-k,3)))+' $';if(k<1)requestAnimationFrame(f)};if(!matchMedia('(prefers-reduced-motion:reduce)').matches)requestAnimationFrame(f)}},{threshold:.5});o.observe(pr)}})();
+</script></body></html>

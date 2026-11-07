@@ -1,0 +1,143 @@
+.lux-home { --lux-red:#9f1204; --lux-gold:#ffb604; --lux-paper:#faf3e7; --lux-serif:'Cormorant Garamond',Georgia,serif; --lux-sans:'Inter',Arial,sans-serif; background:var(--lux-paper); color:#150f0a; font-family:var(--lux-serif); }
+.lux-home a { color:inherit; text-decoration:none; }
+.lux-home button { cursor:pointer; }
+.lux-home :is(a,button,input,select,textarea):focus-visible { outline:2px solid var(--lux-gold); outline-offset:5px; }
+.lux-home h1,.lux-home h2,.lux-home h3,.lux-home p { margin:0; }
+.lux-home h1,.lux-home h2,.lux-home h3 { font-family:var(--lux-serif); font-weight:500; text-transform:none; letter-spacing:-.035em; }
+.lux-skip { position:absolute; top:-70px; left:20px; z-index:100; padding:15px; background:var(--lux-paper); }
+.lux-skip:focus { top:15px; }
+.lux-header { position:relative; z-index:20; display:flex; align-items:center; gap:28px; height:116px; max-width:1600px; margin:auto; padding:14px 5.4%; background:var(--lux-paper); }
+.lux-brand { flex:none; width:190px; padding-right:34px; border-right:1px solid #998873; }
+.lux-brand img { display:block; width:155px; height:78px; object-fit:contain; }
+.lux-nav { display:flex; gap:24px; align-items:center; justify-content:center; margin-left:auto; font:15px var(--lux-sans); }
+.lux-nav a { transition:color .2s; white-space:nowrap; }
+.lux-nav a:hover { color:var(--lux-red); }
+.lux-header-contact { padding:12px 22px; border:1px solid var(--lux-red); border-radius:100px; font-size:19px; white-space:nowrap; transition:background .2s,color .2s; }
+.lux-header-contact:hover { background:var(--lux-red); color:#fff8eb; }
+.lux-menu,.lux-mobile-contact { display:none; }
+.lux-hero { position:relative; isolation:isolate; height:clamp(550px,43vw,690px); background:#100c08; overflow:hidden; color:#faf3e7; }
+.lux-hero-photo { position:absolute; z-index:-2; inset:0 0 0 auto; width:72%; height:100%; object-fit:cover; object-position:50% 35%; }
+.lux-hero::after { content:''; position:absolute; z-index:-1; inset:0; background:linear-gradient(90deg,#100c08 0%,rgba(16,12,8,.96) 25%,rgba(16,12,8,.66) 40%,transparent 62%); }
+.lux-hero-copy { position:relative; max-width:1600px; margin:auto; padding:75px 5.5% 68px; }
+.lux-eyebrow { display:flex; align-items:center; gap:26px; color:var(--lux-red); font:600 11px/1.6 var(--lux-sans); text-transform:uppercase; letter-spacing:.26em; }
+.lux-eyebrow::after { content:''; width:130px; height:1px; background:currentColor; opacity:.6; }
+.lux-hero .lux-eyebrow { color:var(--lux-gold); }
+.lux-home .lux-hero h1 { margin-top:40px; font-size:clamp(52px,5.9vw,88px); font-style:italic; line-height:.99; max-width:790px; }
+.lux-hero-services { font-size:21px; letter-spacing:.09em; font-style:italic; margin-top:31px!important; }
+.lux-button { display:inline-flex; align-items:center; justify-content:space-between; gap:32px; padding:15px 24px; background:var(--lux-red); color:#fff9ef!important; border:1px solid #bd793e; font-size:20px; transition:background .2s,transform .2s; }
+.lux-button svg { color:var(--lux-gold); }
+.lux-hero .lux-button { margin-top:40px; }
+.lux-button:hover { background:#b81d0b; transform:translateY(-2px); }
+.lux-christmas { position:relative; display:grid; grid-template-columns:1fr 1.15fr 1.45fr; align-items:center; min-height:112px; padding:22px 5.5% 22px 12%; background:var(--lux-red); color:#fff4de!important; border-bottom:1px solid #ffb60466; overflow:hidden; }
+.lux-christmas>img { position:absolute; width:190px; height:160px; object-fit:contain; left:-55px; bottom:-32px; pointer-events:none; }
+.lux-christmas-title { color:var(--lux-gold); text-transform:uppercase; font-size:25px; letter-spacing:.14em; line-height:1.04; }
+.lux-christmas-place { font-size:28px; font-style:italic; padding:10px 28px; border-inline:1px solid #f2d9b788; text-align:center; }
+.lux-christmas-date { padding-left:30px; font-size:24px; text-align:center; }
+.lux-christmas-date small { display:block; color:var(--lux-gold); text-transform:uppercase; font:600 10px var(--lux-sans); letter-spacing:.28em; margin-top:12px; }
+.lux-services { padding:60px 5.5% 65px; max-width:1600px; margin:auto; }
+.lux-services-intro { display:grid; grid-template-columns:1.55fr 1fr; gap:8%; align-items:center; margin:24px 0 42px; }
+.lux-home .lux-services h2 { font-size:clamp(44px,4.6vw,70px); line-height:.94; }
+.lux-services-intro>p { max-width:380px; font-size:21px; line-height:1.35; }
+.lux-service-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+.lux-service-image { display:block; overflow:hidden; aspect-ratio:1.48; }
+.lux-service-image img { display:block; width:100%; height:100%; object-fit:cover; transition:transform .7s; }
+.lux-service-image:hover img { transform:scale(1.035); }
+.lux-service-number { display:flex; gap:18px; align-items:center; margin:18px 0 8px; font:600 10px var(--lux-sans); color:var(--lux-red); }
+.lux-service-number::after { content:''; width:45px; height:1px; background:var(--lux-gold); }
+.lux-home .lux-service h3 { font-size:clamp(26px,2.75vw,41px); line-height:1.05; font-style:italic; }
+.lux-service>p { font-size:20px; line-height:1.35; margin:13px 0 24px; min-height:54px; }
+.lux-text-link { display:inline-flex; align-items:center; gap:20px; color:var(--lux-red)!important; font:600 10px var(--lux-sans); letter-spacing:.22em; text-transform:uppercase; padding-bottom:8px; border-bottom:1px solid var(--lux-red); }
+.lux-text-link svg { color:#b77d00; transition:transform .2s; }
+.lux-text-link:hover svg { transform:translateX(4px); }
+.lux-contact { position:relative; isolation:isolate; display:grid; grid-template-columns:1fr 1fr; gap:7%; padding:65px 5.5% 76px; color:#faf3e7; background:#130d09; scroll-margin-top:20px; }
+.lux-contact::before { content:''; position:absolute; inset:0; z-index:-1; opacity:.18; background:url('/assets/coast-footer.jpg') center bottom/cover; }
+.lux-contact .lux-eyebrow { color:var(--lux-gold); }
+.lux-contact .lux-eyebrow::after { width:80px; }
+.lux-home .lux-contact h2 { font-size:clamp(45px,4.5vw,68px); line-height:1; font-style:italic; margin-top:40px; }
+.lux-home .lux-contact .contact-form { margin:0; display:grid; grid-template-columns:1fr 1fr; gap:22px 20px; padding:0; background:transparent; }
+.lux-home .lux-contact .contact-form>label { display:flex; flex-direction:column; gap:6px; font-size:17px; color:#e7dfd4; }
+.lux-home .lux-contact :is(input:not([type=checkbox]),select,textarea) { width:100%; min-width:0; border:0; border-bottom:1px solid #b6a78e; border-radius:0; padding:10px 0; background:transparent; color:#faf3e7; font:18px var(--lux-serif); box-shadow:none; }
+.lux-contact select option { background:#130d09; }
+.lux-contact input::placeholder,.lux-contact textarea::placeholder { color:#c6bcad; opacity:.9; }
+.lux-contact textarea { min-height:78px; resize:vertical; }
+.lux-home .lux-contact .privacy-consent { display:flex; gap:12px; grid-column:1/-1; margin:0; font-size:13px; line-height:1.4; }
+.lux-home .lux-contact .privacy-consent input { accent-color:var(--lux-red); flex:none; }
+.lux-home .lux-contact .privacy-consent button { color:var(--lux-gold); }
+.lux-home .lux-contact .modal-submit { justify-self:start; width:auto; margin:0; padding:15px 24px; font:20px var(--lux-serif); text-transform:none; background:var(--lux-red); border:1px solid #bd793e; box-shadow:none; }
+.lux-contact .modal-submit svg { color:var(--lux-gold); }
+.lux-contact .success-state { grid-column:1/-1; }
+.lux-footer { display:flex; align-items:center; gap:35px; padding:25px 5.5%; background:#130d09; color:#f5edde; border-top:1px solid #65503e; }
+.lux-footer img { width:145px; height:65px; object-fit:contain; }
+.lux-footer p { font-size:17px; }
+.lux-footer p span { color:var(--lux-gold); margin-inline:20px; }
+.lux-footer button { margin-left:auto; border:0; background:none; color:#ded4c4; font:12px var(--lux-sans); }
+@media(min-width:1600px) { .lux-contact,.lux-christmas,.lux-footer { padding-inline:max(5.5%,calc((100% - 1424px)/2)); } }
+@media(max-width:1180px) { .lux-header { gap:18px; padding-inline:4%; } .lux-brand { width:160px; padding-right:20px; } .lux-brand img { width:135px; } .lux-nav { gap:16px; font-size:12px; } .lux-header-contact { font-size:16px; padding:11px 16px; } .lux-christmas-date { font-size:20px; } .lux-christmas-place { font-size:24px; } }
+@media(max-width:900px) { .lux-header { height:92px; justify-content:space-between; } .lux-brand { width:155px; border:0; } .lux-brand img { height:66px; } .lux-menu { display:flex; background:none; border:0; color:var(--lux-red); padding:10px; } .lux-header-contact { margin-left:auto; } .lux-nav { display:none; position:absolute; top:92px; inset-inline:0; margin:0; padding:25px; background:var(--lux-paper); box-shadow:0 20px 30px #0003; font-size:16px; } .lux-nav.is-open { display:flex; flex-direction:column; align-items:flex-start; } .lux-mobile-contact { display:block; } .lux-hero { height:610px; } .lux-hero-photo { width:100%; object-position:62% center; } .lux-hero::after { background:linear-gradient(90deg,#100c08e6,#100c0899 40%,#100c0822 85%); } .lux-hero-copy { padding-top:70px; } .lux-home .lux-hero h1 { font-size:68px; } .lux-christmas { padding:25px 5%; grid-template-columns:1fr 1fr; gap:22px; } .lux-christmas>img { opacity:.4; } .lux-christmas-title { position:relative; font-size:22px; } .lux-christmas-place { border-right:0; font-size:24px; padding:0 18px; } .lux-christmas-date { grid-column:1/-1; padding:0; font-size:22px; } .lux-services-intro { grid-template-columns:1fr; gap:25px; } .lux-services-intro>p { max-width:600px; } .lux-service-grid { gap:18px; } .lux-contact { grid-template-columns:1fr; gap:40px; } .lux-home .lux-contact h2 { margin-top:25px; } }
+@media(max-width:600px) { .lux-header { height:86px; padding:10px 6%; } .lux-brand img { width:125px; height:62px; } .lux-nav { top:86px; } .lux-header-contact { display:none; } .lux-hero { height:690px; } .lux-hero-photo { width:100%; height:100%; object-position:61% 50%; } .lux-hero::after { background:linear-gradient(0deg,#100c08 0%,#100c08db 27%,#100c0833 60%,#100c0822); } .lux-hero-copy { height:100%; display:flex; flex-direction:column; justify-content:flex-end; padding:30px 6% 38px; } .lux-hero .lux-eyebrow { font-size:9px; letter-spacing:.17em; } .lux-eyebrow::after { width:45px; } .lux-home .lux-hero h1 { font-size:clamp(41px,10.6vw,62px); margin-top:20px; } .lux-hero-services { font-size:16px; letter-spacing:.025em; margin-top:20px!important; } .lux-hero .lux-button { margin-top:24px; align-self:flex-start; font-size:18px; } .lux-christmas { padding:26px 6%; } .lux-christmas-title { font-size:20px; } .lux-christmas-place { font-size:23px; line-height:1.05; } .lux-christmas-date { font-size:21px; } .lux-services { padding:42px 6%; } .lux-home .lux-services h2 { font-size:45px; } .lux-service-grid { grid-template-columns:1fr; gap:38px; } .lux-services-intro { margin-bottom:30px; } .lux-services-intro>p { font-size:20px; } .lux-home .lux-service h3 { font-size:36px; } .lux-service>p { min-height:0; margin-bottom:18px; } .lux-service-image { aspect-ratio:1.5; } .lux-contact { padding:45px 6%; } .lux-home .lux-contact h2 { font-size:45px; } .lux-home .lux-contact .contact-form { grid-template-columns:1fr; } .lux-contact .contact-field--wide { grid-column:1; } .lux-footer { flex-wrap:wrap; gap:15px; padding:25px 6%; } .lux-footer p { flex-basis:100%; order:3; font-size:15px; } .lux-footer p span { margin-inline:8px; } }
+@media(prefers-reduced-motion:reduce) { .lux-home *, .lux-home *::before,.lux-home *::after { transition:none!important; animation:none!important; scroll-behavior:auto!important; } }
+/* Keep both faces fully visible in the portrait's desktop crop. */
+.lux-home .lux-hero-photo { object-position:50% 0%; }
+.lux-home :is(h1,h2,h3) { font-synthesis:style; }
+.lux-home .lux-contact .contact-form textarea { min-height:80px; height:80px; }
+.lux-home .lux-contact .privacy-consent { font-family:var(--lux-sans); font-size:12px; }
+@media(max-width:600px) { .lux-home .lux-hero-photo { object-position:61% 0%; } }
+
+/* Refined contact card: readable ivory fields over a quiet dark backdrop. */
+.lux-home .lux-contact { align-items:start; gap:7%; padding-block:80px; }
+.lux-home .lux-contact::before { opacity:.09; }
+.lux-home .lux-contact-intro { padding-top:36px; }
+.lux-home .lux-contact-description { max-width:390px; margin-top:28px; color:#e1d6c8; font:23px/1.5 var(--lux-serif); }
+.lux-home .lux-contact-note { display:block; margin-top:38px; color:var(--lux-gold); font:500 10px/1.8 var(--lux-sans); text-transform:uppercase; letter-spacing:.22em; }
+.lux-home .lux-contact .contact-form { padding:36px; gap:24px 20px; background:#faf3e7; color:#241b16; border:1px solid #e4d5c0; border-radius:4px; box-shadow:0 20px 60px #0003; }
+.lux-home .lux-contact .contact-form>label { gap:10px; color:#3a2a20; font:500 12px/1.5 var(--lux-sans); }
+.lux-home .lux-contact .contact-form :is(input:not([type=checkbox]),select,textarea) { min-height:50px; padding:13px 14px; border:1px solid #cbbda9; border-radius:3px; background:#fffcf6; color:#241b16; font:400 14px/1.5 var(--lux-sans); transition:border-color .2s,box-shadow .2s; color-scheme:light; }
+.lux-home .lux-contact .contact-form :is(input,textarea)::placeholder { color:#7c7064; opacity:1; }
+.lux-home .lux-contact .contact-form select option { color:#241b16; background:#fffcf6; }
+.lux-home .lux-contact .contact-form :is(input,select,textarea):focus-visible { outline:2px solid var(--lux-red); outline-offset:2px; border-color:var(--lux-red); box-shadow:0 0 0 4px #9f12040a; }
+.lux-home .lux-contact .contact-form textarea { min-height:120px; height:120px; }
+.lux-home .lux-contact .privacy-consent { align-items:flex-start; gap:10px; color:#625448; font:400 11px/1.7 var(--lux-sans); }
+.lux-home .lux-contact .privacy-consent input { width:17px; height:17px; margin:2px 0 0; }
+.lux-home .lux-contact .privacy-consent label { color:inherit; font:inherit; }
+.lux-home .lux-contact .privacy-consent button { padding:0; color:var(--lux-red); font:inherit; background:none; border:0; text-decoration:underline; text-underline-offset:3px; }
+.lux-home .lux-contact .modal-submit { width:100%; min-height:54px; justify-content:space-between; padding:16px 20px; border:1px solid var(--lux-red); border-radius:3px; background:var(--lux-red); color:#fff9ef; font:500 13px/1.4 var(--lux-sans); letter-spacing:.02em; transition:background .2s,transform .2s; }
+.lux-home .lux-contact .modal-submit:hover:not(:disabled) { background:#7c1005; transform:translateY(-1px); }
+.lux-home .lux-contact .modal-submit:disabled { opacity:.7; cursor:wait; }
+.lux-home .lux-contact .form-error { grid-column:1/-1; color:#8a160a; font:13px/1.5 var(--lux-sans); }
+.lux-home .lux-contact .success-state { background:#faf3e7; color:#241b16; padding:36px; border-radius:4px; }
+.lux-home .lux-contact .success-state h2 { font-size:36px; margin-top:18px; }
+.lux-home .lux-contact .success-state p { color:#514436; }
+.lux-home .lux-contact .success-state .eyebrow { color:var(--lux-red); }
+@media(max-width:900px) { .lux-home .lux-contact { padding-block:50px; gap:34px; } .lux-home .lux-contact-intro { padding-top:0; } .lux-home .lux-contact-description { max-width:560px; } .lux-home .lux-contact-note { margin-top:20px; } }
+@media(max-width:600px) { .lux-home .lux-contact .contact-form { padding:24px 20px; gap:22px; } .lux-home .lux-contact .contact-form :is(input:not([type=checkbox]),select,textarea) { font-size:16px; } .lux-home .lux-contact-description { font-size:21px; margin-top:20px; } }
+
+/* Compact contact introduction; the form remains the focus. */
+.lux-home .lux-contact { grid-template-columns:minmax(0,760px); justify-content:center; gap:30px; padding-block:60px; }
+.lux-home .lux-contact-intro { padding:0; text-align:center; }
+.lux-home .lux-contact h2 { margin:0; font-size:clamp(34px,4vw,52px); line-height:1.12; font-style:normal; letter-spacing:-.025em; }
+.lux-home .lux-contact::before { display:none; }
+@media(max-width:600px) { .lux-home .lux-contact { padding-block:38px; gap:24px; } }
+
+
+/* User-selected photograph, kept uncropped next to the contact form. */
+.lux-home .lux-contact { grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:34px 44px; align-items:center; }
+.lux-home .lux-contact-intro { grid-column:1/-1; }
+.lux-home .lux-contact-photo { margin:0; min-width:0; }
+.lux-home .lux-contact-photo img { display:block; width:100%; height:auto; border-radius:3px; }
+@media(max-width:1000px) { .lux-home .lux-contact { grid-template-columns:minmax(0,760px); gap:26px; } .lux-home .lux-contact-photo { grid-column:1; } }
+
+/* Selected photograph fills the contact section background. */
+.lux-home .lux-contact { grid-template-columns:minmax(0,760px); justify-content:center; background:#130d09; padding-block:70px; }
+.lux-home .lux-contact::before { display:block; opacity:1; background:linear-gradient(90deg,rgba(12,9,7,.58),rgba(12,9,7,.5)),url('/assets/contact-mariage-joie.webp') center 72%/cover no-repeat; }
+.lux-home .lux-contact h2 { text-shadow:0 2px 18px #0009; }
+.lux-home .lux-contact .contact-form { background:rgba(250,243,231,.95); }
+@media(max-width:600px) { .lux-home .lux-contact { padding-block:42px; } .lux-home .lux-contact::before { background-position:center,32% center; } }
+@media(min-width:1001px) { .lux-home .lux-contact { grid-template-columns:minmax(0,1fr) minmax(0,620px); gap:28px 44px; } .lux-home .lux-contact-intro,.lux-home .lux-contact .contact-form { grid-column:2; } .lux-home .lux-contact h2 { font-size:45px; } }
+/* Lift the portrait toward the contact heading without moving the form. */
+@media(min-width:1001px) { .lux-home .lux-contact::before { background-position:center,center -280px; background-size:cover,100% auto; } }
+@media(min-width:1001px) { .lux-home .lux-contact::before { background-image:linear-gradient(180deg,rgba(12,9,7,.48) 0%,rgba(12,9,7,.48) 46%,#130d09 67%),url('/assets/contact-mariage-joie.webp'); background-position:center,center -360px; } }
+/* Keep the approved raised portrait while filling the entire section. */
+@media(min-width:1001px) { .lux-home .lux-contact::before { background-image:linear-gradient(90deg,rgba(12,9,7,.44),rgba(12,9,7,.52)),url('/assets/contact-mariage-joie.webp'),url('/assets/contact-mariage-joie.webp'); background-position:center,center -360px,center bottom; background-size:cover,100% auto,cover; background-repeat:no-repeat; } }
+@media(min-width:1001px) { .lux-home .lux-contact::before { background-image:linear-gradient(90deg,rgba(12,9,7,.44),rgba(12,9,7,.52)),url('/assets/contact-mariage-joie.webp'); background-size:cover,auto 160%; background-position:center,center bottom; background-repeat:no-repeat; } }
+/* Slightly soften the contact photograph, keeping the approved framing. */
+.lux-home .lux-contact::before { opacity:.70; }

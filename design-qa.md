@@ -1,52 +1,52 @@
-# Design QA — Introduction À propos
+# Homepage design QA — November 6, 2026
 
-- Source visual truth: `/workspace/scratch/b87f1fc374aa/upload/01-Captura-de-pantalla-2026-09-13-a-la-s-7.51.44-p.-m..png`
-- Implementation screenshot: `/workspace/scratch/b87f1fc374aa/marketing-live/design-qa-implementation.jpg`
-- Focused gallery screenshot: `/workspace/scratch/b87f1fc374aa/marketing-live/design-qa-gallery.jpg`
-- Combined comparison: `/workspace/scratch/b87f1fc374aa/marketing-live/design-qa-comparison.jpg`
-- Viewport: 1363 × 936 CSS px, device scale factor 1
-- Source pixels: 760 × 609; implementation pixels: 1348 × 926; comparison normalized to 700 px height per image
-- State: `/a-propos`, initial desktop view after entrance animation; gallery checked at scroll position 1250 px
+Source visual truth: /Users/behnjproductions/.codex/generated_images/01a16c95-f8d7-7132-92e5-3dc81c0e2777/exec-e8ed857b-33b6-40ef-8622-e7776978e539.png (1024 × 1536 concept).
+Implementation screenshots: /Users/behnjproductions/Documents/Codex/2026-11-06/behn-home/outputs/home-desktop.png (1440 × 2459); home-mobile.png (390 px CSS width). Density 1; compare page-region proportions rather than stretching the full pages to equal height.
+State: homepage default, desktop 1440 × 1000 and mobile 390 × 844. Actual site content and photography retained. Browser: headless Chrome through Playwright.
 
-## Full-view comparison evidence
+## Comparison and findings
+- Typography: Cormorant Garamond display, italic hero/card/contact headings and Inter micro labels reproduce the editorial hierarchy. Scoped to the homepage. Other routes retain brand typography.
+- Spacing/layout: ivory navigation, spacious portrait hero, compact festive ribbon, three equal service cards, two-column dark contact and footer. Mobile stacks cards and form; no horizontal overflow. All original navigation routes are accessible (including IA and Boutique).
+- Colors: official #9F1204 red and #FFB604 yellow, warm ivory and near-black. Understated borders and red separators.
+- Image fidelity: real existing brand logo retained instead of the generated approximation. Existing original marriage/event/design photographs used instead of mock stock images. All images loaded. The real portrait has a taller aspect than the concept: top crop now preserves both complete heads. No replacement of photos with shapes.
+- Content: approved French headlines and event dates match the concept. Existing full contact fields and mandatory consent preserved; therefore the contact region is intentionally taller than the simplified mock. No fabricated testimonials.
 
-The implementation preserves the approved editorial anatomy: documentary hero photograph, oversized red “À propos” title overlapping the lower edge, light editorial statement field, four-image strip, then the existing founder biography. The live header remains intact and the new section uses the established red, yellow-orange, Anton and Alice brand system.
+## Iteration history
+1. P1: initial desktop portrait crop clipped the elder's head. Corrected object-position to top; restarted preview and captured again. Both heads fully visible.
+2. P2: font-synthesis disabled by existing global styles prevented italic display rendering. Enabled style synthesis only inside homepage; new screenshot confirms italic hierarchy.
+3. P2: original textarea height made contact excessively tall. Scoped textarea to 80px, still user-resizable; retained all functional fields.
 
-## Focused-region comparison evidence
+## Interactions and checks
+- Privacy dialog opens and Escape dismisses it.
+- Mobile navigation opens, closes with Escape and returns focus.
+- No browser page errors; no broken images; no horizontal overflow at 1440 and 390.
+- Navigation destinations and services anchors checked against source.
+- Production build, four Sites worker tests and eleven contact submission tests pass.
+- No real contact submission sent during QA.
 
-The gallery was captured separately because it is below the first viewport. All four supplied photographs render sharply, share equal-width editorial crops and retain their subjects. The hero plus four-image strip uses all five user-supplied photographs. No generated or placeholder imagery remains.
+Focused evidence: desktop hero and contact regions inspected in the full-resolution screenshot; mobile portrait/menu/form inspected separately. Brand logo is the supplied site's original asset, not an AI redraw.
 
-## Required fidelity surfaces
+## Follow-up polish
+- Concept uses different stock service photography; implementation deliberately preserves the business's original work.
 
-- Fonts and typography: Anton-style display typography matches the source’s condensed editorial impact; Alice remains the supporting voice. Hierarchy and wrapping are intentional at the tested desktop width.
-- Spacing and layout rhythm: the hero, statement and gallery form three clear beats before the darker biography chapter. The red divider cleanly marks the transition.
-- Colors and visual tokens: brand red `#9F1204`/brighter red accents and yellow-orange `#FFB604` are preserved against ivory and black surfaces.
-- Image quality and asset fidelity: five original photographs were converted to optimized WebP without changing faces or content. Crops keep key subjects visible and files loaded successfully in the browser.
-- Copy and content: placeholder Canva text was replaced by concise French-Canadian company positioning for Behn J. Productions, Côte-Nord, Sept-Îles, photography, video and web broadcasting.
+final result: passed
 
-## Findings
+## Contact refinement
+November 6: replaced low-contrast underlined form with an ivory card, bordered fields, Inter labels, clear consent, full-width red CTA, short editorial introduction and quieter backdrop. Preserves existing ContactForm logic and fields. Desktop/mobile browser checks repeated: no overflow, no broken imagery, privacy dialog and mobile menu pass, no page errors. New evidence: form-desktop.png and form-mobile.png in /Users/behnjproductions/Documents/Codex/2026-11-06/behn-home/outputs/. Production build passes. No live submission or publication performed.
 
-- No actionable P0, P1 or P2 mismatch remains.
-- P3: a future mobile-specific source mockup could refine exact small-screen crops, but the current two-column gallery breakpoint is complete and does not block this implementation.
+final result: passed
 
-## Interaction and runtime checks
+## Compact contact revision
+User rejected the left editorial text block. Removed it and its paragraph/service list. Contact now has one centered, non-italic heading « Parlons de votre projet. » above the ivory form, with a quiet solid background. Preserved full form behavior. Desktop/mobile browser verification repeated successfully (no overflow, no broken images, privacy dialog, menu and no page errors); build passes. Evidence: contacto-simplificado.png in the task outputs.
 
-- All 12 page images reported complete with non-zero natural widths.
-- Existing biography carousel next control was tested successfully.
-- No application console errors were detected; only unrelated browser-extension metadata errors appeared.
-- Production build passed and all 4 Sites worker tests passed.
+final result: passed
 
-## Comparison history
+## Selected wedding photo
+Added user-selected IMG_2257.JPG as an optimized 208 KB WebP, without cropping or text overlays, left of the contact form on desktop and above on mobile. Original file untouched. Browser desktop/mobile checks pass: no overflow, no broken images, no page errors, privacy and menu work. Screenshot: contacto-con-foto.png in task outputs. Publication remains pending user authorization.
 
-- Initial pass: the new section matched the requested structure; no P0/P1/P2 correction was required.
-- Final visual pass: hero composition, statement hierarchy, gallery crops, biography transition, image loading and carousel interaction were confirmed.
+final result: passed
 
-## Implementation checklist
-
-- [x] Add company introduction before founder biography.
-- [x] Use all five supplied photographs.
-- [x] Preserve the reference’s oversized red title and four-image strip.
-- [x] Optimize imagery and protect responsive layout.
-- [x] Verify build, tests, rendered page, images, interaction and console.
+## Photo background — user correction
+Moved IMG_2257 into a full-section background with a dark overlay. On desktop the ivory form sits right, leaving the bride visible left. Mobile uses the same background with a left-biased crop. Preserved contact fields and submission. Browser checks pass on desktop/mobile with no page errors or overflow; privacy and menu pass. Focused screenshot: contacto-fondo-foto.png in task outputs. Not published.
 
 final result: passed
